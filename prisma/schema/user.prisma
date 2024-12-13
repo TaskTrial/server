@@ -1,0 +1,34 @@
+model User {
+  id             String   @id @default(uuid()) @db.Uuid
+  email          String   @unique
+  username       String   @unique
+  password       String
+  name           String
+  role           UserRole
+  profilePic     String?
+  departmentId   String?  @db.Uuid
+  organizationId String?  @db.Uuid
+  isOwner        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  isActive       Boolean  @default(true)
+
+  // Relations
+  department           Department?         @relation(fields: [departmentId], references: [id])
+  organization         Organization?       @relation("OrganizationEmployees", fields: [organizationId], references: [id])
+  createdOrganizations Organization[]      @relation("OrganizationCreator")
+  ownedOrganizations   OrganizationOwner[]
+  managedDepartments   Department[]        @relation("DepartmentManager")
+  createdTeams         Team[]              @relation("TeamCreator")
+  teamMemberships      TeamMember[]
+  createdProjects      Project[]           @relation("ProjectCreator")
+  createdTasks         Task[]              @relation("TaskCreator")
+  assignedTasks        Task[]              @relation("TaskAssignee")
+  notifications        Notification[]
+  timelogs             Timelog[]
+  comments             Comment[]
+  taskAttachments      TaskAttachment[]
+  generatedReports     Report[]
+
+  @@map("users")
+}

@@ -1,0 +1,39 @@
+model Organization {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  industry    String
+  sizeRange   String
+  website     String?
+  logoUrl     String?
+  isVerified  Boolean  @default(false)
+  status      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String   @db.Uuid
+
+  // Relations
+  creator     User                @relation("OrganizationCreator", fields: [createdBy], references: [id])
+  departments Department[]
+  teams       Team[]
+  projects    Project[]
+  users       User[]              @relation("OrganizationEmployees")
+  reports     Report[]
+  owners      OrganizationOwner[]
+
+  @@map("organizations")
+}
+
+model OrganizationOwner {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  userId         String   @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@map("organization_owners")
+}

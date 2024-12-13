@@ -1,0 +1,35 @@
+model Team {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  description    String?
+  createdBy      String   @db.Uuid
+  organizationId String   @db.Uuid
+  departmentId   String   @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  creator      User         @relation("TeamCreator", fields: [createdBy], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  department   Department   @relation(fields: [departmentId], references: [id])
+  members      TeamMember[]
+  projects     Project[]
+  reports      Report[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String         @id @default(uuid()) @db.Uuid
+  teamId   String         @db.Uuid
+  userId   String         @db.Uuid
+  role     TeamMemberRole
+  joinedAt DateTime       @default(now())
+  isActive Boolean        @default(true)
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("team_members")
+}

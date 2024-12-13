@@ -1,0 +1,34 @@
+enum UserRole {
+  OWNER
+  MANAGER
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TeamMemberRole {
+  MEMBER
+  LEADER
+  VIEWER
+}
+
+enum ReportType {
+  ORGANIZATION
+  DEPARTMENT
+  TEAM
+  PROJECT
+  TASK
+  USER_PERFORMANCE
+}

@@ -1,0 +1,20 @@
+model Report {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  reportType  ReportType
+  format      String
+  parameters  Json?
+  filePath    String
+  generatedBy String     @db.Uuid
+  entityId    String     @db.Uuid
+  entityType  String
+  createdAt   DateTime   @default(now())
+
+  // Relations
+  generator    User          @relation(fields: [generatedBy], references: [id])
+  organization Organization? @relation(fields: [entityId], references: [id], map: "reports_organization_entityId_fkey")
+  team         Team?         @relation(fields: [entityId], references: [id], map: "reports_team_entityId_fkey")
+
+  @@map("reports")
+}

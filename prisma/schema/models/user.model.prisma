@@ -1,9 +1,9 @@
 model User {
   id             String   @id @default(uuid()) @db.Uuid
-  email          String   @unique
-  username       String   @unique
-  password       String
-  name           String
+  email          String   @unique @db.VarChar(255)
+  username       String   @unique @db.VarChar(50)
+  password       String   @db.VarChar(255)
+  name           String   @db.VarChar(100)
   role           UserRole
   profilePic     String?
   departmentId   String?  @db.Uuid
@@ -12,6 +12,7 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   isActive       Boolean  @default(true)
+  deletedAt      DateTime?
 
   // Relations
   department           Department?         @relation(fields: [departmentId], references: [id])
@@ -25,10 +26,12 @@ model User {
   createdTasks         Task[]              @relation("TaskCreator")
   assignedTasks        Task[]              @relation("TaskAssignee")
   notifications        Notification[]
-  timelogs             Timelog[]
+  timelogs            Timelog[]
   comments             Comment[]
   taskAttachments      TaskAttachment[]
   generatedReports     Report[]
 
   @@map("users")
+  @@index([departmentId])
+  @@index([organizationId])
 }

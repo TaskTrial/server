@@ -1,0 +1,18 @@
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum DependencyType {
+  BLOCKS
+  REQUIRES
+  RELATES_TO
+  DUPLICATES
+}

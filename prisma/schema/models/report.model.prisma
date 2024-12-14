@@ -1,14 +1,14 @@
 model Report {
   id          String     @id @default(uuid()) @db.Uuid
-  name        String
-  description String?
+  name        String     @db.VarChar(100)
+  description String?    @db.Text
   reportType  ReportType
-  format      String
+  format      String     @db.VarChar(20)
   parameters  Json?
   filePath    String
   generatedBy String     @db.Uuid
   entityId    String     @db.Uuid
-  entityType  String
+  entityType  EntityType
   createdAt   DateTime   @default(now())
 
   // Relations
@@ -17,4 +17,6 @@ model Report {
   team         Team?         @relation(fields: [entityId], references: [id], map: "reports_team_entityId_fkey")
 
   @@map("reports")
+  @@index([generatedBy])
+  @@index([entityId])
 }

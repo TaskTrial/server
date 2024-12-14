@@ -1,0 +1,20 @@
+model Department {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String   @db.VarChar(100)
+  description    String?  @db.Text
+  organizationId String   @db.Uuid
+  managerId      String   @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  manager      User        @relation("DepartmentManager", fields: [managerId], references: [id])
+  teams        Team[]
+  users        User[]
+
+  @@map("departments")
+  @@index([organizationId])
+  @@index([managerId])
+}

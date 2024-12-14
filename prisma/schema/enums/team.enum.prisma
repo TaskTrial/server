@@ -1,0 +1,5 @@
+enum TeamMemberRole {
+  MEMBER
+  LEADER
+  VIEWER
+}

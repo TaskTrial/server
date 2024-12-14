@@ -1,0 +1,13 @@
+enum ReportType {
+  ORGANIZATION
+  DEPARTMENT
+  TEAM
+  PROJECT
+  TASK
+  USER_PERFORMANCE
+}
+
+enum EntityType {
+  ORGANIZATION
+  TEAM
+}

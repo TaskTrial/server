@@ -10,9 +10,10 @@ model Timelog {
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("timelogs")
   @@index([taskId])
   @@index([userId])
+  @@index([startTime, endTime]) // for time-range queries
+  @@map("timelogs")
 }
 
 model Comment {
@@ -27,7 +28,30 @@ model Comment {
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("comments")
   @@index([taskId])
   @@index([userId])
+  @@index([createdAt]) // for pagination and sorting
+  @@map("comments")
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  entityType String // "task", "project", "team", etc.
+  entityId   String   @db.Uuid
+  userId     String   @db.Uuid
+  action     String // "created", "updated", "commented", etc.
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id])
+  organization Organization? @relation(fields: [entityId], references: [id], map: "activitylog_organization_fkey")
+  project      Project?      @relation(fields: [entityId], references: [id], map: "activitylog_project_fkey")
+  team         Team?         @relation(fields: [entityId], references: [id], map: "activitylog_team_fkey")
+  task         Task?         @relation(fields: [entityId], references: [id], map: "activitylog_task_fkey")
+
+  @@index([entityId, entityType])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
 }

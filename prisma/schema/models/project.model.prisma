@@ -1,28 +1,37 @@
 model Project {
-  id             String   @id @default(uuid()) @db.Uuid
-  name           String   @db.VarChar(100)
-  description    String?  @db.Text
-  status         String   @db.VarChar(20)
-  createdBy      String   @db.Uuid
-  organizationId String   @db.Uuid
-  teamId         String   @db.Uuid
+  id             String       @id @default(uuid()) @db.Uuid
+  name           String       @db.VarChar(100)
+  description    String?      @db.Text
+  status         String       @db.VarChar(20)
+  createdBy      String       @db.Uuid
+  organizationId String       @db.Uuid
+  teamId         String       @db.Uuid
   startDate      DateTime
   endDate        DateTime
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
+  priority       TaskPriority @default(MEDIUM) // for project prioritization
+  progress       Float?       @default(0) // for progress tracking
+  budget         Float? // for budget tracking
+  lastModifiedBy String?      @db.Uuid // for audit
 
   // Relations
-  creator      User         @relation("ProjectCreator", fields: [createdBy], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator      User          @relation("ProjectCreator", fields: [createdBy], references: [id])
+  modifier     User?         @relation("ProjectModifier", fields: [lastModifiedBy], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team         Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
   sprints      Sprint[]
   tasks        Task[]
+  reports      Report[]
+  activityLogs ActivityLog[]
 
-  @@map("projects")
+  @@unique([organizationId, name]) // to prevent duplicate project names within an organization
   @@index([organizationId])
   @@index([teamId])
   @@index([createdBy])
+  @@index([status])
+  @@map("projects")
 }
 
 model Sprint {
@@ -33,11 +42,15 @@ model Sprint {
   startDate   DateTime
   endDate     DateTime
   status      String   @db.VarChar(20)
+  goal        String?  @db.Text // for sprint goal
+  order       Int      @default(0) // for ordering sprints
 
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks   Task[]
 
-  @@map("sprints")
+  @@unique([projectId, name]) // to prevent duplicate sprint names within a project
   @@index([projectId])
+  @@index([status])
+  @@map("sprints")
 }

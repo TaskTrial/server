@@ -1,29 +1,34 @@
 model Organization {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String   @db.VarChar(100)
-  description String?  @db.Text
-  industry    String   @db.VarChar(50)
-  sizeRange   String   @db.VarChar(50)
-  website     String?  @db.VarChar(255)
-  logoUrl     String?
-  isVerified  Boolean  @default(false)
-  status      String   @db.VarChar(20)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-  createdBy   String   @db.Uuid
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String    @db.VarChar(100)
+  description  String?   @db.Text
+  industry     String    @db.VarChar(50)
+  sizeRange    String    @db.VarChar(50)
+  website      String?   @db.VarChar(255)
+  logoUrl      String?
+  isVerified   Boolean   @default(false)
+  status       String    @db.VarChar(20)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  createdBy    String    @db.Uuid
+  address      String?   @db.Text
+  contactEmail String?   @db.VarChar(255)
+  contactPhone String?   @db.VarChar(50)
 
   // Relations
-  creator     User                @relation("OrganizationCreator", fields: [createdBy], references: [id])
-  departments Department[]
-  teams       Team[]
-  projects    Project[]
-  users       User[]              @relation("OrganizationEmployees")
-  reports     Report[]
-  owners      OrganizationOwner[]
+  creator      User                @relation("OrganizationCreator", fields: [createdBy], references: [id])
+  departments  Department[]
+  teams        Team[]
+  projects     Project[]
+  users        User[]              @relation("OrganizationEmployees")
+  reports      Report[]
+  owners       OrganizationOwner[]
+  templates    TaskTemplate[] // relation to task templates
+  activityLogs ActivityLog[] // relation to activity logs
 
-  @@map("organizations")
   @@index([createdBy])
+  @@map("organizations")
 }
 
 model OrganizationOwner {
@@ -35,9 +40,10 @@ model OrganizationOwner {
 
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("organization_owners")
+  @@unique([organizationId, userId]) // to prevent duplicate owner assignments
   @@index([organizationId])
   @@index([userId])
+  @@map("organization_owners")
 }

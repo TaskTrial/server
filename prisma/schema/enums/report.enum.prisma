@@ -10,4 +10,7 @@ enum ReportType {
 enum EntityType {
   ORGANIZATION
   TEAM
+  PROJECT
+  TASK
+  USER
 }

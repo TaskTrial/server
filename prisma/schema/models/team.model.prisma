@@ -1,26 +1,29 @@
 model Team {
-  id             String   @id @default(uuid()) @db.Uuid
-  name           String   @db.VarChar(100)
-  description    String?  @db.Text
-  createdBy      String   @db.Uuid
-  organizationId String   @db.Uuid
-  departmentId   String   @db.Uuid
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String    @db.VarChar(100)
+  description    String?   @db.Text
+  createdBy      String    @db.Uuid
+  organizationId String    @db.Uuid
+  departmentId   String    @db.Uuid
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
+  avatar         String? // for team avatar/logo
 
   // Relations
-  creator      User         @relation("TeamCreator", fields: [createdBy], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  creator      User          @relation("TeamCreator", fields: [createdBy], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department   Department    @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   members      TeamMember[]
   projects     Project[]
   reports      Report[]
+  activityLogs ActivityLog[] // relation to activity logs
 
-  @@map("teams")
+  @@unique([organizationId, name]) // to prevent duplicate team names within an organization
   @@index([organizationId])
   @@index([departmentId])
   @@index([createdBy])
+  @@map("teams")
 }
 
 model TeamMember {
@@ -35,7 +38,8 @@ model TeamMember {
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("team_members")
+  @@unique([teamId, userId]) // to prevent duplicate team memberships
   @@index([teamId])
   @@index([userId])
+  @@map("team_members")
 }

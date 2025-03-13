@@ -1,54 +1,70 @@
 model Task {
-  id          String       @id @default(uuid()) @db.Uuid
-  title       String       @db.VarChar(200)
-  description String?      @db.Text
-  priority    TaskPriority
-  status      TaskStatus
-  rate        Float?
-  projectId   String       @db.Uuid
-  sprintId    String?      @db.Uuid
-  createdBy   String       @db.Uuid
-  assignedTo  String?      @db.Uuid
-  dueDate     DateTime
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  deletedAt   DateTime?
+  id             String       @id @default(uuid()) @db.Uuid
+  title          String       @db.VarChar(200)
+  description    String?      @db.Text
+  priority       TaskPriority
+  status         TaskStatus
+  rate           Float?
+  projectId      String       @db.Uuid
+  sprintId       String?      @db.Uuid
+  createdBy      String       @db.Uuid
+  assignedTo     String?      @db.Uuid
+  dueDate        DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  estimatedTime  Float? // for time estimation (in hours)
+  actualTime     Float? // for actual time spent
+  parentId       String?      @db.Uuid // for subtask hierarchy
+  order          Int          @default(0) // for custom ordering
+  labels         String[] // for task categorization
+  lastModifiedBy String?      @db.Uuid // for audit
 
   // Relations
   project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   sprint       Sprint?          @relation(fields: [sprintId], references: [id])
   creator      User             @relation("TaskCreator", fields: [createdBy], references: [id])
   assignee     User?            @relation("TaskAssignee", fields: [assignedTo], references: [id])
+  modifier     User?            @relation("TaskModifier", fields: [lastModifiedBy], references: [id])
   attachments  TaskAttachment[]
   comments     Comment[]
   timelogs     Timelog[]
   dependencies TaskDependency[] @relation("DependentTask")
   dependentOn  TaskDependency[] @relation("MainTask")
+  parent       Task?            @relation("TaskHierarchy", fields: [parentId], references: [id]) // Added for subtask hierarchy
+  subtasks     Task[]           @relation("TaskHierarchy") // for subtask hierarchy
+  activityLogs ActivityLog[] // relation to activity logs
 
-  @@map("tasks")
   @@index([projectId])
   @@index([sprintId])
   @@index([createdBy])
   @@index([assignedTo])
+  @@index([status])
+  @@index([priority])
+  @@index([parentId]) // for querying subtasks efficiently
+  @@map("tasks")
 }
 
 model TaskAttachment {
-  id         String   @id @default(uuid()) @db.Uuid
-  taskId     String   @db.Uuid
-  fileName   String   @db.VarChar(255)
-  fileType   String   @db.VarChar(50)
-  filePath   String
-  fileSize   Int
-  uploadedBy String   @db.Uuid
-  createdAt  DateTime @default(now())
+  id              String   @id @default(uuid()) @db.Uuid
+  taskId          String   @db.Uuid
+  fileName        String   @db.VarChar(255)
+  fileType        String   @db.VarChar(50)
+  filePath        String
+  fileSize        Int
+  uploadedBy      String   @db.Uuid
+  createdAt       DateTime @default(now())
+  storageProvider String?  @db.VarChar(50) // for storage provider (e.g., "s3", "azure")
+  storageKey      String // for cloud storage reference
 
   // Relations
   task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   uploader User @relation(fields: [uploadedBy], references: [id])
 
-  @@map("task_attachments")
   @@index([taskId])
   @@index([uploadedBy])
+  @@index([fileType]) // for filtering by file type
+  @@map("task_attachments")
 }
 
 model TaskDependency {
@@ -56,12 +72,36 @@ model TaskDependency {
   taskId          String         @db.Uuid
   dependentTaskId String         @db.Uuid
   dependencyType  DependencyType
+  description     String?        @db.Text // for dependency description
 
   // Relations
   task          Task @relation("MainTask", fields: [taskId], references: [id], onDelete: Cascade)
   dependentTask Task @relation("DependentTask", fields: [dependentTaskId], references: [id], onDelete: Cascade)
 
-  @@map("task_dependencies")
+  @@unique([taskId, dependentTaskId]) // to prevent duplicate dependencies
   @@index([taskId])
   @@index([dependentTaskId])
+  @@map("task_dependencies")
+}
+
+model TaskTemplate {
+  id             String       @id @default(uuid()) @db.Uuid
+  name           String       @db.VarChar(100)
+  description    String?      @db.Text
+  priority       TaskPriority
+  estimatedTime  Float?
+  organizationId String       @db.Uuid
+  createdBy      String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  checklist      Json? // predefined checklist items
+  labels         String[] // task categorization
+  isPublic       Boolean      @default(false)
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, name]) // Prevent duplicate templates within organization
+  @@index([organizationId])
+  @@map("task_templates")
 }

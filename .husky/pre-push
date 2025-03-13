@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+npm run lint && if npm run lint | grep 'warning'; then echo 'ESLint warnings found. Fix before pushing.' && exit 1; fi

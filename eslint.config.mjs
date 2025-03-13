@@ -3,7 +3,6 @@ import pluginJs from '@eslint/js';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   {
@@ -21,8 +20,6 @@ export default [
       curly: 'warn',
       eqeqeq: 'error',
       'no-var': 'error',
-      'max-lines-per-function': ['error', { max: 50, skipComments: true }],
-      // 'max-lines': ["error", {"max": 30, "skipBlankLines": true}],
       'prefer-const': 'error',
     },
   },

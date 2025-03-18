@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.0.1",
+    "@supabase/supabase-js": "^2.49.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"
   },

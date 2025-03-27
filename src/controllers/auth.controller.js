@@ -217,3 +217,32 @@ export const forgotPassword = async (req, res) => {
       .json({ message: 'Password reset request failed', error });
   }
 };
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, JWT_SECRET);
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.id,
+        refreshToken,
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
+
+    // Generate new access token
+    const newAccessToken = generateAccessToken(user);
+
+    return res.status(200).json({
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return res.status(401).json({ message: 'Token refresh failed' }, error);
+  }
+};

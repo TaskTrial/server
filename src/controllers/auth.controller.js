@@ -6,6 +6,7 @@ import { comparePassword, hashPassword } from '../utils/password.utils.js';
 import { generateOTP } from '../utils/otp.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
 import {
+  resetPasswordValidation,
   signinValidation,
   signupValidation,
 } from '../validations/auth.validations.js';
@@ -220,7 +221,10 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    // TODO: Validate reset password
+    const { error } = resetPasswordValidation();
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
     const { email, otp, newPassword } = req.body;
 

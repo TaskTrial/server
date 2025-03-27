@@ -1,11 +1,12 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-
+import jwt from 'jsonwebtoken';
 import prisma from '../config/prismaClient.js';
 import { comparePassword, hashPassword } from '../utils/password.utils.js';
 import { generateOTP } from '../utils/otp.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
 import {
+  resetPasswordValidation,
   signinValidation,
   signupValidation,
 } from '../validations/auth.validations.js';
@@ -175,6 +176,7 @@ export const signin = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
+    // TODO: must validate user inputs
     const { email } = req.body;
 
     // Find user
@@ -209,7 +211,7 @@ export const forgotPassword = async (req, res) => {
 
     return res.status(200).json({
       message: 'Password reset OTP sent',
-      userId: user.id,
+      userId: user.id, // TODO: delete userId from response
     });
   } catch (error) {
     return res
@@ -220,7 +222,10 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    // TODO: Validate reset password
+    const { error } = resetPasswordValidation();
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
     const { email, otp, newPassword } = req.body;
 
@@ -267,10 +272,10 @@ export const refreshAccessToken = async (req, res) => {
     const { refreshToken } = req.body;
 
     // Verify refresh token
-    const decoded = jwt.verify(refreshToken, JWT_SECRET);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: {
         id: decoded.id,
         refreshToken,
@@ -288,6 +293,6 @@ export const refreshAccessToken = async (req, res) => {
       accessToken: newAccessToken,
     });
   } catch (error) {
-    return res.status(401).json({ message: 'Token refresh failed' }, error);
+    return res.status(401).json({ message: 'Token refresh failed', error });
   }
 };

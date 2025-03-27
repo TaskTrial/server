@@ -16,6 +16,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from '../utils/token.utils.js';
+import { googleVerifyIdToken } from '../utils/googleVerifyToken.utils.js';
 
 /* eslint no-undef:off */
 // Authentication Controllers
@@ -308,5 +309,83 @@ export const refreshAccessToken = async (req, res) => {
     });
   } catch (error) {
     return res.status(401).json({ message: 'Token refresh failed', error });
+  }
+};
+
+export const googleOAuthCallback = (req, res) => {
+  res.status(200).json({ message: 'user signup successfully' });
+};
+
+// Google OAuth Login Controller
+export const googleOAuthLogin = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    // Verify Google ID Token
+    const ticket = await googleVerifyIdToken(idToken);
+    const payload = ticket.getPayload();
+
+    // Find or create user
+    let user = await prisma.user.findUnique({
+      where: {
+        email: payload.email,
+      },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: payload.email,
+          firstName: payload.given_name.trim() || '',
+          lastName: payload.family_name.trim() || '',
+          username: payload.email.split('@')[0], // Generate username from email
+          password: null, // Since it's OAuth
+          role: 'MEMBER', // Default role
+          profilePic: payload.picture,
+          isActive: true,
+          preferences: {
+            // Optional: store additional OAuth-related info
+            googleId: payload.sub,
+            authProvider: 'GOOGLE',
+          },
+        },
+      });
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Optional: Store refresh token in database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken,
+        lastLogin: new Date(),
+      },
+    });
+
+    // Prepare user response (exclude sensitive data)
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      profilePic: user.profilePic,
+    };
+
+    res.status(200).json({
+      message: 'Google authentication successful',
+      user: userResponse,
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'Google authentication failed',
+      error: error.message,
+    });
   }
 };

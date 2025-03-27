@@ -217,6 +217,49 @@ export const forgotPassword = async (req, res) => {
       .json({ message: 'Password reset request failed', error });
   }
 };
+
+export const resetPassword = async (req, res) => {
+  try {
+    // TODO: Validate reset password
+
+    const { email, otp, newPassword } = req.body;
+
+    // Find user
+    const user = await prisma.user.findFirst({
+      where: { email: email },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Validate reset token
+    if (
+      user.passwordResetToken !== otp ||
+      user.passwordResetExpires < new Date()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Hash new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update password and clear reset tokens
+    await prisma.user.update({
+      where: { email: email },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    return res.status(200).json({ message: 'Password reset successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Password reset failed', error });
+
 export const refreshAccessToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;

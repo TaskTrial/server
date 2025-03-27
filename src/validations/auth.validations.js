@@ -32,6 +32,20 @@ export const signupValidation = (obj) => {
   return schema.validate(obj);
 };
 
+export const verifyEmailValidation = (obj) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required().trim().messages({
+      'string.empty': 'Email is required.',
+      'string.email': 'Please enter a valid email address.',
+    }),
+    otp: Joi.string().required().trim().messages({
+      'string.empty': 'OTP is required.',
+    }),
+  });
+
+  return schema.validate(obj);
+};
+
 export const signinValidation = (obj) => {
   const schema = Joi.object({
     email: Joi.string().email().required().trim().messages({
@@ -42,6 +56,17 @@ export const signinValidation = (obj) => {
       'string.empty': 'Password is required.',
       'string.min': 'Password must be at least 8 characters long.',
       'string.max': 'Password must be at most 32 characters long.',
+    }),
+  });
+
+  return schema.validate(obj);
+};
+
+export const forgotPasswordValidation = (obj) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required().trim().messages({
+      'string.empty': 'Email is required.',
+      'string.email': 'Please enter a valid email address.',
     }),
   });
 

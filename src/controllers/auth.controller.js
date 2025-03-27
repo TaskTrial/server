@@ -2,10 +2,17 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import prisma from '../config/prismaClient.js';
-import { hashPassword } from '../utils/password.utils.js';
+import { comparePassword, hashPassword } from '../utils/password.utils.js';
 import { generateOTP } from '../utils/otp.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
-import { signupValidation } from '../validations/auth.validations.js';
+import {
+  signinValidation,
+  signupValidation,
+} from '../validations/auth.validations.js';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from '../utils/token.utils.js';
 
 /* eslint no-undef:off */
 // Authentication Controllers
@@ -105,5 +112,63 @@ export const verifyEmail = async (req, res) => {
     return res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
     return res.status(500).json({ message: 'Verification failed', error });
+  }
+};
+
+export const signin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const { error } = signinValidation();
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // Find user
+    const user = await prisma.user.findFirst({
+      where: { email: email },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'Account not activated' });
+    }
+
+    // Verify password
+    const isPasswordValid = await comparePassword(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken,
+        lastLogin: new Date(),
+      },
+    });
+
+    return res.status(200).json({
+      message: 'User login successfully',
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Signin failed', error });
   }
 };

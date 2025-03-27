@@ -5,7 +5,10 @@ import prisma from '../config/prismaClient.js';
 import { comparePassword, hashPassword } from '../utils/password.utils.js';
 import { generateOTP } from '../utils/otp.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
-import { signupValidation } from '../validations/auth.validations.js';
+import {
+  signinValidation,
+  signupValidation,
+} from '../validations/auth.validations.js';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -116,7 +119,10 @@ export const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // TODO: validation user input
+    const { error } = signinValidation();
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
 
     // Find user
     const user = await prisma.user.findFirst({

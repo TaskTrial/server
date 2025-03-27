@@ -71,3 +71,40 @@ export const signup = async (req, res) => {
     return res.status(500).json({ message: `Signup failed: ${error.message}` });
   }
 };
+
+export const verifyEmail = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await prisma.user.findFirst({
+      where: { email: email },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check OTP
+    if (
+      user.emailVerificationToken !== otp ||
+      user.emailVerificationExpires < new Date()
+    ) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Activate user and clear verification tokens
+    await prisma.user.update({
+      where: { email: email },
+      data: {
+        isActive: true,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+      },
+    });
+
+    return res.status(200).json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    return res.status(500).json({ message: 'Verification failed' });
+  }
+};

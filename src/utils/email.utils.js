@@ -24,7 +24,7 @@ export const sendOTPEmail = async (email, otp) => {
 
 export const sendEmail = async ({ to, subject, text }) => {
   const mailOptions = {
-    from: process.env.EMAIL_FROM,
+    from: process.env.EMAIL_USER,
     to,
     subject,
     text,

@@ -172,3 +172,48 @@ export const signin = async (req, res) => {
     return res.status(500).json({ message: 'Signin failed', error });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find user
+    const user = await prisma.user.findFirst({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(200).json({
+        message: 'If an account exists, a reset link has been sent',
+      });
+    }
+
+    // Generate password reset OTP
+    const resetOTP = generateOTP();
+
+    // Store reset token with expiration
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: resetOTP,
+        passwordResetExpires: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    // Send reset email
+    await sendEmail({
+      to: email,
+      subject: 'Password Reset Request',
+      text: `Your password reset code is: ${resetOTP}`,
+    });
+
+    return res.status(200).json({
+      message: 'Password reset OTP sent',
+      userId: user.id,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: 'Password reset request failed', error });
+  }
+};

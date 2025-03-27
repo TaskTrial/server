@@ -12,7 +12,7 @@ export const signupValidation = (obj) => {
       'string.min': 'Last name must be at least 3 characters long.',
       'string.max': 'Last name must be at most 30 characters long.',
     }),
-    username: Joi.alphanum().trim().required().messages({
+    username: Joi.string().trim().required().messages({
       'string.alphanum': 'Username must contain only alphanumeric characters',
       'string.min': 'Username must be at least 3 characters long',
       'string.max': 'Username cannot be longer than 30 characters',

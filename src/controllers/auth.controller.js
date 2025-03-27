@@ -5,12 +5,16 @@ import prisma from '../config/prismaClient.js';
 import { hashPassword } from '../utils/password.utils.js';
 import { generateOTP } from '../utils/otp.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
+import { signupValidation } from '../validations/auth.validations.js';
 
 /* eslint no-undef:off */
 // Authentication Controllers
 export const signup = async (req, res) => {
   try {
-    // TODO: Validate signup function
+    const { error } = signupValidation(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
 
     const { email, password, firstName, lastName, username } = req.body;
 

@@ -6,9 +6,11 @@ import { comparePassword, hashPassword } from '../utils/password.utils.js';
 import { generateOTP } from '../utils/otp.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
 import {
+  forgotPasswordValidation,
   resetPasswordValidation,
   signinValidation,
   signupValidation,
+  verifyEmailValidation,
 } from '../validations/auth.validations.js';
 import {
   generateAccessToken,
@@ -82,6 +84,11 @@ export const signup = async (req, res) => {
 
 export const verifyEmail = async (req, res) => {
   try {
+    const { error } = verifyEmailValidation(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
     const { email, otp } = req.body;
 
     const user = await prisma.user.findFirst({
@@ -176,7 +183,11 @@ export const signin = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
-    // TODO: must validate user inputs
+    const { error } = forgotPasswordValidation();
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
     const { email } = req.body;
 
     // Find user
@@ -211,7 +222,6 @@ export const forgotPassword = async (req, res) => {
 
     return res.status(200).json({
       message: 'Password reset OTP sent',
-      userId: user.id, // TODO: delete userId from response
     });
   } catch (error) {
     return res
@@ -270,6 +280,10 @@ export const resetPassword = async (req, res) => {
 export const refreshAccessToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ message: 'Refresh token is required' });
+    }
 
     // Verify refresh token
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);

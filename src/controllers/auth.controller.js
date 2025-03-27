@@ -12,7 +12,7 @@ export const signup = async (req, res) => {
   try {
     // TODO: Validate signup function
 
-    const { email, password, name, username } = req.body;
+    const { email, password, firstName, lastName, username } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
@@ -41,7 +41,8 @@ export const signup = async (req, res) => {
       data: {
         email,
         username,
-        name,
+        firstName,
+        lastName,
         password: hashedPassword,
         role: 'MEMBER', // Default role
         isActive: false, // Require email verification

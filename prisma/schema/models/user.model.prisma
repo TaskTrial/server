@@ -1,23 +1,29 @@
 model User {
-  id             String    @id @default(uuid()) @db.Uuid
-  email          String    @unique @db.VarChar(255)
-  username       String    @unique @db.VarChar(50)
-  password       String    @db.VarChar(255)
-  name           String    @db.VarChar(100)
-  role           UserRole
-  profilePic     String?
-  departmentId   String?   @db.Uuid
-  organizationId String?   @db.Uuid
-  isOwner        Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  isActive       Boolean   @default(true)
-  deletedAt      DateTime?
-  phoneNumber    String?   @db.VarChar(50)
-  jobTitle       String?   @db.VarChar(100)
-  timezone       String?   @db.VarChar(50)
-  bio            String?   @db.Text
-  preferences    Json? // for user-specific settings
+  id                       String    @id @default(uuid()) @db.Uuid
+  email                    String    @unique @db.VarChar(255)
+  username                 String    @unique @db.VarChar(50)
+  password                 String    @db.VarChar(255)
+  name                     String    @db.VarChar(100)
+  role                     UserRole
+  profilePic               String?
+  departmentId             String?   @db.Uuid
+  organizationId           String?   @db.Uuid
+  isOwner                  Boolean   @default(false)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  isActive                 Boolean   @default(true)
+  deletedAt                DateTime?
+  phoneNumber              String?   @db.VarChar(50)
+  jobTitle                 String?   @db.VarChar(100)
+  timezone                 String?   @db.VarChar(50)
+  bio                      String?   @db.Text
+  preferences              Json? // for user-specific settings
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
+  refreshToken             String?
+  lastLogin                DateTime?
 
   // Relations
   department           Department?         @relation(fields: [departmentId], references: [id])

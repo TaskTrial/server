@@ -15,7 +15,7 @@ export const signup = async (req, res) => {
     const { email, password, name, username } = req.body;
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findFirst({
       where: {
         email,
         username,
@@ -51,11 +51,11 @@ export const signup = async (req, res) => {
     });
 
     // Send verification email
-    await sendEmail(
-      email,
-      'Verify Your Email',
-      `Your verification code is: ${verificationOTP}`,
-    );
+    await sendEmail({
+      to: email,
+      subject: 'Verify Your Email',
+      text: `Your verification code is: ${verificationOTP}`,
+    });
 
     return res.status(201).json({
       message: 'User created. Please verify your email.',

@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import morgan from 'morgan';
 import helmet from 'helmet';
+import cors from 'cors';
 import passport from 'passport';
 import session from 'express-session';
 import authRouter from './routes/auth.routes.js';
@@ -28,10 +29,16 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+//// Cors Policy
+app.use(cors());
+
+// Helmet helps you secure your Express apps by setting various HTTP headers.
 app.use(helmet());
 app.use(helmet.contentSecurityPolicy());
 
 configureGoogleStrategy();
+
+//morgan is a HTTP request logger middleware for Node.js
 app.use(morgan('dev'));
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));

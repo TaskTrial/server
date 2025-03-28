@@ -7,6 +7,7 @@ import cors from 'cors';
 import passport from 'passport';
 import session from 'express-session';
 import authRouter from './routes/auth.routes.js';
+import { errorHandler, notFound } from './middlewares/errorHandler.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
 
 /* eslint no-undef: off */
@@ -44,6 +45,10 @@ app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));
 
 app.use(authRouter);
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   /* eslint no-console:off */

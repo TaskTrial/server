@@ -10,7 +10,7 @@ import {
   googleOAuthCallback,
   googleOAuthLogin,
 } from '../controllers/auth.controller.js';
-import { apiLimiter } from '../utils/apiLimiter.js';
+import { apiLimiter } from '../utils/apiLimiter.utils.js';
 
 const router = Router();
 

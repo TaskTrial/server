@@ -17,6 +17,8 @@ npm run start:dev # and makesure there is no error
 
 ### Auth
 
+base url: `http://localhost:3000`
+
 - **Sign up** or **register**: `/api/auth/signup`
 - **Verify email**: `/api/auth/verifyEmail`
 - **Sign in** or **login**: `/api/auth/signin`

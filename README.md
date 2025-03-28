@@ -5,8 +5,10 @@ This repository contains the server-side implementation for the project. It hand
 ## Usage
 
 ```bash
-cd server/
 
+cd server/
+#install first
+npm install 
 # run the server
 npm run start:dev # and makesure there is no error
 ```

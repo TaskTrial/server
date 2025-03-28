@@ -4,6 +4,7 @@ dotenv.config();
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
+import { apiLimiter } from './utils/apiLimiter.js';
 import passport from 'passport';
 import session from 'express-session';
 import authRouter from './routes/auth.routes.js';
@@ -38,6 +39,9 @@ app.use(helmet());
 app.use(helmet.contentSecurityPolicy());
 
 configureGoogleStrategy();
+
+// Rate limiter middleware
+app.use(apiLimiter);
 
 //morgan is a HTTP request logger middleware for Node.js
 app.use(morgan('dev'));

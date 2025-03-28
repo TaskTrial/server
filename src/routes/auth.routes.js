@@ -10,15 +10,16 @@ import {
   googleOAuthCallback,
   googleOAuthLogin,
 } from '../controllers/auth.controller.js';
+import { apiLimiter } from '../utils/apiLimiter.js';
 
 const router = Router();
 
-router.post('/api/auth/signup', signup);
-router.post('/api/auth/verifyEmail', verifyEmail);
-router.post('/api/auth/signin', signin);
-router.post('/api/auth/forgotPassword', forgotPassword);
-router.post('/api/auth/resetPassword', resetPassword);
-router.post('/api/auth/refreshAccessToken', refreshAccessToken);
+router.post('/api/auth/signup', apiLimiter, signup);
+router.post('/api/auth/verifyEmail', apiLimiter, verifyEmail);
+router.post('/api/auth/signin', apiLimiter, signin);
+router.post('/api/auth/forgotPassword', apiLimiter, forgotPassword);
+router.post('/api/auth/resetPassword', apiLimiter, resetPassword);
+router.post('/api/auth/refreshAccessToken', apiLimiter, refreshAccessToken);
 
 // Google OAuth Routes
 // Initiate Google OAuth authentication

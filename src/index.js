@@ -2,6 +2,7 @@ import express from 'express';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import morgan from 'morgan';
+import helmet from 'helmet';
 import passport from 'passport';
 import session from 'express-session';
 import authRouter from './routes/auth.routes.js';
@@ -26,6 +27,9 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(helmet());
+app.use(helmet.contentSecurityPolicy());
 
 configureGoogleStrategy();
 app.use(morgan('dev'));

@@ -20,7 +20,7 @@ import { googleVerifyIdToken } from '../utils/googleVerifyToken.utils.js';
 
 /* eslint no-undef:off */
 // Authentication Controllers
-export const signup = async (req, res) => {
+export const signup = async (req, res, next) => {
   try {
     const { error } = signupValidation(req.body);
     if (error) {
@@ -79,11 +79,11 @@ export const signup = async (req, res) => {
       user: user,
     });
   } catch (error) {
-    return res.status(500).json({ message: `Signup failed: ${error.message}` });
+    next(error);
   }
 };
 
-export const verifyEmail = async (req, res) => {
+export const verifyEmail = async (req, res, next) => {
   try {
     const { error } = verifyEmailValidation(req.body);
     if (error) {
@@ -120,11 +120,11 @@ export const verifyEmail = async (req, res) => {
 
     return res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
-    return res.status(500).json({ message: 'Verification failed', error });
+    next(error);
   }
 };
 
-export const signin = async (req, res) => {
+export const signin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -178,11 +178,11 @@ export const signin = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Signin failed', error });
+    next(error);
   }
 };
 
-export const forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res, next) => {
   try {
     const { error } = forgotPasswordValidation();
     if (error) {
@@ -225,13 +225,11 @@ export const forgotPassword = async (req, res) => {
       message: 'Password reset OTP sent',
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: 'Password reset request failed', error });
+    next(error);
   }
 };
 
-export const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res, next) => {
   try {
     const { error } = resetPasswordValidation();
     if (error) {
@@ -274,11 +272,11 @@ export const resetPassword = async (req, res) => {
 
     return res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
-    return res.status(500).json({ message: 'Password reset failed', error });
+    next(error);
   }
 };
 
-export const refreshAccessToken = async (req, res) => {
+export const refreshAccessToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
 
@@ -308,7 +306,7 @@ export const refreshAccessToken = async (req, res) => {
       accessToken: newAccessToken,
     });
   } catch (error) {
-    return res.status(401).json({ message: 'Token refresh failed', error });
+    next(error);
   }
 };
 

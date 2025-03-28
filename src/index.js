@@ -1,13 +1,19 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 dotenv.config();
+import morgan from 'morgan';
+import helmet from 'helmet';
+import cors from 'cors';
+import { apiLimiter } from './utils/apiLimiter.js';
 import passport from 'passport';
 import session from 'express-session';
 import authRouter from './routes/auth.routes.js';
+import { errorHandler, notFound } from './middlewares/errorHandler.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
 
 /* eslint no-undef: off */
 const PORT = process.env.PORT;
+
 const app = express();
 
 app.use(
@@ -25,12 +31,28 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+//// Cors Policy
+app.use(cors());
+
+// Helmet helps you secure your Express apps by setting various HTTP headers.
+app.use(helmet());
+app.use(helmet.contentSecurityPolicy());
+
 configureGoogleStrategy();
 
+// Rate limiter middleware
+app.use(apiLimiter);
+
+//morgan is a HTTP request logger middleware for Node.js
+app.use(morgan('dev'));
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));
 
 app.use(authRouter);
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   /* eslint no-console:off */

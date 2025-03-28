@@ -4,11 +4,14 @@ dotenv.config();
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
-import { apiLimiter } from './utils/apiLimiter.js';
+import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
 import authRouter from './routes/auth.routes.js';
-import { errorHandler, notFound } from './middlewares/errorHandler.js';
+import {
+  errorHandler,
+  notFound,
+} from './middlewares/errorHandler.middleware.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
 
 /* eslint no-undef: off */

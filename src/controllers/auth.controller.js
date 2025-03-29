@@ -19,7 +19,12 @@ import {
 import { googleVerifyIdToken } from '../utils/googleVerifyToken.utils.js';
 
 /* eslint no-undef:off */
-// Authentication Controllers
+/**
+ * @desc   Register a new user
+ * @route  /api/auth/signup
+ * @method POST
+ * @access public
+ */
 export const signup = async (req, res, next) => {
   try {
     const { error } = signupValidation(req.body);
@@ -83,6 +88,12 @@ export const signup = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Verify user's email address using verification token
+ * @route  /api/auth/verifyEmail
+ * @method POST
+ * @access public
+ */
 export const verifyEmail = async (req, res, next) => {
   try {
     const { error } = verifyEmailValidation(req.body);
@@ -124,6 +135,12 @@ export const verifyEmail = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Authenticate user and return access token
+ * @route  /api/auth/signin
+ * @method POST
+ * @access public
+ */
 export const signin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -182,6 +199,12 @@ export const signin = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Initiate password reset process by sending reset token to user's email
+ * @route  /api/auth/forgotPassword
+ * @method POST
+ * @access public
+ */
 export const forgotPassword = async (req, res, next) => {
   try {
     const { error } = forgotPasswordValidation();
@@ -229,6 +252,12 @@ export const forgotPassword = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Reset user's password using valid reset token
+ * @route  /api/auth/resetPassword
+ * @method POST
+ * @access public
+ */
 export const resetPassword = async (req, res, next) => {
   try {
     const { error } = resetPasswordValidation();
@@ -276,6 +305,12 @@ export const resetPassword = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Generate new access token using refresh token
+ * @route  /api/auth/refreshAccessToken
+ * @method POST
+ * @access public
+ */
 export const refreshAccessToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
@@ -310,11 +345,22 @@ export const refreshAccessToken = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Handle Google OAuth callback after successful authentication
+ * @route  /auth/google/callback
+ * @method GET
+ * @access public
+ */
 export const googleOAuthCallback = (req, res) => {
   res.status(200).json({ message: 'user signup successfully' });
 };
 
-// Google OAuth Login Controller
+/**
+ * @desc   Authenticate or register user using Google OAuth (for mobile/SPA)
+ * @route  /auth/google
+ * @method POST
+ * @access public
+ */
 export const googleOAuthLogin = async (req, res) => {
   try {
     const { idToken } = req.body;

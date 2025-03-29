@@ -34,10 +34,10 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-//// Cors Policy
+// Cors Policy
 app.use(cors());
 
-// Helmet helps you secure your Express apps by setting various HTTP headers.
+// Helmet
 app.use(helmet());
 app.use(helmet.contentSecurityPolicy());
 
@@ -46,7 +46,6 @@ configureGoogleStrategy();
 // Rate limiter middleware
 app.use(apiLimiter);
 
-//morgan is a HTTP request logger middleware for Node.js
 app.use(morgan('dev'));
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));

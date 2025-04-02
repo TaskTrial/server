@@ -7,6 +7,8 @@ import cors from 'cors';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 import authRouter from './routes/auth.routes.js';
 import {
   errorHandler,
@@ -18,6 +20,22 @@ import { configureGoogleStrategy } from './strategies/google-strategy.js';
 const PORT = process.env.PORT;
 
 const app = express();
+
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'TaskTrial APIs',
+      version: '1.0.0',
+    },
+    servers: [{ url: 'http:localhost:3000' }],
+  },
+  apis: ['./index.js'],
+};
+
+const swaggerSpec = swaggerJSDoc(options);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(
   session({

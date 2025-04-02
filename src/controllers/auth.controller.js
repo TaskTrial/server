@@ -20,10 +20,41 @@ import { googleVerifyIdToken } from '../utils/googleVerifyToken.utils.js';
 
 /* eslint no-undef:off */
 /**
- * @desc   Register a new user
- * @route  /api/auth/signup
- * @method POST
- * @access public
+ * @swagger
+ * /api/auth/signup:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - firstName
+ *               - lastName
+ *               - username
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Server error
  */
 export const signup = async (req, res, next) => {
   try {
@@ -89,10 +120,34 @@ export const signup = async (req, res, next) => {
 };
 
 /**
- * @desc   Verify user's email address using verification token
- * @route  /api/auth/verifyEmail
- * @method POST
- * @access public
+ * @swagger
+ * /api/auth/verifyEmail:
+ *   post:
+ *     summary: Verify user's email address using OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
  */
 export const verifyEmail = async (req, res, next) => {
   try {
@@ -136,10 +191,54 @@ export const verifyEmail = async (req, res, next) => {
 };
 
 /**
- * @desc   Authenticate user and return access token
- * @route  /api/auth/signin
- * @method POST
- * @access public
+ * @swagger
+ * /api/auth/signin:
+ *   post:
+ *     summary: Authenticate user and get access token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *       401:
+ *         description: Invalid credentials
+ *       403:
+ *         description: Account not activated
+ *       500:
+ *         description: Server error
  */
 export const signin = async (req, res, next) => {
   try {
@@ -200,10 +299,27 @@ export const signin = async (req, res, next) => {
 };
 
 /**
- * @desc   Initiate password reset process by sending reset token to user's email
- * @route  /api/auth/forgotPassword
- * @method POST
- * @access public
+ * @swagger
+ * /api/auth/forgotPassword:
+ *   post:
+ *     summary: Request password reset OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset OTP sent if account exists
+ *       500:
+ *         description: Server error
  */
 export const forgotPassword = async (req, res, next) => {
   try {
@@ -253,10 +369,37 @@ export const forgotPassword = async (req, res, next) => {
 };
 
 /**
- * @desc   Reset user's password using valid reset token
- * @route  /api/auth/resetPassword
- * @method POST
- * @access public
+ * @swagger
+ * /api/auth/resetPassword:
+ *   post:
+ *     summary: Reset password using OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *               - newPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Invalid or expired OTP
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
  */
 export const resetPassword = async (req, res, next) => {
   try {
@@ -306,10 +449,38 @@ export const resetPassword = async (req, res, next) => {
 };
 
 /**
- * @desc   Generate new access token using refresh token
- * @route  /api/auth/refreshAccessToken
- * @method POST
- * @access public
+ * @swagger
+ * /api/auth/refreshAccessToken:
+ *   post:
+ *     summary: Get new access token using refresh token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: New access token generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *       400:
+ *         description: Refresh token is required
+ *       401:
+ *         description: Invalid refresh token
+ *       500:
+ *         description: Server error
  */
 export const refreshAccessToken = async (req, res, next) => {
   try {
@@ -356,10 +527,54 @@ export const googleOAuthCallback = (req, res) => {
 };
 
 /**
- * @desc   Authenticate or register user using Google OAuth (for mobile/SPA)
- * @route  /auth/google
- * @method POST
- * @access public
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Authenticate or register user using Google OAuth (for mobile/SPA)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - idToken
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Google authentication successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     profilePic:
+ *                       type: string
+ *                 tokens:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                     refreshToken:
+ *                       type: string
+ *       400:
+ *         description: Google authentication failed
+ *       500:
+ *         description: Server error
  */
 export const googleOAuthLogin = async (req, res) => {
   try {

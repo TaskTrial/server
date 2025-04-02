@@ -45,7 +45,9 @@
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "server": "file:"
+    "server": "file:",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [

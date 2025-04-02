@@ -15,6 +15,8 @@ npm run start:dev # and makesure there is no error
 
 ## Completed Endpoints
 
+You can test your APIs using **_Swagger_** from [_here_](http://localhost:3000/api-docs/) after running the server
+
 ### Auth
 
 base url: `http://localhost:3000`

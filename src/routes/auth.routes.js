@@ -266,7 +266,7 @@ router.post('/api/auth/refreshAccessToken', apiLimiter, refreshAccessToken);
 // Google OAuth Routes
 // Initiate Google OAuth authentication
 router.get(
-  '/auth/google',
+  '/api/auth/google',
   passport.authenticate('google', {
     scope: ['profile', 'email', 'openid'],
     prompt: 'select_account',
@@ -275,7 +275,7 @@ router.get(
 
 // Google OAuth callback
 router.get(
-  '/auth/google/callback',
+  '/api/auth/google/callback',
   passport.authenticate('google', {
     failureRedirect: '/login',
     session: false,

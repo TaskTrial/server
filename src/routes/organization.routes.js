@@ -90,6 +90,50 @@ const router = Router();
  *                   type: string
  */
 router.post('/api/organization', verifyAccessToken, createOrganization);
+
+/**
+ * @swagger
+ * /api/organization/verifyOrg:
+ *   post:
+ *     summary: Verify an organization's email using OTP
+ *     tags: [Organization]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Organization's registered contact email
+ *               otp:
+ *                 type: string
+ *                 description: The OTP sent to the organization's email
+ *     responses:
+ *       200:
+ *         description: Organization verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Organization verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ *       404:
+ *         description: Organization not found
+ *       500:
+ *         description: Server error
+ */
 router.post(
   '/api/organization/verifyOrg',
   verifyAccessToken,

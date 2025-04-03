@@ -59,14 +59,14 @@ export const creatOrganization = async (req, res, next) => {
           contactPhone,
           status: isAdminCreation ? 'APPROVED' : 'PENDING',
           isVerified: isAdminCreation,
-          createdBy: req.id,
+          createdBy: req.user.id,
           emailVerificationOTP: hashedOTP,
           emailVerificationExpires: otpExpiry,
         },
       });
 
       // 2. Create owner relationship
-      const ownerId = orgOwnerId || req.id;
+      const ownerId = orgOwnerId || req.user.id;
       const orgOwner = await tx.organizationOwner.create({
         data: {
           organizationId: org.id,

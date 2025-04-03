@@ -1,7 +1,10 @@
 import prisma from '../config/prismaClient.js';
 import { sendEmail } from '../utils/email.utils.js';
-import { generateOTP, hashOTP } from '../utils/otp.utils.js';
-import { createOrganizationValidation } from '../validations/organization.validation.js';
+import { generateOTP, hashOTP, validateOTP } from '../utils/otp.utils.js';
+import {
+  createOrganizationValidation,
+  verifyOrganizationValidation,
+} from '../validations/organization.validation.js';
 
 /**
  * @swagger
@@ -112,7 +115,7 @@ export const createOrganization = async (req, res, next) => {
         await sendEmail({
           to: contactEmail,
           subject: 'Verify Your Organization Email',
-          text: `Organization name: ${result.org.name}\nYour verification code is: ${verificationOTP}. will expired in 10 min`,
+          text: `Organization name: ${result.org.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
         });
       } catch (error) {
         next(error);
@@ -121,7 +124,7 @@ export const createOrganization = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Organization created successfully',
+      message: `Organization created successfully. ${!isAdminCreation ? 'Please verify your org' : ''}`,
       data: {
         organization: {
           id: result.org.id,
@@ -134,6 +137,50 @@ export const createOrganization = async (req, res, next) => {
         },
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyOrganization = async (req, res, next) => {
+  try {
+    const { error } = verifyOrganizationValidation(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { email, otp } = req.body;
+
+    const org = await prisma.organization.findFirst({
+      where: { contactEmail: email }, // TODO: make email must entered in prisma and unique
+    });
+
+    if (!org) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
+
+    // Check OTP
+    if (
+      !(await validateOTP(otp, org.emailVerificationOTP)) ||
+      org.emailVerificationExpires < new Date()
+    ) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Activate user and clear verification tokens
+    await prisma.organization.update({
+      where: { id: org.id },
+      data: {
+        isVerified: true,
+        status: 'APPROVAL',
+        emailVerificationOTP: null,
+        emailVerificationExpires: null,
+      },
+    });
+
+    return res
+      .status(200)
+      .json({ message: 'Organization verified successfully' });
   } catch (error) {
     next(error);
   }

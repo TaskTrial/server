@@ -185,3 +185,100 @@ export const verifyOrganization = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getAllOrganizations = async (req, res, next) => {
+  try {
+    // Destructure and parse query params with defaults
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      ...filters
+    } = req.query;
+
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build base where clause
+    const where = {
+      deletedAt: null,
+      ...(filters.name && {
+        name: { contains: filters.name, mode: 'insensitive' },
+      }),
+      ...(filters.industry && { industry: filters.industry }),
+      ...(filters.sizeRange && { sizeRange: filters.sizeRange }),
+      ...(filters.status && { status: filters.status }),
+      ...(filters.isVerified !== undefined && {
+        isVerified: filters.isVerified === 'true',
+      }),
+    };
+
+    // Execute queries in parallel
+    const [totalCount, organizations] = await Promise.all([
+      prisma.organization.count({ where }),
+      prisma.organization.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder.toLowerCase() },
+        skip,
+        take: limitNum,
+        include: {
+          _count: {
+            select: {
+              users: true,
+              departments: true,
+              teams: true,
+              projects: true,
+            },
+          },
+          owners: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    // Format response
+    const response = {
+      success: true,
+      message: 'Organizations retrieved successfully',
+      data: {
+        organizations: organizations.map((org) => ({
+          ...org,
+          statistics: {
+            usersCount: org._count.users,
+            departmentsCount: org._count.departments,
+            teamsCount: org._count.teams,
+            projectsCount: org._count.projects,
+          },
+          owners: org.owners.map((owner) => ({
+            id: owner.user.id,
+            name: `${owner.user.firstName} ${owner.user.lastName}`,
+            email: owner.user.email,
+          })),
+          _count: undefined, // Remove the original _count field
+        })),
+        pagination: {
+          total: totalCount,
+          page: pageNum,
+          limit: limitNum,
+          pages: Math.ceil(totalCount / limitNum),
+        },
+      },
+    };
+
+    return res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+};

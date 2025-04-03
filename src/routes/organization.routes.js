@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import {
   createOrganization,
+  getAllOrganizations,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
+import { verifyAdminPermission } from '../middlewares/verifyAdminPermission.middleware.js';
 
 const router = Router();
 
@@ -138,6 +140,148 @@ router.post(
   '/api/organization/verifyOrg',
   verifyAccessToken,
   verifyOrganization,
+);
+
+/**
+ * @swagger
+ * /api/organization/all:
+ *   get:
+ *     summary: Retrieve all organizations with pagination, filtering, and sorting
+ *     tags: [Organization]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of organizations per page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, name, industry, status]
+ *           default: createdAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sorting order
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter organizations by name (partial match)
+ *       - in: query
+ *         name: industry
+ *         schema:
+ *           type: string
+ *         description: Filter organizations by industry
+ *       - in: query
+ *         name: sizeRange
+ *         schema:
+ *           type: string
+ *         description: Filter organizations by size range
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, APPROVED, REJECTED]
+ *         description: Filter organizations by status
+ *       - in: query
+ *         name: isVerified
+ *         schema:
+ *           type: boolean
+ *         description: Filter organizations by verification status
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved organizations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     organizations:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           industry:
+ *                             type: string
+ *                           sizeRange:
+ *                             type: string
+ *                           status:
+ *                             type: string
+ *                           isVerified:
+ *                             type: boolean
+ *                           statistics:
+ *                             type: object
+ *                             properties:
+ *                               usersCount:
+ *                                 type: integer
+ *                               departmentsCount:
+ *                                 type: integer
+ *                               teamsCount:
+ *                                 type: integer
+ *                               projectsCount:
+ *                                 type: integer
+ *                           owners:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: string
+ *                                 name:
+ *                                   type: string
+ *                                 email:
+ *                                   type: string
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         total:
+ *                           type: integer
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         pages:
+ *                           type: integer
+ *       400:
+ *         description: Invalid query parameters
+ *       401:
+ *         description: Unauthorized - No token provided
+ *       403:
+ *         description: Forbidden - Only admins can access this endpoint
+ *       500:
+ *         description: Server error
+ */
+router.get(
+  '/api/organization/all',
+  verifyAccessToken,
+  verifyAdminPermission,
+  getAllOrganizations,
 );
 
 export default router;

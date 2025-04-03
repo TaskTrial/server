@@ -44,13 +44,10 @@ export const createOrganizationValidation = (obj) => {
       'string.max': 'Address cannot exceed 255 characters',
     }),
 
-    contactEmail: Joi.string()
-      .email({ tlds: { allow: false } })
-      .required()
-      .messages({
-        'string.email': 'Contact email must be a valid email address',
-        'string.empty': 'Contact email is required',
-      }),
+    contactEmail: Joi.string().email().required().messages({
+      'string.email': 'Contact email must be a valid email address',
+      'string.empty': 'Contact email is required',
+    }),
 
     contactPhone: Joi.string()
       .pattern(/^\+?[0-9\s\-()]{10,20}$/)
@@ -73,13 +70,10 @@ export const createOrganizationValidation = (obj) => {
 
 export const verifyOrganizationValidation = (obj) => {
   const schema = Joi.object({
-    email: Joi.string()
-      .email({ tlds: { allow: false } })
-      .required()
-      .messages({
-        'string.email': 'Contact email must be a valid email address',
-        'string.empty': 'Contact email is required',
-      }),
+    email: Joi.string().email().required().messages({
+      'string.email': 'Contact email must be a valid email address',
+      'string.empty': 'Contact email is required',
+    }),
     otp: Joi.string().required().trim().messages({
       'string.empty': 'OTP is required.',
     }),

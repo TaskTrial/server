@@ -1,20 +1,22 @@
 model Organization {
-  id           String    @id @default(uuid()) @db.Uuid
-  name         String    @db.VarChar(100)
-  description  String?   @db.Text
-  industry     String    @db.VarChar(50)
-  sizeRange    String    @db.VarChar(50)
-  website      String?   @db.VarChar(255)
-  logoUrl      String?
-  isVerified   Boolean   @default(false)
-  status       String    @db.VarChar(20)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
-  createdBy    String    @db.Uuid
-  address      String?   @db.Text
-  contactEmail String?   @db.VarChar(255)
-  contactPhone String?   @db.VarChar(50)
+  id                       String    @id @default(uuid()) @db.Uuid
+  name                     String    @db.VarChar(100)
+  description              String?   @db.Text
+  industry                 String    @db.VarChar(50)
+  sizeRange                String    @db.VarChar(50)
+  website                  String?   @db.VarChar(255)
+  logoUrl                  String?
+  isVerified               Boolean   @default(false)
+  status                   String    @db.VarChar(20)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  deletedAt                DateTime?
+  createdBy                String    @db.Uuid
+  address                  String?   @db.Text
+  contactEmail             String?   @db.VarChar(255)
+  contactPhone             String?   @db.VarChar(50)
+  emailVerificationOTP     String?
+  emailVerificationExpires DateTime?
 
   // Relations
   creator      User                @relation("OrganizationCreator", fields: [createdBy], references: [id])
@@ -27,6 +29,7 @@ model Organization {
   templates    TaskTemplate[] // relation to task templates
   activityLogs ActivityLog[] // relation to activity logs
 
+  @@unique([name])
   @@index([createdBy])
   @@map("organizations")
 }

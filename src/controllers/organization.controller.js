@@ -1,7 +1,7 @@
-import prisma from '../config/prismaClient';
-import { sendEmail } from '../utils/email.utils';
-import { generateOTP, hashOTP } from '../utils/otp.utils';
-import { creatOrganizationValidation } from '../validations/organization.validation';
+import prisma from '../config/prismaClient.js';
+import { sendEmail } from '../utils/email.utils.js';
+import { generateOTP, hashOTP } from '../utils/otp.utils.js';
+import { creatOrganizationValidation } from '../validations/organization.validation.js';
 
 export const creatOrganization = async (req, res, next) => {
   try {

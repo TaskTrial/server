@@ -201,6 +201,17 @@ export const getAllOrganizations = async (req, res, next) => {
     const limitNum = parseInt(limit, 10);
     const skip = (pageNum - 1) * limitNum;
 
+    // Robust boolean conversion utility
+    const parseBoolean = (value) => {
+      if (value === 'true' || value === true || value === '1') {
+        return true;
+      }
+      if (value === 'false' || value === false || value === '0') {
+        return false;
+      }
+      return undefined; // or throw error if you prefer strict validation
+    };
+
     // Build base where clause
     const where = {
       deletedAt: null,
@@ -211,11 +222,19 @@ export const getAllOrganizations = async (req, res, next) => {
       ...(filters.sizeRange && { sizeRange: filters.sizeRange }),
       ...(filters.status && { status: filters.status }),
       ...(filters.isVerified !== undefined && {
-        isVerified: filters.isVerified === 'true',
+        isVerified: parseBoolean(filters.isVerified),
       }),
     };
 
-    // Execute queries in parallel
+    // Rest of the function remains the same...
+    if (req.user.role !== 'ADMIN') {
+      where.OR = [
+        { createdBy: req.user.id },
+        { users: { some: { id: req.user.id } } },
+        { owners: { some: { userId: req.user.id } } },
+      ];
+    }
+
     const [totalCount, organizations] = await Promise.all([
       prisma.organization.count({ where }),
       prisma.organization.findMany({
@@ -248,7 +267,6 @@ export const getAllOrganizations = async (req, res, next) => {
       }),
     ]);
 
-    // Format response
     const response = {
       success: true,
       message: 'Organizations retrieved successfully',
@@ -266,7 +284,7 @@ export const getAllOrganizations = async (req, res, next) => {
             name: `${owner.user.firstName} ${owner.user.lastName}`,
             email: owner.user.email,
           })),
-          _count: undefined, // Remove the original _count field
+          _count: undefined,
         })),
         pagination: {
           total: totalCount,

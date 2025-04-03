@@ -17,14 +17,24 @@ npm run start:dev # and makesure there is no error
 
 You can test your APIs using **_Swagger_** from [_here_](http://localhost:3000/api-docs/) after running the server
 
-### Auth
-
 base url: `http://localhost:3000`
 
-- **Sign up** or **register**: `/api/auth/signup`
-- **Verify email**: `/api/auth/verifyEmail`
-- **Sign in** or **login**: `/api/auth/signin`
-- **Forget Password**: `/api/auth/forgotPassword`
-- **Reset Password**: `/api/auth/resetPassword`
-- **Refresh Access Token**: `/api/auth/refreshAccessToken`
-- **Login with google**: `/auth/google`
+### Auth
+
+- **Sign up** or **register**: POST `/api/auth/signup`
+- **Verify email**: POST `/api/auth/verifyEmail`
+- **Sign in** or **login**: POST `/api/auth/signin`
+- **Forget Password**: POST `/api/auth/forgotPassword`
+- **Reset Password**: POST `/api/auth/resetPassword`
+- **Refresh Access Token**: POST `/api/auth/refreshAccessToken`
+- **Login with google**: POST `/auth/google`
+
+### User
+
+### Organization
+
+- **Create an Organization**: POST `/api/organization`
+- **Verify an Organization**: POST `/api/organization/verifyOrg`
+- **Get all Organizations**: GET `/api/organization/all`
+- **Get a specific Organization**: GET `/api/organization/:organizationId`
+- **Update an Organization**: PUT `/api/organization/:organizationId`

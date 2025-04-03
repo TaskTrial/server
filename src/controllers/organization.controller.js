@@ -300,3 +300,162 @@ export const getAllOrganizations = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getSpecificOrganization = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    // Check if the organization exists and is not deleted
+    const organization = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+        departments: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            _count: {
+              select: { teams: true, users: true },
+            },
+          },
+          take: 5,
+        },
+        teams: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            _count: {
+              select: { members: true, projects: true }, // Changed from users to members
+            },
+          },
+          take: 5,
+        },
+        projects: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+          },
+          take: 5,
+        },
+        _count: {
+          select: {
+            users: true,
+            departments: true,
+            teams: true,
+            projects: true,
+            templates: true,
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check if user has permission to view this organization
+    if (req.user.role !== 'ADMIN') {
+      const hasAccess = await prisma.user.findFirst({
+        where: {
+          id: req.user.id,
+          OR: [
+            { createdOrganizations: { some: { id: organizationId } } },
+            { organizations: { some: { id: organizationId } } },
+            { ownedOrganizations: { some: { organizationId } } },
+          ],
+        },
+      });
+
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to view this organization',
+        });
+      }
+    }
+
+    // Format response data
+    const formattedResponse = {
+      id: organization.id,
+      name: organization.name,
+      description: organization.description,
+      industry: organization.industry,
+      sizeRange: organization.sizeRange,
+      website: organization.website,
+      logoUrl: organization.logoUrl,
+      status: organization.status,
+      isVerified: organization.isVerified,
+      contactEmail: organization.contactEmail,
+      contactPhone: organization.contactPhone,
+      address: organization.address,
+      createdAt: organization.createdAt,
+      updatedAt: organization.updatedAt,
+      statistics: {
+        usersCount: organization._count.users,
+        departmentsCount: organization._count.departments,
+        teamsCount: organization._count.teams,
+        projectsCount: organization._count.projects,
+        templatesCount: organization._count.templates,
+      },
+      owners: organization.owners.map((owner) => ({
+        id: owner.user.id,
+        name: `${owner.user.firstName} ${owner.user.lastName}`,
+        email: owner.user.email,
+        profileImage: owner.user.profilePic,
+      })),
+      departments: organization.departments,
+      teams: organization.teams.map((team) => ({
+        ...team,
+        usersCount: team._count.members, // Updated to use members count
+        projectsCount: team._count.projects,
+        _count: undefined, // Remove the original _count field
+      })),
+      projects: organization.projects,
+      hasMoreDepartments: organization._count.departments > 5,
+      hasMoreTeams: organization._count.teams > 5,
+      hasMoreProjects: organization._count.projects > 5,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: 'Organization retrieved successfully',
+      data: formattedResponse,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

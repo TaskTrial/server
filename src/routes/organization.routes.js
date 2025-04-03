@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createOrganization,
   getAllOrganizations,
+  getSpecificOrganization,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -282,6 +283,169 @@ router.get(
   verifyAccessToken,
   verifyAdminPermission,
   getAllOrganizations,
+);
+
+/**
+ * @swagger
+ * /api/organization/{organizationId}:
+ *   get:
+ *     summary: Retrieve details of a specific organization
+ *     tags: [Organization]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization to retrieve
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved organization details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Organization retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     industry:
+ *                       type: string
+ *                     sizeRange:
+ *                       type: string
+ *                     website:
+ *                       type: string
+ *                     logoUrl:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       enum: [PENDING, APPROVED, REJECTED]
+ *                     isVerified:
+ *                       type: boolean
+ *                     contactEmail:
+ *                       type: string
+ *                     contactPhone:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                     statistics:
+ *                       type: object
+ *                       properties:
+ *                         usersCount:
+ *                           type: integer
+ *                         departmentsCount:
+ *                           type: integer
+ *                         teamsCount:
+ *                           type: integer
+ *                         projectsCount:
+ *                           type: integer
+ *                         templatesCount:
+ *                           type: integer
+ *                     owners:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                           profileImage:
+ *                             type: string
+ *                     departments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                           teamsCount:
+ *                             type: integer
+ *                           usersCount:
+ *                             type: integer
+ *                     teams:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                           usersCount:
+ *                             type: integer
+ *                           projectsCount:
+ *                             type: integer
+ *                     projects:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                           status:
+ *                             type: string
+ *                             enum: [ACTIVE, COMPLETED, ON_HOLD]
+ *                           startDate:
+ *                             type: string
+ *                             format: date-time
+ *                           endDate:
+ *                             type: string
+ *                             format: date-time
+ *                     hasMoreDepartments:
+ *                       type: boolean
+ *                     hasMoreTeams:
+ *                       type: boolean
+ *                     hasMoreProjects:
+ *                       type: boolean
+ *       400:
+ *         description: Bad request - Missing or invalid organization ID
+ *       401:
+ *         description: Unauthorized - No token provided
+ *       403:
+ *         description: Forbidden - User does not have permission to view this organization
+ *       404:
+ *         description: Not found - Organization not found
+ *       500:
+ *         description: Server error
+ */
+router.get(
+  '/api/organization/:organizationId',
+  verifyAccessToken,
+  verifyAdminPermission,
+  getSpecificOrganization,
 );
 
 export default router;

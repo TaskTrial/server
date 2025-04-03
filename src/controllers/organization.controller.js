@@ -3,6 +3,7 @@ import { sendEmail } from '../utils/email.utils.js';
 import { generateOTP, hashOTP, validateOTP } from '../utils/otp.utils.js';
 import {
   createOrganizationValidation,
+  updateOrganizationValidation,
   verifyOrganizationValidation,
 } from '../validations/organization.validation.js';
 
@@ -454,6 +455,158 @@ export const getSpecificOrganization = async (req, res, next) => {
       success: true,
       message: 'Organization retrieved successfully',
       data: formattedResponse,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateOrganization = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    // Validate input data
+    const { error, value } = updateOrganizationValidation(req.body);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: error.details.map((detail) => detail.message),
+      });
+    }
+
+    // Check if organization exists and is not deleted
+    const existingOrg = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingOrg) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check permissions - only admins and organization owners can update
+    const isAdmin = req.user.role === 'ADMIN';
+    const isOwner = existingOrg.owners.some(
+      (owner) => owner.userId === req.user.id,
+    );
+    const isCreator = existingOrg.createdBy === req.user.id;
+
+    if (!isAdmin && !isOwner && !isCreator) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to update this organization',
+      });
+    }
+
+    // For non-admins, prevent updating certain fields
+    const updateData = { ...value };
+    if (!isAdmin) {
+      // Non-admins can't change verification status or approval status
+      delete updateData.isVerified;
+      delete updateData.status;
+    }
+
+    // Check if updating to an existing organization name
+    if (updateData.name && updateData.name !== existingOrg.name) {
+      const nameExists = await prisma.organization.findFirst({
+        where: {
+          name: updateData.name,
+          id: { not: organizationId },
+          deletedAt: null,
+        },
+      });
+
+      if (nameExists) {
+        return res.status(409).json({
+          success: false,
+          message: 'Organization with this name already exists',
+        });
+      }
+    }
+
+    // If there's a change in contact email and user is not an admin,
+    // reset verification if needed
+    if (
+      !isAdmin &&
+      updateData.contactEmail &&
+      updateData.contactEmail !== existingOrg.contactEmail
+    ) {
+      updateData.isVerified = false;
+    }
+
+    // Update the organization
+    const updatedOrg = await prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        ...updateData,
+        updatedAt: new Date(),
+      },
+    });
+
+    // If email changed and verification was reset, send verification email
+    if (
+      !isAdmin &&
+      updateData.contactEmail &&
+      updateData.contactEmail !== existingOrg.contactEmail
+    ) {
+      try {
+        const verificationOTP = generateOTP();
+        const hashedOTP = await hashOTP(verificationOTP);
+
+        existingOrg.emailVerificationOTP = hashedOTP;
+        existingOrg.emailVerificationExpires = new Date(
+          Date.now() + 10 * 60 * 1000,
+        ); // 10 minutes;
+
+        // Send verification email
+        await sendEmail({
+          to: updateData.contactEmail,
+          subject: 'Verify Your Updated Organization Email',
+          text: `Organization name: ${updateData.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
+        });
+      } catch (emailError) {
+        next(emailError);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Organization updated successfully',
+      data: {
+        id: updatedOrg.id,
+        name: updatedOrg.name,
+        description: updatedOrg.description,
+        industry: updatedOrg.industry,
+        sizeRange: updatedOrg.sizeRange,
+        website: updatedOrg.website,
+        logoUrl: updatedOrg.logoUrl,
+        status: updatedOrg.status,
+        isVerified: updatedOrg.isVerified,
+        contactEmail: updatedOrg.contactEmail,
+        contactPhone: updatedOrg.contactPhone,
+        address: updatedOrg.address,
+        updatedAt: updatedOrg.updatedAt,
+      },
     });
   } catch (error) {
     next(error);

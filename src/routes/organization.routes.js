@@ -3,6 +3,7 @@ import {
   createOrganization,
   getAllOrganizations,
   getSpecificOrganization,
+  updateOrganization,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -446,6 +447,126 @@ router.get(
   verifyAccessToken,
   verifyAdminPermission,
   getSpecificOrganization,
+);
+
+/**
+ * @swagger
+ * /api/organization/{organizationId}:
+ *   put:
+ *     summary: Update an organization's details
+ *     tags: [Organization]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Tech Innovations Ltd."
+ *               description:
+ *                 type: string
+ *                 example: "A leading software development company."
+ *               industry:
+ *                 type: string
+ *                 example: "Technology"
+ *               sizeRange:
+ *                 type: string
+ *                 example: "50-200"
+ *               website:
+ *                 type: string
+ *                 example: "https://techinnovations.com"
+ *               logoUrl:
+ *                 type: string
+ *                 example: "https://cdn.techinnovations.com/logo.png"
+ *               status:
+ *                 type: string
+ *                 enum: [PENDING, APPROVED, REJECTED]
+ *                 example: "APPROVED"
+ *               isVerified:
+ *                 type: boolean
+ *                 example: true
+ *               contactEmail:
+ *                 type: string
+ *                 example: "contact@techinnovations.com"
+ *               contactPhone:
+ *                 type: string
+ *                 example: "+1-234-567-890"
+ *               address:
+ *                 type: string
+ *                 example: "123 Silicon Valley, CA, USA"
+ *     responses:
+ *       200:
+ *         description: Successfully updated the organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Organization updated successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     industry:
+ *                       type: string
+ *                     sizeRange:
+ *                       type: string
+ *                     website:
+ *                       type: string
+ *                     logoUrl:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                     isVerified:
+ *                       type: boolean
+ *                     contactEmail:
+ *                       type: string
+ *                     contactPhone:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Bad request - Validation error or missing required fields
+ *       401:
+ *         description: Unauthorized - No token provided
+ *       403:
+ *         description: Forbidden - User does not have permission to update the organization
+ *       404:
+ *         description: Not found - Organization not found
+ *       409:
+ *         description: Conflict - Organization with the same name already exists
+ *       500:
+ *         description: Server error
+ */
+router.put(
+  '/api/organization/:organizationId',
+  verifyAccessToken,
+  verifyAdminPermission,
+  updateOrganization,
 );
 
 export default router;

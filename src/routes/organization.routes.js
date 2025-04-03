@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createOrganization,
   getAllOrganizations,
+  getSpecificOrganization,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -282,6 +283,13 @@ router.get(
   verifyAccessToken,
   verifyAdminPermission,
   getAllOrganizations,
+);
+
+router.get(
+  '/api/organization/:organizationId',
+  verifyAccessToken,
+  verifyAdminPermission,
+  getSpecificOrganization,
 );
 
 export default router;

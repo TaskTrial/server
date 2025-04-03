@@ -9,7 +9,7 @@ export const verifyAccessToken = (req, res, next) => {
 
   try {
     /* eslint no-undef: off */
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
     // Check token expiry
     const currentTime = Math.floor(Date.now() / 1000);

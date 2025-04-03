@@ -1,5 +1,8 @@
 import { Router } from 'express';
-import { createOrganization } from '../controllers/organization.controller.js';
+import {
+  createOrganization,
+  verifyOrganization,
+} from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -87,5 +90,10 @@ const router = Router();
  *                   type: string
  */
 router.post('/api/organization', verifyAccessToken, createOrganization);
+router.post(
+  '/api/organization/verifyOrg',
+  verifyAccessToken,
+  verifyOrganization,
+);
 
 export default router;

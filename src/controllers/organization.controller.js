@@ -573,10 +573,15 @@ export const updateOrganization = async (req, res, next) => {
         const verificationOTP = generateOTP();
         const hashedOTP = await hashOTP(verificationOTP);
 
-        existingOrg.emailVerificationOTP = hashedOTP;
-        existingOrg.emailVerificationExpires = new Date(
-          Date.now() + 10 * 60 * 1000,
-        ); // 10 minutes;
+        // Update the database with the new verification data
+        await prisma.organization.update({
+          where: { id: organizationId },
+          data: {
+            emailVerificationOTP: hashedOTP,
+            emailVerificationExpires: new Date(Date.now() + 10 * 60 * 1000),
+            isVerified: false, // ensure this is persisted
+          },
+        });
 
         // Send verification email
         await sendEmail({

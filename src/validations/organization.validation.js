@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-export const creatOrganizationValidation = (obj) => {
+export const createOrganizationValidation = (obj) => {
   const schema = Joi.object({
     name: Joi.string().required().min(2).max(100).messages({
       'string.empty': 'Organization name is required',

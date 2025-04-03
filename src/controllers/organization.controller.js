@@ -1,7 +1,7 @@
 import prisma from '../config/prismaClient.js';
 import { sendEmail } from '../utils/email.utils.js';
 import { generateOTP, hashOTP } from '../utils/otp.utils.js';
-import { creatOrganizationValidation } from '../validations/organization.validation.js';
+import { createOrganizationValidation } from '../validations/organization.validation.js';
 
 /**
  * @swagger
@@ -31,9 +31,9 @@ import { creatOrganizationValidation } from '../validations/organization.validat
  *       500:
  *         description: Server error
  */
-export const creatOrganization = async (req, res, next) => {
+export const createOrganization = async (req, res, next) => {
   try {
-    const { error } = creatOrganizationValidation(req.body);
+    const { error } = createOrganizationValidation(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }

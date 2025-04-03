@@ -112,7 +112,7 @@ export const createOrganization = async (req, res, next) => {
         await sendEmail({
           to: contactEmail,
           subject: 'Verify Your Organization Email',
-          text: `Organization name: ${result.org.name}\nYour verification code is: ${verificationOTP}. will expired in 10 min`,
+          text: `Organization name: ${result.org.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
         });
       } catch (error) {
         next(error);
@@ -121,7 +121,7 @@ export const createOrganization = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Organization created successfully',
+      message: `Organization created successfully. ${!isAdminCreation ? 'Please verify your org' : ''}`,
       data: {
         organization: {
           id: result.org.id,

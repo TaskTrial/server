@@ -3,6 +3,34 @@ import { sendEmail } from '../utils/email.utils.js';
 import { generateOTP, hashOTP } from '../utils/otp.utils.js';
 import { creatOrganizationValidation } from '../validations/organization.validation.js';
 
+/**
+ * @swagger
+ * /api/organization:
+ *   post:
+ *     summary: Create a new organization
+ *     tags: [Organization]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateOrganizationRequest'
+ *     responses:
+ *       201:
+ *         description: Organization created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CreateOrganizationResponse'
+ *       400:
+ *         description: Bad request - Validation error
+ *       409:
+ *         description: Conflict - Organization already exists
+ *       500:
+ *         description: Server error
+ */
 export const creatOrganization = async (req, res, next) => {
   try {
     const { error } = creatOrganizationValidation(req.body);

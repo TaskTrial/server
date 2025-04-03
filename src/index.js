@@ -10,6 +10,7 @@ import session from 'express-session';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import authRouter from './routes/auth.routes.js';
+import orgRouter from './routes/organization.routes.js';
 import {
   errorHandler,
   notFound,
@@ -70,7 +71,9 @@ app.use(morgan('dev'));
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
 app.use(authRouter);
+app.use(orgRouter);
 
 // Error handling middleware
 app.use(notFound);

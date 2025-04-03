@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import {
   createOrganization,
+  getAllOrganizations,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
+import { verifyAdminPermission } from '../middlewares/verifyAdminPermission.middleware.js';
 
 const router = Router();
 
@@ -138,6 +140,13 @@ router.post(
   '/api/organization/verifyOrg',
   verifyAccessToken,
   verifyOrganization,
+);
+
+router.get(
+  '/api/organization/all',
+  verifyAccessToken,
+  verifyAdminPermission,
+  getAllOrganizations,
 );
 
 export default router;

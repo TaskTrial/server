@@ -3,6 +3,7 @@ import {
   createOrganization,
   getAllOrganizations,
   getSpecificOrganization,
+  updateOrganization,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -446,6 +447,13 @@ router.get(
   verifyAccessToken,
   verifyAdminPermission,
   getSpecificOrganization,
+);
+
+router.put(
+  '/api/organization/:organizationId',
+  verifyAccessToken,
+  verifyAdminPermission,
+  updateOrganization,
 );
 
 export default router;

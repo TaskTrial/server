@@ -581,6 +581,151 @@
         }
       }
     },
+    "/api/organization/{organizationId}/addOwner": {
+      "post": {
+        "tags": ["Organization"],
+        "summary": "Add owners to organization",
+        "description": "Add one or more users as owners to an organization. Requires admin or existing owner permissions.",
+        "operationId": "addOwners",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization to add owners to",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "User IDs to add as owners",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOwnersRequest"
+              },
+              "examples": {
+                "basic": {
+                  "value": {
+                    "userIds": [
+                      "550e8400-e29b-41d4-a716-446655440000",
+                      "550e8400-e29b-41d4-a716-446655440001"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owners added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddOwnersResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "success": true,
+                      "message": "Successfully added 2 owner(s) to the organization",
+                      "data": {
+                        "addedOwners": [
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "name": "John Doe",
+                            "email": "john@example.com"
+                          },
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440001",
+                            "name": "Jane Smith",
+                            "email": "jane@example.com"
+                          }
+                        ],
+                        "skippedOwners": []
+                      }
+                    }
+                  },
+                  "partial": {
+                    "value": {
+                      "success": true,
+                      "message": "Successfully added 1 owner(s) to the organization",
+                      "data": {
+                        "addedOwners": [
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "name": "John Doe",
+                            "email": "john@example.com"
+                          }
+                        ],
+                        "skippedOwners": [
+                          "550e8400-e29b-41d4-a716-446655440001"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input or non-existent users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "validationError": {
+                    "value": {
+                      "success": false,
+                      "message": "\"userIds\" must contain at least 1 items",
+                      "errors": ["\"userIds\" must contain at least 1 items"]
+                    }
+                  },
+                  "invalidUsers": {
+                    "value": {
+                      "success": false,
+                      "message": "One or more specified users do not exist",
+                      "errors": {
+                        "invalidUserIds": [
+                          "550e8400-e29b-41d4-a716-446655440002"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User lacks permission to add owners",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users": {
       "get": {
         "tags": ["Users"],
@@ -1374,6 +1519,53 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "AddOwnersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Successfully added 2 owner(s) to the organization"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "addedOwners": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "John Doe"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "john@example.com"
+                    }
+                  }
+                }
+              },
+              "skippedOwners": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "User IDs that were already owners and weren't added again"
               }
             }
           }

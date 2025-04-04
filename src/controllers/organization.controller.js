@@ -2,6 +2,7 @@ import prisma from '../config/prismaClient.js';
 import { sendEmail } from '../utils/email.utils.js';
 import { generateOTP, hashOTP, validateOTP } from '../utils/otp.utils.js';
 import {
+  addOwnersValidation,
   createOrganizationValidation,
   updateOrganizationValidation,
   verifyOrganizationValidation,
@@ -682,6 +683,140 @@ export const deleteOrganization = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: 'Organization deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Add one or more users as owners to an organization.
+ * @route  /api/organization/:organizationId/addOwner
+ * @method POST
+ * @access private - Requires admin or existing owner permissions.
+ */
+export const addOwners = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+
+    // Validate organizationId
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    const { error } = addOwnersValidation(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { userIds } = req.body;
+
+    // Check if organization exists and is not deleted
+    const organization = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check permissions - only admins and organization owners can delete
+    const isAdmin = req.user.role === 'ADMIN';
+    const isOwner = organization.owners.some(
+      (owner) => owner.userId === req.user.id,
+    );
+    const isCreator = organization.createdBy === req.user.id;
+
+    if (!isAdmin && !isOwner && !isCreator) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this organization',
+      });
+    }
+
+    // Get existing owner user IDs
+    const existingOwnerIds = organization.owners.map((owner) => owner.userId);
+
+    // Filter out users who are already owners
+    const newOwnerIds = userIds.filter((id) => !existingOwnerIds.includes(id));
+
+    if (newOwnerIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'All specified users are already owners of this organization',
+        data: {
+          addedOwners: [],
+          skippedOwners: userIds,
+        },
+      });
+    }
+
+    // Verify all users exist in the system
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: newOwnerIds,
+        },
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
+    });
+
+    if (users.length !== newOwnerIds.length) {
+      const foundUserIds = users.map((user) => user.id);
+      const notFoundUserIds = newOwnerIds.filter(
+        (id) => !foundUserIds.includes(id),
+      );
+
+      return res.status(400).json({
+        success: false,
+        message: 'One or more specified users do not exist',
+        errors: {
+          invalidUserIds: notFoundUserIds,
+        },
+      });
+    }
+
+    // Create new owner relationships
+    const newOwnerRecords = await prisma.organizationOwner.createMany({
+      data: newOwnerIds.map((userId) => ({
+        organizationId,
+        userId,
+      })),
+      skipDuplicates: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully added ${newOwnerRecords.count} owner(s) to the organization`,
+      data: {
+        addedOwners: users.map((user) => ({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+        })),
+        skippedOwners: userIds.filter((id) => existingOwnerIds.includes(id)),
+      },
     });
   } catch (error) {
     next(error);

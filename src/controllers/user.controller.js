@@ -1,4 +1,5 @@
 import prisma from '../config/prismaClient.js';
+
 /* eslint no-undef:off */
 /**
  * @swagger

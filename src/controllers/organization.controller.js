@@ -746,7 +746,8 @@ export const addOwners = async (req, res, next) => {
     if (!isAdmin && !isOwner && !isCreator) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to delete this organization',
+        message:
+          'You do not have permission to add new owners to this organization',
       });
     }
 

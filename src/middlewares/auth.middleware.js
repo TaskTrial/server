@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 export const verifyAccessToken = (req, res, next) => {
   // Extract token from "Bearer <token>" format
-  const authHeader = req.headers.token;
+  const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // ["Bearer", "<token>"]
 
   if (!token) {

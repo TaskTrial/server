@@ -1,5 +1,5 @@
 import prisma from '../config/prismaClient.js';
-// import { getUserByIdValidation } from '../validations/user.validation.js';
+import { getUserByIdValidation } from '../validations/user.validation.js';
 //import { validateUserId, validateCreateUser } from '../validations/user.validation.js';
 
 /* eslint no-undef:off */
@@ -54,8 +54,7 @@ export const getAllUsers = async (req, res, next) => {
       users,
     });
   } catch (error) {
-    console.error('Error in getAllUsers:', error); // Log the error for debugging
-    return next(error); // Ensure next is called with the error
+    next(error); // Ensure next is called with the error
   }
 };
 

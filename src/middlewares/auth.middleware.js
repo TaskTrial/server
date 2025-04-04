@@ -26,3 +26,15 @@ export const verifyAccessToken = (req, res, next) => {
     return res.status(403).json({ message: 'Invalid token' });
   }
 };
+
+// Example implementation of authenticate middleware
+export const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    // Add token verification logic here
+    next();
+  } else {
+    res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+};

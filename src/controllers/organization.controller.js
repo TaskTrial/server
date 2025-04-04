@@ -617,3 +617,65 @@ export const updateOrganization = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteOrganization = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    // Check if organization exists and is not already deleted
+    const existingOrg = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingOrg) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found or already deleted',
+      });
+    }
+
+    // Check permissions - only admins and organization owners can delete
+    const isAdmin = req.user.role === 'ADMIN';
+    const isOwner = existingOrg.owners.some(
+      (owner) => owner.userId === req.user.id,
+    );
+    const isCreator = existingOrg.createdBy === req.user.id;
+
+    if (!isAdmin && !isOwner && !isCreator) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this organization',
+      });
+    }
+
+    // delete the organization
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { deletedAt: new Date(), status: 'DELETED' },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Organization deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};

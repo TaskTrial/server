@@ -1,5 +1,4 @@
 import prisma from '../config/prismaClient.js';
-feat/59/get-user-by-id
 import { getUserByIdValidation } from '../validations/user.validation.js';
 //import { validateUserId, validateCreateUser } from '../validations/user.validation.j
 // import { authenticate } from '../middlewares/auth.middleware.js';

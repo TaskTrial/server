@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createOrganization,
+  deleteOrganization,
   getAllOrganizations,
   getSpecificOrganization,
   updateOrganization,
@@ -567,6 +568,12 @@ router.put(
   verifyAccessToken,
   verifyAdminPermission,
   updateOrganization,
+);
+
+router.delete(
+  '/api/organization/:organizationId',
+  verifyAccessToken,
+  deleteOrganization,
 );
 
 export default router;

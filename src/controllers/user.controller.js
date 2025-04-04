@@ -2,8 +2,6 @@ import prisma from '../config/prismaClient.js';
 import { getUserByIdValidation } from '../validations/user.validation.js';
 //import { validateUserId, validateCreateUser } from '../validations/user.validation.j
 // import { authenticate } from '../middlewares/auth.middleware.js';
-main
-
 /* eslint no-undef:off */
 /**
  * @swagger

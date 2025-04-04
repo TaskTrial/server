@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  addOwners,
   createOrganization,
   deleteOrganization,
   getAllOrganizations,
@@ -40,6 +41,11 @@ router.delete(
   '/api/organization/:organizationId',
   verifyAccessToken,
   deleteOrganization,
+);
+router.post(
+  '/api/organization/:organizationId/addOwner',
+  verifyAccessToken,
+  addOwners,
 );
 
 export default router;

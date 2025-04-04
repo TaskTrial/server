@@ -151,3 +151,22 @@ export const updateOrganizationValidation = (obj) => {
 
   return schema.validate(obj);
 };
+
+export const addOwnersValidation = (obj) => {
+  const schema = Joi.object({
+    userIds: Joi.array()
+      .items(Joi.string().required())
+      .min(1)
+      .required()
+      .messages({
+        'array.base': 'User IDs must be an array',
+        'array.min': 'At least one user ID is required',
+        'any.required': 'User IDs are required',
+      }),
+  }).options({
+    abortEarly: false, // Return all validation errors, not just the first one
+    allowUnknown: false, // Reject unknown fields in the request body
+  });
+
+  return schema.validate(obj);
+};

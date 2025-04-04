@@ -11,7 +11,7 @@ export const updateUserAccountValidation = (obj) => {
       'string.max': 'Last name must be at most 30 characters long.',
     }),
     gender: Joi.string().valid('Male', 'Female').messages({
-      'string.only': "Gender must be either 'male' or 'female'.",
+      'any.only': "Gender must be either 'male' or 'female'.",
     }),
     DOB: Joi.date()
       .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18))) // Ensures the user is at least 18 years old

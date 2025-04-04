@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createOrganization,
+  deleteOrganization,
   getAllOrganizations,
   getSpecificOrganization,
   updateOrganization,
@@ -567,6 +568,85 @@ router.put(
   verifyAccessToken,
   verifyAdminPermission,
   updateOrganization,
+);
+
+/**
+ * @swagger
+ * /api/organization/{organizationId}:
+ *   delete:
+ *     summary: Delete an organization
+ *     description: Soft delete an organization by setting `deletedAt` and updating the status to `DELETED`. Only admins, owners, or the creator can perform this action.
+ *     tags:
+ *       - Organization
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         description: ID of the organization to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Organization deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Organization deleted successfully
+ *       400:
+ *         description: Missing or invalid organization ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Organization ID is required
+ *       403:
+ *         description: Permission denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: You do not have permission to delete this organization
+ *       404:
+ *         description: Organization not found or already deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Organization not found or already deleted
+ *       500:
+ *         description: Internal server error
+ */
+router.delete(
+  '/api/organization/:organizationId',
+  verifyAccessToken,
+  deleteOrganization,
 );
 
 export default router;

@@ -1,5 +1,5 @@
 import prisma from '../config/prismaClient.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+// import { authenticate } from '../middlewares/auth.middleware.js';
 
 /**
  * @swagger

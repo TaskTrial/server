@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { getAllUsers } from '../controllers/user.controller.js';
+import { getAllUsers, getUserById } from '../controllers/user.controller.js';
+// import{authorizeUser} from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
@@ -81,5 +82,31 @@ const router = Router();
  *         description: Server error
  */
 router.get('/api/users', getAllUsers);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User details retrieved successfully
+ *       400:
+ *         description: Invalid ID format
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/api/users/:id', getUserById);
 
 export default router;

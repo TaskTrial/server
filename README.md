@@ -31,6 +31,9 @@ base url: `http://localhost:3000`
 
 ### User
 
+- **Get all Users**: GET `/api/users`
+- **Get a specific Users**: GET `/api/Users/:userId`
+
 ### Organization
 
 - **Create an Organization**: POST `/api/organization`

@@ -8,32 +8,10 @@ import {
 } from '../validations/organization.validation.js';
 
 /**
- * @swagger
- * /api/organization:
- *   post:
- *     summary: Create a new organization
- *     tags: [Organization]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/CreateOrganizationRequest'
- *     responses:
- *       201:
- *         description: Organization created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CreateOrganizationResponse'
- *       400:
- *         description: Bad request - Validation error
- *       409:
- *         description: Conflict - Organization already exists
- *       500:
- *         description: Server error
+ * @desc   Create a new organization with the current user as owner
+ * @route  /api/organization
+ * @method POST
+ * @access private
  */
 export const createOrganization = async (req, res, next) => {
   try {
@@ -143,6 +121,12 @@ export const createOrganization = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Verify organization's contact email using OTP
+ * @route  /api/organization/verifyOrg
+ * @method POST
+ * @access private
+ */
 export const verifyOrganization = async (req, res, next) => {
   try {
     const { error } = verifyOrganizationValidation(req.body);
@@ -187,6 +171,12 @@ export const verifyOrganization = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Get paginated list of organizations with filtering and sorting
+ * @route  /api/organization/all
+ * @method GET
+ * @access private
+ */
 export const getAllOrganizations = async (req, res, next) => {
   try {
     // Destructure and parse query params with defaults
@@ -302,6 +292,12 @@ export const getAllOrganizations = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Get detailed information about a specific organization
+ * @route  /api/organization/:organizationId
+ * @method GET
+ * @access private
+ */
 export const getSpecificOrganization = async (req, res, next) => {
   try {
     const { organizationId } = req.params;
@@ -461,6 +457,12 @@ export const getSpecificOrganization = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Update organization details
+ * @route  /api/organization/:organizationId
+ * @method PUT
+ * @access private
+ */
 export const updateOrganization = async (req, res, next) => {
   try {
     const { organizationId } = req.params;
@@ -618,6 +620,12 @@ export const updateOrganization = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Soft delete an organization (marks as deleted but retains in database)
+ * @route  /api/organization/:organizationId
+ * @method DELETE
+ * @access private
+ */
 export const deleteOrganization = async (req, res, next) => {
   try {
     const { organizationId } = req.params;

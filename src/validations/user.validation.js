@@ -2,38 +2,65 @@ import Joi from 'joi';
 
 export const updateUserAccountValidation = (obj) => {
   const schema = Joi.object({
-    firstName: Joi.string().trim().min(3).max(30).messages({
-      'string.min': 'First name must be at least 3 characters long.',
-      'string.max': 'First name must be at most 30 characters long.',
+    firstName: Joi.string().trim().min(3).max(100).messages({
+      'string.min': 'First name must be at least 3 characters long',
+      'string.max': 'First name cannot exceed 100 characters',
+      'string.empty': 'First name cannot be empty',
     }),
-    lastName: Joi.string().trim().messages({
-      'string.min': 'Last name must be at least 3 characters long.',
-      'string.max': 'Last name must be at most 30 characters long.',
+    lastName: Joi.string().trim().min(3).max(100).messages({
+      'string.min': 'Last name must be at least 3 characters long',
+      'string.max': 'Last name cannot exceed 100 characters',
+      'string.empty': 'Last name cannot be empty',
     }),
-    gender: Joi.string().valid('Male', 'Female').messages({
-      'any.only': "Gender must be either 'male' or 'female'.",
-    }),
-    DOB: Joi.date()
-      .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18))) // Ensures the user is at least 18 years old
+    phoneNumber: Joi.string()
+      .trim()
+      .max(50)
+      .pattern(/^\+?[0-9\s\-()]{7,}$/)
       .messages({
-        'date.base': 'Invalid date format for DOB.',
-        'date.max': 'You must be at least 18 years old.',
+        'string.pattern.base': 'Invalid phone number format',
+        'string.max': 'Phone number cannot exceed 50 characters',
       }),
-    mobileNumber: Joi.string().trim().messages({
-      'string.empty': 'Mobile number cannot be empty if provided',
+    jobTitle: Joi.string().trim().max(100).messages({
+      'string.max': 'Job title cannot exceed 100 characters',
     }),
-  }).min(1); // At least one field must be provided
+    timezone: Joi.string().trim().max(50).messages({
+      'string.max': 'Timezone cannot exceed 50 characters',
+    }),
+    bio: Joi.string().max(1000).messages({
+      'string.max': 'Bio cannot exceed 1000 characters',
+    }),
+  });
 
-  return schema.validate(obj);
+  return schema.validate(obj, { abortEarly: false });
 };
 
 export const updateUserPasswordValidation = (obj) => {
   const schema = Joi.object({
-    password: Joi.string().required().trim().min(8).max(32).messages({
-      'string.empty': 'Password is required.',
-      'string.min': 'Password must be at least 8 characters long.',
-      'string.max': 'Password must be at most 32 characters long.',
+    currentPassword: Joi.string().required().messages({
+      'any.required': 'Current password is required',
     }),
+    newPassword: Joi.string()
+      .required()
+      .min(8)
+      .max(32)
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      )
+      .messages({
+        'string.empty': 'New password cannot be empty',
+        'string.min': 'Password must be at least 8 characters',
+        'string.max': 'Password cannot exceed 32 characters',
+        'string.pattern.base':
+          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+      }),
+    confirmPassword: Joi.string()
+      .valid(Joi.ref('newPassword'))
+      .required()
+      .messages({
+        'any.only': 'Passwords do not match',
+        'any.required': 'Confirm password is required',
+      }),
   });
-  return schema.validate(obj);
+
+  return schema.validate(obj, { abortEarly: false });
 };

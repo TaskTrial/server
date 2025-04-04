@@ -1,4 +1,6 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import morgan from 'morgan';
@@ -7,7 +9,6 @@ import cors from 'cors';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
-import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import authRouter from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
@@ -23,23 +24,11 @@ const PORT = process.env.PORT;
 
 const app = express();
 
-// Swagger definition
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'TaskTrial APIs',
-      version: '1.0.0',
-      description: 'API Documentation',
-    },
-    servers: [{ url: 'http://localhost:3000' }],
-  },
-  // Path to the API docs - point to route files
-  apis: ['./src/routes/*.js', './src/controllers/*.js'],
-};
+const swaggerDocument = JSON.parse(
+  fs.readFileSync(path.resolve('./src/docs/swagger.json'), 'utf8'),
+);
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(
   session({

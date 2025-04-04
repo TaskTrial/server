@@ -26,3 +26,19 @@ export const verifyAccessToken = (req, res, next) => {
     return res.status(403).json({ message: 'Invalid token' });
   }
 };
+
+// export const authorizeUser = (req, res, next) => {
+//   const { user } = req; // Assuming `req.user` is populated by authentication middleware
+//   const { id } = req.params;
+
+//   if (!user) {
+//     return res.status(401).json({ message: 'Unauthorized' });
+//   }
+
+//   // Allow access if the user is an admin or accessing their own data
+//   if (user.role === 'ADMIN' || user.id === id) {
+//     return next();
+//   }
+
+//   return res.status(403).json({ message: 'Forbidden: You do not have access to this resource' });
+// };

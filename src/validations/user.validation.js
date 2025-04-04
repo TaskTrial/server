@@ -37,13 +37,3 @@ export const updateUserPasswordValidation = (obj) => {
   });
   return schema.validate(obj);
 };
-
-export const getUserByIdValidation = (obj) => {
-  const schema = Joi.object({
-    id: Joi.string().required().trim().messages({
-      'string.empty': 'ID is required.',
-    }),
-  });
-
-  return schema.validate(obj);
-};

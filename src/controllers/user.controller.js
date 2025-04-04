@@ -1,7 +1,4 @@
 import prisma from '../config/prismaClient.js';
-import { getUserByIdValidation } from '../validations/user.validation.js';
-//import { validateUserId, validateCreateUser } from '../validations/user.validation.j
-// import { authenticate } from '../middlewares/auth.middleware.js';
 /* eslint no-undef:off */
 /**
  * @swagger
@@ -98,11 +95,6 @@ export const getAllUsers = async (req, res, next) => {
 export const getUserById = async (req, res, next) => {
   const { id } = req.params;
   try {
-    // Validate the ID format (UUID)
-    // const { error } = getUserByIdValidation(req.body);
-    // if (error) {
-    //   return res.status(400).json({ message: error.details[0].message });
-    // }
     // Fetch the user by ID from the database
     const user = await prisma.user.findFirst({
       where: { id },

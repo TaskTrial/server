@@ -849,6 +849,90 @@
           }
         }
       }
+    },
+    "/api/users/update-password": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update user password",
+        "description": "Allows a user to update their password by providing the old and new passwords.",
+        "operationId": "updateUserPassword",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "description": "Password update data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "oldPassword", "newPassword"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "oldPassword": {
+                    "type": "string",
+                    "example": "oldPassword123"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "example": "newPassword456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Validation error or incorrect old password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1742,6 +1826,25 @@
           "mobileNumber": {
             "type": "string",
             "example": "+1234567890"
+          }
+        }
+      },
+      "UpdatePasswordRequest": {
+        "type": "object",
+        "required": ["email", "oldPassword", "newPassword"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "oldPassword": {
+            "type": "string",
+            "example": "oldPassword123"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "newPassword456"
           }
         }
       }

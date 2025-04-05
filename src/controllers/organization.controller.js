@@ -214,7 +214,11 @@ export const getAllOrganizations = async (req, res, next) => {
 
     // Handle boolean filter
     if (filters.isVerified !== undefined) {
-      where.isVerified = ['true', '1', true].includes(filters.isVerified);
+      if (['true', '1', true].includes(filters.isVerified)) {
+        where.isVerified = true;
+      } else if (['false', '0', false].includes(filters.isVerified)) {
+        where.isVerified = false;
+      }
     }
 
     // Add permission filters for non-admin users

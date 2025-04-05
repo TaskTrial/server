@@ -29,38 +29,18 @@ export const updateUserAccountValidation = (obj) => {
     bio: Joi.string().max(1000).messages({
       'string.max': 'Bio cannot exceed 1000 characters',
     }),
-  });
+  }).options({ allowUnknown: true }); // Allow unknown fields
 
   return schema.validate(obj, { abortEarly: false });
 };
 
-export const updateUserPasswordValidation = (obj) => {
+export const updatePasswordValidation = (obj) => {
   const schema = Joi.object({
-    currentPassword: Joi.string().required().messages({
-      'any.required': 'Current password is required',
+    oldPassword: Joi.string().required(),
+    newPassword: Joi.string().min(8).required().messages({
+      'string.min': 'New password must be at least 8 characters long',
     }),
-    newPassword: Joi.string()
-      .required()
-      .min(8)
-      .max(32)
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      )
-      .messages({
-        'string.empty': 'New password cannot be empty',
-        'string.min': 'Password must be at least 8 characters',
-        'string.max': 'Password cannot exceed 32 characters',
-        'string.pattern.base':
-          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-      }),
-    confirmPassword: Joi.string()
-      .valid(Joi.ref('newPassword'))
-      .required()
-      .messages({
-        'any.only': 'Passwords do not match',
-        'any.required': 'Confirm password is required',
-      }),
   });
 
-  return schema.validate(obj, { abortEarly: false });
+  return schema.validate(obj);
 };

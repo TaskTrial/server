@@ -31,7 +31,6 @@ router.get(
 router.get(
   '/api/organization/:organizationId',
   verifyAccessToken,
-
   getSpecificOrganization,
 );
 router.put(

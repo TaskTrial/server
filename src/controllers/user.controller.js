@@ -196,3 +196,52 @@ export const updateUserPassword = async (req, res, next) => {
     next(error);
   }
 };
+
+export const softDeleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user || user.deletedAt) {
+      return res
+        .status(404)
+        .json({ message: 'User not found or already deleted' });
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      },
+    });
+
+    return res.status(200).json({ message: 'User soft-deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+export const restoreUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user || !user.deletedAt) {
+      return res.status(404).json({ message: 'User not found or not deleted' });
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        deletedAt: null,
+        isActive: true,
+      },
+    });
+
+    return res.status(200).json({ message: 'User restored successfully' });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -48,7 +48,7 @@ router.delete(
   verifyAdminPermission,
   softDeleteUser,
 );
-router.put(
+router.patch(
   '/users/restore/:id',
   verifyAccessToken,
   verifyAdminPermission,

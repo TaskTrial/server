@@ -184,7 +184,7 @@ export const verifyOrganization = async (req, res, next) => {
  */
 export const getAllOrganizations = async (req, res, next) => {
   try {
-    // Destructure and parse query params with defaults
+    // Parse query parameters
     const {
       page = 1,
       limit = 10,
@@ -197,32 +197,27 @@ export const getAllOrganizations = async (req, res, next) => {
     const limitNum = parseInt(limit, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    // Robust boolean conversion utility
-    const parseBoolean = (value) => {
-      if (value === 'true' || value === true || value === '1') {
-        return true;
-      }
-      if (value === 'false' || value === false || value === '0') {
-        return false;
-      }
-      return undefined; // or throw error if you prefer strict validation
-    };
+    // Build filters
+    const where = { deletedAt: null };
 
-    // Build base where clause
-    const where = {
-      deletedAt: null,
-      ...(filters.name && {
-        name: { contains: filters.name, mode: 'insensitive' },
-      }),
-      ...(filters.industry && { industry: filters.industry }),
-      ...(filters.sizeRange && { sizeRange: filters.sizeRange }),
-      ...(filters.status && { status: filters.status }),
-      ...(filters.isVerified !== undefined && {
-        isVerified: parseBoolean(filters.isVerified),
-      }),
-    };
+    // Apply text search
+    if (filters.name) {
+      where.name = { contains: filters.name, mode: 'insensitive' };
+    }
 
-    // Rest of the function remains the same...
+    // Apply direct filters
+    ['industry', 'sizeRange', 'status'].forEach((field) => {
+      if (filters[field]) {
+        where[field] = filters[field];
+      }
+    });
+
+    // Handle boolean filter
+    if (filters.isVerified !== undefined) {
+      where.isVerified = ['true', '1', true].includes(filters.isVerified);
+    }
+
+    // Add permission filters for non-admin users
     if (req.user.role !== 'ADMIN') {
       where.OR = [
         { createdBy: req.user.id },
@@ -231,6 +226,7 @@ export const getAllOrganizations = async (req, res, next) => {
       ];
     }
 
+    // Fetch data and count in parallel
     const [totalCount, organizations] = await Promise.all([
       prisma.organization.count({ where }),
       prisma.organization.findMany({
@@ -263,7 +259,8 @@ export const getAllOrganizations = async (req, res, next) => {
       }),
     ]);
 
-    const response = {
+    // Format response
+    return res.status(200).json({
       success: true,
       message: 'Organizations retrieved successfully',
       data: {
@@ -289,9 +286,7 @@ export const getAllOrganizations = async (req, res, next) => {
           pages: Math.ceil(totalCount / limitNum),
         },
       },
-    };
-
-    return res.status(200).json(response);
+    });
   } catch (error) {
     next(error);
   }
@@ -314,7 +309,7 @@ export const getSpecificOrganization = async (req, res, next) => {
       });
     }
 
-    // Check if the organization exists and is not deleted
+    // Find organization with all related data
     const organization = await prisma.organization.findFirst({
       where: {
         id: organizationId,
@@ -353,7 +348,7 @@ export const getSpecificOrganization = async (req, res, next) => {
             name: true,
             description: true,
             _count: {
-              select: { members: true, projects: true }, // Changed from users to members
+              select: { members: true, projects: true },
             },
           },
           take: 5,
@@ -379,6 +374,12 @@ export const getSpecificOrganization = async (req, res, next) => {
             templates: true,
           },
         },
+        users: {
+          where: {
+            id: req.user.id,
+          },
+          take: 1,
+        },
       },
     });
 
@@ -389,20 +390,17 @@ export const getSpecificOrganization = async (req, res, next) => {
       });
     }
 
-    // Check if user has permission to view this organization
+    // Check permissions for non-admin users
     if (req.user.role !== 'ADMIN') {
-      const hasAccess = await prisma.user.findFirst({
-        where: {
-          id: req.user.id,
-          OR: [
-            { createdOrganizations: { some: { id: organizationId } } },
-            { organizations: { some: { id: organizationId } } },
-            { ownedOrganizations: { some: { organizationId } } },
-          ],
-        },
-      });
+      // Check if user is an owner
+      const isOwner = organization.owners.some(
+        (owner) => owner.user.id === req.user.id,
+      );
 
-      if (!hasAccess) {
+      // Check if user is a member
+      const isMember = organization.users.length > 0;
+
+      if (!isOwner && !isMember) {
         return res.status(403).json({
           success: false,
           message: 'You do not have permission to view this organization',
@@ -410,52 +408,37 @@ export const getSpecificOrganization = async (req, res, next) => {
       }
     }
 
-    // Format response data
-    const formattedResponse = {
-      id: organization.id,
-      name: organization.name,
-      description: organization.description,
-      industry: organization.industry,
-      sizeRange: organization.sizeRange,
-      website: organization.website,
-      logoUrl: organization.logoUrl,
-      status: organization.status,
-      isVerified: organization.isVerified,
-      contactEmail: organization.contactEmail,
-      contactPhone: organization.contactPhone,
-      address: organization.address,
-      createdAt: organization.createdAt,
-      updatedAt: organization.updatedAt,
-      statistics: {
-        usersCount: organization._count.users,
-        departmentsCount: organization._count.departments,
-        teamsCount: organization._count.teams,
-        projectsCount: organization._count.projects,
-        templatesCount: organization._count.templates,
-      },
-      owners: organization.owners.map((owner) => ({
-        id: owner.user.id,
-        name: `${owner.user.firstName} ${owner.user.lastName}`,
-        email: owner.user.email,
-        profileImage: owner.user.profilePic,
-      })),
-      departments: organization.departments,
-      teams: organization.teams.map((team) => ({
-        ...team,
-        usersCount: team._count.members, // Updated to use members count
-        projectsCount: team._count.projects,
-        _count: undefined, // Remove the original _count field
-      })),
-      projects: organization.projects,
-      hasMoreDepartments: organization._count.departments > 5,
-      hasMoreTeams: organization._count.teams > 5,
-      hasMoreProjects: organization._count.projects > 5,
-    };
-
+    // Format and return response
     return res.status(200).json({
       success: true,
       message: 'Organization retrieved successfully',
-      data: formattedResponse,
+      data: {
+        ...organization,
+        statistics: {
+          usersCount: organization._count.users,
+          departmentsCount: organization._count.departments,
+          teamsCount: organization._count.teams,
+          projectsCount: organization._count.projects,
+          templatesCount: organization._count.templates,
+        },
+        owners: organization.owners.map((owner) => ({
+          id: owner.user.id,
+          name: `${owner.user.firstName} ${owner.user.lastName}`,
+          email: owner.user.email,
+          profileImage: owner.user.profilePic,
+        })),
+        teams: organization.teams.map((team) => ({
+          ...team,
+          usersCount: team._count.members,
+          projectsCount: team._count.projects,
+          _count: undefined,
+        })),
+        hasMoreDepartments: organization._count.departments > 5,
+        hasMoreTeams: organization._count.teams > 5,
+        hasMoreProjects: organization._count.projects > 5,
+        _count: undefined,
+        users: undefined,
+      },
     });
   } catch (error) {
     next(error);

@@ -726,6 +726,202 @@
         }
       }
     },
+    "/api/organization/{organizationId}/logo/upload": {
+      "post": {
+        "tags": ["Organization"],
+        "summary": "Upload organization logo",
+        "description": "Upload a logo image for an organization. Requires admin or owner permissions.",
+        "operationId": "uploadOrganizationLogo",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Logo image file (JPG/PNG)"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logo uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoUploadResponse"
+                },
+                "example": {
+                  "message": "Organization logo uploaded successfully",
+                  "logoUrl": "https://res.cloudinary.com/example/image/upload/v123456789/logo.jpg",
+                  "organization": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "name": "Tech Corp",
+                    "logoUrl": "https://res.cloudinary.com/example/image/upload/v123456789/logo.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing organization ID or file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingOrgId": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization ID is required"
+                    }
+                  },
+                  "missingFile": {
+                    "value": {
+                      "message": "No file uploaded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User lacks permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error during upload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/logo/delete": {
+      "delete": {
+        "tags": ["Organization"],
+        "summary": "Delete organization logo",
+        "description": "Remove the logo for an organization. Requires admin or owner permissions.",
+        "operationId": "deleteOrganizationLogo",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logo deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoDeleteResponse"
+                },
+                "example": {
+                  "message": "Organization logo deleted successfully",
+                  "organization": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "name": "Tech Corp",
+                    "logoUrl": null
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing organization ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User lacks permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization or logo not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "orgNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization not found"
+                    }
+                  },
+                  "logoNotFound": {
+                    "value": {
+                      "message": "Organization logo not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users/all": {
       "get": {
         "tags": ["Users"],
@@ -1866,6 +2062,62 @@
                   "format": "uuid"
                 },
                 "description": "User IDs that were already owners and weren't added again"
+              }
+            }
+          }
+        }
+      },
+      "LogoUploadResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Organization logo uploaded successfully"
+          },
+          "logoUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the uploaded logo"
+          },
+          "organization": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "logoUrl": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      },
+      "LogoDeleteResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Organization logo deleted successfully"
+          },
+          "organization": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "logoUrl": {
+                "type": "string",
+                "nullable": true,
+                "format": "uri"
               }
             }
           }

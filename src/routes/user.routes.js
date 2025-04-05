@@ -2,6 +2,8 @@ import { Router } from 'express';
 import {
   getAllUsers,
   getUserById,
+  restoreUser,
+  softDeleteUser,
   updateUserAccount,
   updateUserPassword,
 } from '../controllers/user.controller.js';
@@ -38,6 +40,19 @@ router.put(
   verifyAccessToken,
   verifyUserPermission,
   updateUserPassword,
+);
+
+router.delete(
+  '/users/:id',
+  verifyAccessToken,
+  verifyAdminPermission,
+  softDeleteUser,
+);
+router.put(
+  '/users/restore/:id',
+  verifyAccessToken,
+  verifyAdminPermission,
+  restoreUser,
 );
 
 export default router;

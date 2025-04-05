@@ -1,5 +1,9 @@
 export const verifyUserPermission = (req, res, next) => {
-  if (req.params.id === req.user.id || req.user.role === 'ADMIN') {
+  if (
+    req.params.id === req.user.id ||
+    req.user.role === 'ADMIN' ||
+    req.user.email === req.params.email
+  ) {
     return next();
   }
   // Otherwise deny access

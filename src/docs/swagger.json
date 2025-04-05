@@ -732,7 +732,7 @@
         "summary": "Upload organization logo",
         "description": "Upload a logo image for an organization. Requires admin or owner permissions.",
         "operationId": "uploadOrganizationLogo",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
             "name": "organizationId",
@@ -844,7 +844,7 @@
         "summary": "Delete organization logo",
         "description": "Remove the logo for an organization. Requires admin or owner permissions.",
         "operationId": "deleteOrganizationLogo",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
             "name": "organizationId",

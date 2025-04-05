@@ -1,5 +1,8 @@
 import prisma from '../config/prismaClient.js';
-import { uploadToCloudinary } from '../utils/cloudinary.utils.js';
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from '../utils/cloudinary.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
 import { generateOTP, hashOTP, validateOTP } from '../utils/otp.utils.js';
 import {
@@ -883,6 +886,48 @@ export const uploadOrganizationLogo = async (req, res, next) => {
     res.status(200).json({
       message: 'Organization logo uploaded successfully',
       logoUrl,
+      organization: updatedOrganization,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Delete Organization Logo
+ * @route  /api/organization/:organizationId/logo/delete
+ * @method DELETE
+ * @access private - Requires admin or existing owner permissions.
+ */
+export const deleteOrganizationLogo = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+
+    // Validate organizationId
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    const organization = await prisma.organization.findFirst({
+      where: { id: organizationId },
+    });
+
+    if (!organization || !organization.logoUrl) {
+      return res.status(404).json({ message: 'Organization logo not found' });
+    }
+
+    await deleteFromCloudinary(organization.logoUrl);
+
+    const updatedOrganization = await prisma.organization.update({
+      where: { id: organizationId },
+      data: { logoUrl: null },
+    });
+
+    res.status(200).json({
+      message: 'Organization logo deleted successfully',
       organization: updatedOrganization,
     });
   } catch (error) {

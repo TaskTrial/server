@@ -21,3 +21,16 @@ export const uploadToCloudinary = (fileBuffer, folder) => {
     uploadStream.end(fileBuffer);
   });
 };
+
+/**
+ * Delete image from Cloudinary
+ * imageUrl - The full URL of the image
+ */
+export const deleteFromCloudinary = async (imageUrl) => {
+  if (!imageUrl) {
+    return;
+  }
+
+  const publicId = imageUrl.split('/').pop().split('.')[0];
+  await cloudinary.uploader.destroy(publicId);
+};

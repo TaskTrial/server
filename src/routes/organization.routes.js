@@ -3,6 +3,7 @@ import {
   addOwners,
   createOrganization,
   deleteOrganization,
+  deleteOrganizationLogo,
   getAllOrganizations,
   getSpecificOrganization,
   updateOrganization,
@@ -54,6 +55,11 @@ router.post(
   verifyAccessToken,
   upload.single('image'),
   uploadOrganizationLogo,
+);
+router.delete(
+  '/api/organization/:organizationId/logo/delete',
+  verifyAccessToken,
+  deleteOrganizationLogo,
 );
 
 export default router;

@@ -35,10 +35,15 @@ export const deleteFromCloudinary = async (imageUrl, next) => {
     const url = new URL(imageUrl);
     const parts = url.pathname.split('/');
 
-    // Cloudinary's publicId includes folders, so we remove `/image/upload/` and get everything after
     const uploadIndex = parts.findIndex((part) => part === 'upload');
+    if (uploadIndex === -1) {
+      throw new Error(
+        'Invalid image URL: "upload" segment not found in pathname',
+      );
+    }
+
     const publicIdWithExtension = parts.slice(uploadIndex + 1).join('/');
-    const publicId = publicIdWithExtension.replace(/\.[^/.]+$/, ''); // remove extension like .jpg/.png
+    const publicId = publicIdWithExtension.replace(/\.[^/.]+$/, ''); // remove file extension
 
     await cloudinary.uploader.destroy(publicId);
   } catch (error) {

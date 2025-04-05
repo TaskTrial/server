@@ -3,6 +3,7 @@ import {
   getAllUsers,
   getUserById,
   updateUserAccount,
+  updateUserPassword,
 } from '../controllers/user.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import { verifyAdminPermission } from '../middlewares/verifyAdminPermission.middleware.js';
@@ -30,6 +31,13 @@ router.put(
   verifyAccessToken,
   verifyUserPermission,
   updateUserAccount,
+);
+
+router.put(
+  '/api/users/update-password/:id',
+  verifyAccessToken,
+  verifyUserPermission,
+  updateUserPassword,
 );
 
 export default router;

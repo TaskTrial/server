@@ -184,7 +184,7 @@ export const verifyOrganization = async (req, res, next) => {
  */
 export const getAllOrganizations = async (req, res, next) => {
   try {
-    // Destructure and parse query params with defaults
+    // Parse query parameters
     const {
       page = 1,
       limit = 10,
@@ -197,32 +197,27 @@ export const getAllOrganizations = async (req, res, next) => {
     const limitNum = parseInt(limit, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    // Robust boolean conversion utility
-    const parseBoolean = (value) => {
-      if (value === 'true' || value === true || value === '1') {
-        return true;
-      }
-      if (value === 'false' || value === false || value === '0') {
-        return false;
-      }
-      return undefined; // or throw error if you prefer strict validation
-    };
+    // Build filters
+    const where = { deletedAt: null };
 
-    // Build base where clause
-    const where = {
-      deletedAt: null,
-      ...(filters.name && {
-        name: { contains: filters.name, mode: 'insensitive' },
-      }),
-      ...(filters.industry && { industry: filters.industry }),
-      ...(filters.sizeRange && { sizeRange: filters.sizeRange }),
-      ...(filters.status && { status: filters.status }),
-      ...(filters.isVerified !== undefined && {
-        isVerified: parseBoolean(filters.isVerified),
-      }),
-    };
+    // Apply text search
+    if (filters.name) {
+      where.name = { contains: filters.name, mode: 'insensitive' };
+    }
 
-    // Rest of the function remains the same...
+    // Apply direct filters
+    ['industry', 'sizeRange', 'status'].forEach((field) => {
+      if (filters[field]) {
+        where[field] = filters[field];
+      }
+    });
+
+    // Handle boolean filter
+    if (filters.isVerified !== undefined) {
+      where.isVerified = ['true', '1', true].includes(filters.isVerified);
+    }
+
+    // Add permission filters for non-admin users
     if (req.user.role !== 'ADMIN') {
       where.OR = [
         { createdBy: req.user.id },
@@ -231,6 +226,7 @@ export const getAllOrganizations = async (req, res, next) => {
       ];
     }
 
+    // Fetch data and count in parallel
     const [totalCount, organizations] = await Promise.all([
       prisma.organization.count({ where }),
       prisma.organization.findMany({
@@ -263,7 +259,8 @@ export const getAllOrganizations = async (req, res, next) => {
       }),
     ]);
 
-    const response = {
+    // Format response
+    return res.status(200).json({
       success: true,
       message: 'Organizations retrieved successfully',
       data: {
@@ -289,9 +286,7 @@ export const getAllOrganizations = async (req, res, next) => {
           pages: Math.ceil(totalCount / limitNum),
         },
       },
-    };
-
-    return res.status(200).json(response);
+    });
   } catch (error) {
     next(error);
   }

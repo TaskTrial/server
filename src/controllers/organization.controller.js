@@ -1,4 +1,5 @@
 import prisma from '../config/prismaClient.js';
+import { uploadToCloudinary } from '../utils/cloudinary.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
 import { generateOTP, hashOTP, validateOTP } from '../utils/otp.utils.js';
 import {
@@ -818,6 +819,71 @@ export const addOwners = async (req, res, next) => {
         })),
         skippedOwners: userIds.filter((id) => existingOwnerIds.includes(id)),
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Upload Organization Logo
+ * @route  /api/organization/:organizationId/logo/upload
+ * @method POST
+ * @access private - Requires admin or existing owner permissions.
+ */
+export const uploadOrganizationLogo = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+
+    // Validate organizationId
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    // Check if organization exists and is not deleted
+    const organization = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const logoUrl = await uploadToCloudinary(
+      req.file.buffer,
+      'organization_logos',
+    );
+
+    // Update organization logo URL in database
+    const updatedOrganization = await prisma.organization.update({
+      where: { id: organizationId },
+      data: { logoUrl },
+    });
+
+    res.status(200).json({
+      message: 'Organization logo uploaded successfully',
+      logoUrl,
+      organization: updatedOrganization,
     });
   } catch (error) {
     next(error);

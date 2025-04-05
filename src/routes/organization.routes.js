@@ -6,10 +6,12 @@ import {
   getAllOrganizations,
   getSpecificOrganization,
   updateOrganization,
+  uploadOrganizationLogo,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import { verifyAdminPermission } from '../middlewares/verifyAdminPermission.middleware.js';
+import upload from '../middlewares/upload.middleware.js';
 
 const router = Router();
 
@@ -28,7 +30,7 @@ router.get(
 router.get(
   '/api/organization/:organizationId',
   verifyAccessToken,
-  verifyAdminPermission,
+
   getSpecificOrganization,
 );
 router.put(
@@ -46,6 +48,12 @@ router.post(
   '/api/organization/:organizationId/addOwner',
   verifyAccessToken,
   addOwners,
+);
+router.post(
+  '/api/organization/:organizationId/logo/upload',
+  verifyAccessToken,
+  upload.single('image'),
+  uploadOrganizationLogo,
 );
 
 export default router;

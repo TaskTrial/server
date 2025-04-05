@@ -1,5 +1,9 @@
 import prisma from '../config/prismaClient.js';
-import { updateUserAccountValidation } from '../validations/user.validation.js';
+import { comparePassword, hashPassword } from '../utils/password.utils.js';
+import {
+  updatePasswordValidation,
+  updateUserAccountValidation,
+} from '../validations/user.validation.js';
 /* eslint no-undef:off */
 export const getAllUsers = async (req, res, next) => {
   try {
@@ -137,6 +141,106 @@ export const updateUserAccount = async (req, res, next) => {
       message: 'User account updated successfully',
       user: updatedUser,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserPassword = async (req, res, next) => {
+  try {
+    // Validate the request body
+    const { error, value } = updatePasswordValidation(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { id } = req.params; // Extract user ID from request parameters
+    const { oldPassword, newPassword } = value;
+
+    // Fetch the user by ID
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, password: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Compare the old password with the stored password
+    const isMatch = await comparePassword(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect old password' });
+    }
+
+    // Ensure the new password is different from the old password
+    if (oldPassword === newPassword) {
+      return res
+        .status(400)
+        .json({ message: 'New password must be different from the old one' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update the user's password in the database
+    await prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+
+    // Respond with a success message
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    // Pass any errors to the error-handling middleware
+    next(error);
+  }
+};
+
+export const softDeleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user || user.deletedAt) {
+      return res
+        .status(404)
+        .json({ message: 'User not found or already deleted' });
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      },
+    });
+
+    return res.status(200).json({ message: 'User soft-deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+export const restoreUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user || !user.deletedAt) {
+      return res.status(404).json({ message: 'User not found or not deleted' });
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        deletedAt: null,
+        isActive: true,
+      },
+    });
+
+    return res.status(200).json({ message: 'User restored successfully' });
   } catch (error) {
     next(error);
   }

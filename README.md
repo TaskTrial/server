@@ -31,8 +31,12 @@ base url: `http://localhost:3000`
 
 ### User
 
-- **Get all Users**: GET `/api/users`
-- **Get a specific Users**: GET `/api/Users/:userId`
+- **Get all Users**: GET `/api/users/all`
+- **Get a specific User**: GET `/api/users/:id`
+- **Update a User**: PUT `/api/users/:id`
+- **Update User Password**: PUT `/api/users/update-password/:id`
+- **Delete a User**: DELETE `/api/users/:id`
+- **Restore a User**: PATCH `/api/users/restore/:id`
 
 ### Organization
 

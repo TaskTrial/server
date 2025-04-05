@@ -36,7 +36,6 @@ router.get(
 router.put(
   '/api/organization/:organizationId',
   verifyAccessToken,
-  verifyAdminPermission,
   updateOrganization,
 );
 router.delete(

@@ -794,7 +794,7 @@
       "put": {
         "tags": ["Users"],
         "summary": "Update user account",
-        "description": "Update user profile information",
+        "description": "Update user profile information. Admins can update additional fields like role, department, and organization.",
         "operationId": "updateUserAccount",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
@@ -811,11 +811,37 @@
         ],
         "requestBody": {
           "description": "User update data",
-          "required": true,
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserRequest"
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "+1234567890"
+                  },
+                  "jobTitle": {
+                    "type": "string",
+                    "example": "Software Engineer"
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "example": "UTC+2"
+                  },
+                  "bio": {
+                    "type": "string",
+                    "example": "Experienced software engineer with expertise in backend development."
+                  }
+                }
               }
             }
           }
@@ -826,26 +852,116 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User account updated successfully"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
             "description": "Invalid input",
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "401": {
-            "description": "Unauthorized",
-            "$ref": "#/components/responses/UnauthorizedError"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden - Account not active",
-            "$ref": "#/components/responses/ForbiddenError"
+            "description": "Forbidden - Account is not active",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "User not found",
-            "$ref": "#/components/responses/NotFoundError"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Soft delete a user",
+        "description": "Marks a user as deleted by setting a `deletedAt` timestamp and deactivating the account.",
+        "operationId": "softDeleteUser",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user to delete",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User soft-deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User soft-deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found or already deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1831,13 +1947,8 @@
       },
       "UpdatePasswordRequest": {
         "type": "object",
-        "required": ["email", "oldPassword", "newPassword"],
+        "required": ["oldPassword", "newPassword"],
         "properties": {
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "user@example.com"
-          },
           "oldPassword": {
             "type": "string",
             "example": "oldPassword123"
@@ -1849,6 +1960,7 @@
         }
       }
     },
+
     "responses": {
       "UnauthorizedError": {
         "description": "Unauthorized",

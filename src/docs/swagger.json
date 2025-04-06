@@ -1458,6 +1458,171 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/department/{departmentId}/team/{teamId}/addMember": {
+      "post": {
+        "tags": ["Team"],
+        "summary": "Add members to a team",
+        "description": "Add one or more members to an existing team. Requires admin privileges, organization ownership, department management, or team leadership rights.",
+        "operationId": "addTeamMember",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the department",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Team members to add",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTeamMembersRequest"
+              },
+              "examples": {
+                "singleMember": {
+                  "value": {
+                    "members": [
+                      {
+                        "userId": "550e8400-e29b-41d4-a716-446655440001",
+                        "role": "MEMBER"
+                      }
+                    ]
+                  }
+                },
+                "multipleMembers": {
+                  "value": {
+                    "members": [
+                      {
+                        "userId": "550e8400-e29b-41d4-a716-446655440001",
+                        "role": "CONTRIBUTOR"
+                      },
+                      {
+                        "userId": "550e8400-e29b-41d4-a716-446655440002",
+                        "role": "MEMBER"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Members added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddTeamMembersResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error or missing parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "validationError": {
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "errors": ["\"members\" must contain at least 1 items"]
+                    }
+                  },
+                  "missingParams": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization ID, Department ID, and Team ID are required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization, department or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "orgNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization not found"
+                    }
+                  },
+                  "depNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Department not found"
+                    }
+                  },
+                  "teamNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Team not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2701,6 +2866,117 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "AddTeamMembersRequest": {
+        "type": "object",
+        "required": ["members"],
+        "properties": {
+          "members": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["userId"],
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "550e8400-e29b-41d4-a716-446655440001"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["LEADER", "MEMBER", "CONTRIBUTOR"],
+                  "default": "MEMBER"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AddTeamMembersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Members added successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "team": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              },
+              "teamLeader": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "teamMembers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamMemberWithUser"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TeamMemberWithUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["LEADER", "MEMBER", "CONTRIBUTOR"]
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "avatar": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
+              }
+            }
           }
         }
       }

@@ -21,32 +21,41 @@ base url: `http://localhost:3000`
 
 ### Auth
 
-- **Sign up** or **register**: POST `/api/auth/signup`
-- **Verify email**: POST `/api/auth/verifyEmail`
-- **Sign in** or **login**: POST `/api/auth/signin`
-- **Forget Password**: POST `/api/auth/forgotPassword`
-- **Reset Password**: POST `/api/auth/resetPassword`
-- **Refresh Access Token**: POST `/api/auth/refreshAccessToken`
-- **Login with google**: POST `/api/auth/google`
-- **Logout**: POST `/api/auth/logout`
+- Sign up or register: `POST /api/auth/signup`
+- Verify email: `POST /api/auth/verifyEmail`
+- Sign in or login: `POST /api/auth/signin`
+- Forget Password: `POST /api/auth/forgotPassword`
+- Reset Password: `POST /api/auth/resetPassword`
+- Refresh Access Token: `POST /api/auth/refreshAccessToken`
+- Login with google: `POST /api/auth/google`
+- Logout: `POST /api/auth/logout`
 
 ### User
 
-- **Get all Users**: GET `/api/users/all`
-- **Get a specific User**: GET `/api/users/:id`
-- **Update a User**: PUT `/api/users/:id`
-- **Update User Password**: PUT `/api/users/update-password/:id`
-- **Delete a User**: DELETE `/api/users/:id`
-- **Restore a User**: PATCH `/api/users/restore/:id`
+- Get all Users: `GET /api/users/all`
+- Get a specific User: `GET /api/users/:id`
+- Update a User: `PUT /api/users/:id`
+- Update User Password: `PUT /api/users/update-password/:id`
+- Delete a User: `DELETE /api/users/:id`
+- Restore a User: `PATCH /api/users/restore/:id`
+- Upload User Profile Picture: `POST /api/users/:userId/profile-picture`
+- Delete User Profile Picture: `DELETE /api/users/:userId/profile-picture`
 
 ### Organization
 
-- **Create an Organization**: POST `/api/organization`
-- **Verify an Organization**: POST `/api/organization/verifyOrg`
-- **Get all Organizations**: GET `/api/organization/all`
-- **Get a specific Organization**: GET `/api/organization/:organizationId`
-- **Update an Organization**: PUT `/api/organization/:organizationId`
-- **Delete an Organization**: DELETE `/api/organization/:organizationId`
-- **Add owners to the org**: POST `/api/organization/:organizationId/addOwner`
-- **Upload the organization logo**: POST `/api/organization/:organizationId/logo/upload`
-- **Delete the organization logo**: DELETE `/api/organization/:organizationId/logo/delete`
+- Create an Organization: `POST /api/organization`
+- Verify an Organization: `POST /api/organization/verifyOrg`
+- Get all Organizations: `GET /api/organization/all`
+- Get a specific Organization: `GET /api/organization/:organizationId`
+- Update an Organization: `PUT /api/organization/:organizationId`
+- Delete an Organization: `DELETE /api/organization/:organizationId`
+- Add owners to the org: `POST /api/organization/:organizationId/addOwner`
+- Upload the organization logo: `POST /api/organization/:organizationId/logo/upload`
+- Delete the organization logo: `DELETE /api/organization/:organizationId/logo/delete`
+
+### Department
+
+### Team
+
+- Create a new team in a specific organization: `POST /api/organization/:organizationId/department/:departmentId/team`
+- Add new team members: `POST /api/organization/:organizationId/department/:departmentId/team/:teamId/addMember`

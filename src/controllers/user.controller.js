@@ -1,5 +1,8 @@
 import prisma from '../config/prismaClient.js';
-import { uploadToCloudinary } from '../utils/cloudinary.utils.js';
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from '../utils/cloudinary.utils.js';
 import { comparePassword, hashPassword } from '../utils/password.utils.js';
 import {
   updatePasswordValidation,

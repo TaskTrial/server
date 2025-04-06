@@ -10,7 +10,7 @@ import { createTeamValidation } from '../validations/team.validation.js';
 export const createTeam = async (req, res, next) => {
   try {
     // POST /api/organization/:organizationId/department/:departmentId/team
-    const { organizationId, departmendId } = req.params;
+    const { organizationId, departmentId } = req.params;
 
     if (!organizationId) {
       return res.status(400).json({
@@ -41,7 +41,7 @@ export const createTeam = async (req, res, next) => {
       });
     }
 
-    if (!departmendId) {
+    if (!departmentId) {
       return res.status(400).json({
         success: false,
         message: 'Department ID is required',
@@ -51,7 +51,7 @@ export const createTeam = async (req, res, next) => {
     // Check if department exists and is not deleted
     const existingDep = await prisma.department.findFirst({
       where: {
-        id: departmendId,
+        id: departmentId,
         deletedAt: null,
       },
     });
@@ -90,14 +90,14 @@ export const createTeam = async (req, res, next) => {
 
     const { name, description, avatar, members = [] } = req.body;
 
-    const existingteam = await prisma.team.findFirst({
+    const existingTeam = await prisma.team.findFirst({
       where: {
         name: name,
         organizationId: organizationId,
         deletedAt: null,
       },
     });
-    if (existingteam) {
+    if (existingTeam) {
       return res.status(409).json({
         message: 'Team with this name already exists',
       });
@@ -112,7 +112,7 @@ export const createTeam = async (req, res, next) => {
           avatar,
           createdBy: req.user.id,
           organizationId: organizationId,
-          departmentId: departmendId,
+          departmentId: departmentId,
         },
       });
 
@@ -131,7 +131,7 @@ export const createTeam = async (req, res, next) => {
       if (members && members.length > 0) {
         for (const member of members) {
           // Check if user exists
-          const userExists = await tx.user.findUnique({
+          const userExists = await tx.user.findFirst({
             where: { id: member.userId, deletedAt: null },
             select: { id: true },
           });

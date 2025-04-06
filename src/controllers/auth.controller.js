@@ -433,3 +433,45 @@ export const googleOAuthLogin = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc   Log out user by invalidating their refresh token
+ * @route  /api/auth/logout
+ * @method POST
+ * @access private (requires authentication)
+ */
+export const logout = async (req, res, next) => {
+  try {
+    // Get user ID from the authenticated request
+    const userId = req.user.id;
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    if (!userId || !user || !user.isActive) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Clear the refresh token in the database
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        refreshToken: null,
+        lastLogout: new Date(),
+      },
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
+  }
+};

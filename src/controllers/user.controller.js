@@ -414,3 +414,42 @@ export const uploadUserProfilePic = async (req, res, next) => {
  * @method DELETE
  * @access private - Requires admin or user himself
  */
+export const deleteUserProfilePic = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    // Validate userId
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required',
+      });
+    }
+
+    // Check if user exists and is not deleted
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+    });
+
+    if (!user || !user.profilePic) {
+      return res.status(404).json({ message: 'Profile picture not found' });
+    }
+
+    await deleteFromCloudinary(user.profilePic);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { profilePic: null },
+    });
+
+    res.status(200).json({
+      message: 'Profile picture deleted successfully',
+      user: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

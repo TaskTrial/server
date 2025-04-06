@@ -29,6 +29,10 @@
     {
       "name": "Users",
       "description": "User management"
+    },
+    {
+      "name": "Team",
+      "description": "Team management"
     }
   ],
   "paths": {
@@ -1280,6 +1284,160 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/department/{departmentId}/team": {
+      "post": {
+        "tags": ["Team"],
+        "summary": "Create a new team",
+        "description": "Create a new team within a specific department of an organization. Requires admin privileges, organization ownership, or department management rights.",
+        "operationId": "createTeam",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the department",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Team creation data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamRequest"
+              },
+              "examples": {
+                "basicTeam": {
+                  "value": {
+                    "name": "Frontend Development",
+                    "description": "Team responsible for frontend development",
+                    "avatar": "https://example.com/team-avatar.jpg",
+                    "members": [
+                      {
+                        "userId": "550e8400-e29b-41d4-a716-446655440001",
+                        "role": "MEMBER"
+                      }
+                    ]
+                  }
+                },
+                "minimalTeam": {
+                  "value": {
+                    "name": "Backend Team",
+                    "description": "Team handling backend services"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Team created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error or missing parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "validationError": {
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "errors": ["\"name\" is required"]
+                    }
+                  },
+                  "missingParams": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization ID and Department ID are required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization or department not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "orgNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization not found"
+                    }
+                  },
+                  "depNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Department not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - team name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2243,6 +2401,162 @@
           "newPassword": {
             "type": "string",
             "example": "newPassword456"
+          }
+        }
+      },
+      "CreateTeamRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "Frontend Team"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "example": "Team responsible for frontend development"
+          },
+          "avatar": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/team-avatar.jpg"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["userId"],
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "550e8400-e29b-41d4-a716-446655440001"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["LEADER", "MEMBER", "CONTRIBUTOR"],
+                  "default": "MEMBER"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateTeamResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Team created successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "team": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              },
+              "teamLeader": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "leader": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "userId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "role": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "teamMembers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "avatar": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TeamMember": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["LEADER", "MEMBER", "CONTRIBUTOR"]
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       }

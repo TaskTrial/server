@@ -1454,7 +1454,10 @@
           },
           "403": {
             "$ref": "#/components/responses/ForbiddenError"
-
+          }
+          }
+          }
+      },
     "/api/organization/{organizationId}/department/{departmentId}/team": {
       "post": {
         "tags": ["Team"],
@@ -3314,4 +3317,8 @@
       }
     }
   }
+}
+   
+}
+}
 }

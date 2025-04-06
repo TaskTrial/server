@@ -99,6 +99,7 @@ export const createTeam = async (req, res, next) => {
     });
     if (existingTeam) {
       return res.status(409).json({
+        success: false,
         message: 'Team with this name already exists',
       });
     }

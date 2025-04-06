@@ -17,6 +17,7 @@ import {
   errorHandler,
   notFound,
 } from './middlewares/errorHandler.middleware.js';
+import departmentRoutes from './routes/department.routes.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
 
 /* eslint no-undef: off */
@@ -46,7 +47,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Cors Policy
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  }),
+); // Allow all origins temporarily
 
 // Helmet
 app.use(helmet());
@@ -65,6 +72,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(authRouter);
 app.use(orgRouter);
 app.use(userRoutes);
+app.use(departmentRoutes);
 
 // Error handling middleware
 app.use(notFound);

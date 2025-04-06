@@ -31,13 +31,11 @@ router.get(
 router.get(
   '/api/organization/:organizationId',
   verifyAccessToken,
-
   getSpecificOrganization,
 );
 router.put(
   '/api/organization/:organizationId',
   verifyAccessToken,
-  verifyAdminPermission,
   updateOrganization,
 );
 router.delete(

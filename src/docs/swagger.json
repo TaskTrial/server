@@ -2178,7 +2178,6 @@
           }
         }
       },
-
       "UserResponse": {
         "type": "object",
         "properties": {

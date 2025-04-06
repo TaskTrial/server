@@ -26,11 +26,27 @@ export const uploadToCloudinary = (fileBuffer, folder) => {
  * Delete image from Cloudinary
  * imageUrl - The full URL of the image
  */
-export const deleteFromCloudinary = async (imageUrl) => {
+export const deleteFromCloudinary = async (imageUrl, next) => {
   if (!imageUrl) {
     return;
   }
 
-  const publicId = imageUrl.split('/').pop().split('.')[0];
-  await cloudinary.uploader.destroy(publicId);
+  try {
+    const url = new URL(imageUrl);
+    const parts = url.pathname.split('/');
+
+    const uploadIndex = parts.findIndex((part) => part === 'upload');
+    if (uploadIndex === -1) {
+      throw new Error(
+        'Invalid image URL: "upload" segment not found in pathname',
+      );
+    }
+
+    const publicIdWithExtension = parts.slice(uploadIndex + 1).join('/');
+    const publicId = publicIdWithExtension.replace(/\.[^/.]+$/, ''); // remove file extension
+
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    next(error);
+  }
 };

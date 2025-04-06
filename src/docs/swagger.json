@@ -960,13 +960,24 @@
     "/api/users/all": {
       "get": {
         "tags": ["Users"],
-        "summary": "List users",
-        "description": "Get list of all users in the system",
+        "summary": "List all users",
+        "description": "Retrieve a paginated list of all users.",
         "operationId": "getAllUsers",
         "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of users",
+            "description": "Users retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -976,7 +987,6 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
             "$ref": "#/components/responses/UnauthorizedError"
           }
         }
@@ -986,7 +996,7 @@
       "get": {
         "tags": ["Users"],
         "summary": "Get user by ID",
-        "description": "Get detailed information about a specific user",
+        "description": "Retrieve detailed information about a specific user.",
         "operationId": "getUserById",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
@@ -994,7 +1004,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "ID of the user to retrieve",
+            "description": "User ID",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -1003,7 +1013,7 @@
         ],
         "responses": {
           "200": {
-            "description": "User details",
+            "description": "User retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -1012,12 +1022,7 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid user ID",
-            "$ref": "#/components/responses/ValidationError"
-          },
           "404": {
-            "description": "User not found",
             "$ref": "#/components/responses/NotFoundError"
           }
         }
@@ -1025,7 +1030,7 @@
       "put": {
         "tags": ["Users"],
         "summary": "Update user account",
-        "description": "Update user profile information. Admins can update additional fields like role, department, and organization.",
+        "description": "Update user profile information.",
         "operationId": "updateUserAccount",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
@@ -1033,7 +1038,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "ID of the user to update",
+            "description": "User ID",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -1042,37 +1047,11 @@
         ],
         "requestBody": {
           "description": "User update data",
-          "required": false,
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "firstName": {
-                    "type": "string",
-                    "example": "John"
-                  },
-                  "lastName": {
-                    "type": "string",
-                    "example": "Doe"
-                  },
-                  "phoneNumber": {
-                    "type": "string",
-                    "example": "+1234567890"
-                  },
-                  "jobTitle": {
-                    "type": "string",
-                    "example": "Software Engineer"
-                  },
-                  "timezone": {
-                    "type": "string",
-                    "example": "UTC+2"
-                  },
-                  "bio": {
-                    "type": "string",
-                    "example": "Experienced software engineer with expertise in backend development."
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateUserRequest"
               }
             }
           }
@@ -1083,66 +1062,20 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "User account updated successfully"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/UserResponse"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - Account is not active",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               }
             }
           },
           "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/NotFoundError"
           }
         }
       },
       "delete": {
         "tags": ["Users"],
         "summary": "Soft delete a user",
-        "description": "Marks a user as deleted by setting a `deletedAt` timestamp and deactivating the account.",
+        "description": "Mark a user as deleted.",
         "operationId": "softDeleteUser",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
@@ -1150,7 +1083,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "ID of the user to delete",
+            "description": "User ID",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -1175,58 +1108,37 @@
             }
           },
           "404": {
-            "description": "User not found or already deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/NotFoundError"
           }
         }
       }
     },
-    "/api/users/update-password": {
+    "/api/users/update-password/{id}": {
       "put": {
         "tags": ["Users"],
         "summary": "Update user password",
-        "description": "Allows a user to update their password by providing the old and new passwords.",
+        "description": "Update a user's password.",
         "operationId": "updateUserPassword",
         "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "description": "Password update data",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["email", "oldPassword", "newPassword"],
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "user@example.com"
-                  },
-                  "oldPassword": {
-                    "type": "string",
-                    "example": "oldPassword123"
-                  },
-                  "newPassword": {
-                    "type": "string",
-                    "example": "newPassword456"
-                  }
-                }
+                "$ref": "#/components/schemas/UpdatePasswordRequest"
               }
             }
           }
@@ -1248,35 +1160,143 @@
               }
             }
           },
-          "400": {
-            "description": "Bad request - Validation error or incorrect old password",
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/api/users/restore/{id}": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Restore a soft-deleted user",
+        "description": "Restore a user that was previously soft-deleted.",
+        "operationId": "restoreUser",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User restored successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User restored successfully"
+                    }
+                  }
                 }
               }
             }
           },
           "404": {
-            "description": "User not found",
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/profile-picture": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Upload profile picture",
+        "description": "Upload a profile picture for a user.",
+        "operationId": "uploadProfilePicture",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Profile picture file"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile picture uploaded successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               }
             }
           },
-          "500": {
-            "description": "Internal server error",
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Delete profile picture",
+        "description": "Delete a user's profile picture.",
+        "operationId": "deleteProfilePicture",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile picture deleted successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Profile picture deleted successfully"
+                    }
+                  }
                 }
               }
             }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
           }
         }
       }
@@ -2158,34 +2178,71 @@
           }
         }
       },
+
       "UserResponse": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
           },
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
           },
           "firstName": {
-            "type": "string"
+            "type": "string",
+            "example": "John"
           },
           "lastName": {
-            "type": "string"
+            "type": "string",
+            "example": "Doe"
           },
           "role": {
             "type": "string",
-            "enum": ["MEMBER", "ADMIN", "MANAGER"]
+            "enum": ["MEMBER", "ADMIN", "MANAGER"],
+            "example": "MEMBER"
           },
-          "gender": {
+          "profilePic": {
             "type": "string",
-            "enum": ["MALE", "FEMALE", "OTHER"]
+            "format": "uri",
+            "example": "https://example.com/profile.jpg"
           },
-          "DOB": {
+          "phoneNumber": {
             "type": "string",
-            "format": "date"
+            "example": "+1234567890"
+          },
+          "jobTitle": {
+            "type": "string",
+            "example": "Software Engineer"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "UTC+2"
+          },
+          "bio": {
+            "type": "string",
+            "example": "Experienced software developer"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-01-02T00:00:00Z"
           }
         }
       },
@@ -2196,11 +2253,51 @@
             "type": "string",
             "example": "Users retrieved successfully"
           },
+          "currentPage": {
+            "type": "integer",
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "totalUsers": {
+            "type": "integer",
+            "example": 50
+          },
           "users": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserResponse"
+              "$ref": "#/components/schemas/BasicUserInfo"
             }
+          }
+        }
+      },
+      "BasicUserInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "ADMIN", "MANAGER"],
+            "example": "MEMBER"
           }
         }
       },
@@ -2217,18 +2314,36 @@
             "minLength": 2,
             "example": "Doe"
           },
-          "gender": {
-            "type": "string",
-            "enum": ["MALE", "FEMALE", "OTHER"]
-          },
-          "DOB": {
-            "type": "string",
-            "format": "date",
-            "example": "1990-01-01"
-          },
-          "mobileNumber": {
+          "phoneNumber": {
             "type": "string",
             "example": "+1234567890"
+          },
+          "jobTitle": {
+            "type": "string",
+            "example": "Software Engineer"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "UTC+2"
+          },
+          "bio": {
+            "type": "string",
+            "example": "Experienced software developer"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "ADMIN", "MANAGER"],
+            "example": "MEMBER"
+          },
+          "departmentId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440001"
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440002"
           }
         }
       },
@@ -2242,12 +2357,41 @@
           },
           "newPassword": {
             "type": "string",
-            "example": "newPassword456"
+            "minLength": 8,
+            "example": "newSecurePassword456"
+          }
+        }
+      },
+      "ProfilePicUploadResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Profile picture uploaded successfully"
+          },
+          "profilePicUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/profile.jpg"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        }
+      },
+      "ProfilePicDeleteResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Profile picture deleted successfully"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
           }
         }
       }
     },
-
     "responses": {
       "UnauthorizedError": {
         "description": "Unauthorized",

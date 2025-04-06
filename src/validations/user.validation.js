@@ -44,3 +44,7 @@ export const updatePasswordValidation = (obj) => {
 
   return schema.validate(obj);
 };
+
+export const profilePictureValidation = Joi.object({
+  profilePicture: Joi.any(), // This will be handled by multer
+});

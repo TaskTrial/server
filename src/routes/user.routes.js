@@ -1,15 +1,18 @@
 import { Router } from 'express';
 import {
+  deleteUserProfilePic,
   getAllUsers,
   getUserById,
   restoreUser,
   softDeleteUser,
   updateUserAccount,
   updateUserPassword,
+  uploadUserProfilePic,
 } from '../controllers/user.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import { verifyAdminPermission } from '../middlewares/verifyAdminPermission.middleware.js';
 import { verifyUserPermission } from '../middlewares/verifyUserPermission.middleware.js';
+import upload from '../middlewares/upload.middleware.js';
 // import{authorizeUser} from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -43,13 +46,13 @@ router.put(
 );
 
 router.delete(
-  '/users/:id',
+  '/api/users/:id',
   verifyAccessToken,
   verifyAdminPermission,
   softDeleteUser,
 );
 router.patch(
-  '/users/restore/:id',
+  '/api/users/restore/:id',
   verifyAccessToken,
   verifyAdminPermission,
   restoreUser,

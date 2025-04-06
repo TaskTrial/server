@@ -215,10 +215,10 @@ export const addTeamMember = async (req, res, next) => {
     // POST /api/organization/:organizationId/department/:departmentId/team/:teamId/addMember
     const { organizationId, departmentId, teamId } = req.params;
 
-    if (!organizationId || !departmentId) {
+    if (!organizationId || !departmentId || !teamId) {
       return res.status(400).json({
         success: false,
-        message: 'Organization ID and Department ID are required',
+        message: 'Organization ID, Department ID, and Team ID are required',
       });
     }
 

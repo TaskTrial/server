@@ -6,7 +6,7 @@ import {
 
 /**
  * @desc   Create a new team in a specific organization
- * @route  /api/organization
+ * @route  /api/organization/:organizationId/department/:departmentId/team
  * @method POST
  * @access private - admins or organization owners only
  */

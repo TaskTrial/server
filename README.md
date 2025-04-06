@@ -38,6 +38,8 @@ base url: `http://localhost:3000`
 - **Update User Password**: PUT `/api/users/update-password/:id`
 - **Delete a User**: DELETE `/api/users/:id`
 - **Restore a User**: PATCH `/api/users/restore/:id`
+- **Upload User Profile Picture**: POST `/api/users/:userId/profile-picture`
+- **Delete User Profile Picture**: DELETE `/api/users/:userId/profile-picture`
 
 ### Organization
 

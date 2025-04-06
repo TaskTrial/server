@@ -27,7 +27,8 @@ base url: `http://localhost:3000`
 - **Forget Password**: POST `/api/auth/forgotPassword`
 - **Reset Password**: POST `/api/auth/resetPassword`
 - **Refresh Access Token**: POST `/api/auth/refreshAccessToken`
-- **Login with google**: POST `/auth/google`
+- **Login with google**: POST `/api/auth/google`
+- **Logout**: POST `/api/auth/logout`
 
 ### User
 
@@ -45,3 +46,7 @@ base url: `http://localhost:3000`
 - **Get all Organizations**: GET `/api/organization/all`
 - **Get a specific Organization**: GET `/api/organization/:organizationId`
 - **Update an Organization**: PUT `/api/organization/:organizationId`
+- **Delete an Organization**: DELETE `/api/organization/:organizationId`
+- **Add owners to the org**: POST `/api/organization/:organizationId/addOwner`
+- **Upload the organization logo**: POST `/api/organization/:organizationId/logo/upload`
+- **Delete the organization logo**: DELETE `/api/organization/:organizationId/logo/delete`

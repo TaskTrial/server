@@ -6,10 +6,12 @@ import {
   softDeleteUser,
   updateUserAccount,
   updateUserPassword,
+  uploadUserProfilePic,
 } from '../controllers/user.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import { verifyAdminPermission } from '../middlewares/verifyAdminPermission.middleware.js';
 import { verifyUserPermission } from '../middlewares/verifyUserPermission.middleware.js';
+import upload from '../middlewares/upload.middleware.js';
 // import{authorizeUser} from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -55,4 +57,11 @@ router.patch(
   restoreUser,
 );
 
+router.post(
+  '/api/users/:userId/profile-picture', // Changed `:id` to `:userId` to match the function
+  upload.single('image'),
+  verifyAccessToken,
+  verifyUserPermission,
+  uploadUserProfilePic,
+);
 export default router;

@@ -45,7 +45,7 @@ export const addTeamMemberValidation = (obj) => {
       .items(
         Joi.object({
           userId: Joi.string().uuid().required().messages({
-            'string.guid': 'User ID must be a valid UUID',
+            'string.uuid': 'User ID must be a valid UUID',
             'any.required': 'User ID is required for team members',
           }),
           role: Joi.string()

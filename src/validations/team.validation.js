@@ -38,3 +38,26 @@ export const createTeamValidation = (obj) => {
 
   return schema.validate(obj, { abortEarly: false });
 };
+
+export const addTeamMemberValidation = (obj) => {
+  const schema = Joi.object({
+    members: Joi.array()
+      .items(
+        Joi.object({
+          userId: Joi.string().uuid().required().messages({
+            'string.guid': 'User ID must be a valid UUID',
+            'any.required': 'User ID is required for team members',
+          }),
+          role: Joi.string()
+            .valid('MEMBER', 'LEADER', 'VIEWER')
+            .default('MEMBER')
+            .messages({
+              'any.only': 'Role must be one of: MEMBER, LEADER, or VIEWER',
+            }),
+        }),
+      )
+      .required(),
+  });
+
+  return schema.validate(obj, { abortEarly: false });
+};

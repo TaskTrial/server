@@ -25,6 +25,7 @@ model User {
   passwordResetExpires     DateTime?
   refreshToken             String?
   lastLogin                DateTime?
+  lastLogout               DateTime?
 
   // Relations
   department           Department?         @relation(fields: [departmentId], references: [id])

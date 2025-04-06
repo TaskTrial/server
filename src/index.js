@@ -50,7 +50,7 @@ app.use(passport.session());
 // Cors Policy
 app.use(
   cors({
-    origin: '*',
+    origin: process.env.ALLOWED_ORIGIN,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   }),

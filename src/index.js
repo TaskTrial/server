@@ -13,6 +13,7 @@ import swaggerUi from 'swagger-ui-express';
 import authRouter from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import orgRouter from './routes/organization.routes.js';
+import teamRoutes from './routes/team.routes.js';
 import {
   errorHandler,
   notFound,
@@ -65,6 +66,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(authRouter);
 app.use(orgRouter);
 app.use(userRoutes);
+app.use(teamRoutes);
 
 // Error handling middleware
 app.use(notFound);

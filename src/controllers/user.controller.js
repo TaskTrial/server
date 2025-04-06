@@ -1,14 +1,33 @@
 import prisma from '../config/prismaClient.js';
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from '../utils/cloudinary.utils.js';
 import { comparePassword, hashPassword } from '../utils/password.utils.js';
 import {
   updatePasswordValidation,
   updateUserAccountValidation,
 } from '../validations/user.validation.js';
 /* eslint no-undef:off */
+/**
+ * @desc   Get all users with pagination
+ * @route  GET /api/users/all?page=1
+ * @method GET
+ * @access Private (Admin only)
+ */
 export const getAllUsers = async (req, res, next) => {
   try {
-    // Fetch all users from the database
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    // Get total number of users
+    const totalUsers = await prisma.user.count();
+
+    // Fetch users with pagination
     const users = await prisma.user.findMany({
+      skip,
+      take: limit,
       select: {
         id: true,
         email: true,
@@ -20,38 +39,107 @@ export const getAllUsers = async (req, res, next) => {
 
     return res.status(200).json({
       message: 'Users retrieved successfully',
+      currentPage: page,
+      totalPages: Math.ceil(totalUsers / limit),
+      totalUsers,
       users,
     });
   } catch (error) {
-    next(error); // Ensure next is called with the error
+    next(error);
   }
 };
 
+/**
+ * @desc   Get full user profile by ID
+ * @route  GET /api/users/:id
+ * @method GET
+ * @access Private (User or Admin)
+ */
 export const getUserById = async (req, res, next) => {
   const { id } = req.params;
+
   try {
-    // Ensure req.user is defined
     const user = await prisma.user.findFirst({
       where: { id },
       select: {
         id: true,
         email: true,
+        username: true,
         firstName: true,
         lastName: true,
         role: true,
+        profilePic: true,
+        phoneNumber: true,
+        jobTitle: true,
+        timezone: true,
+        bio: true,
+        preferences: true,
+        isActive: true,
+        isOwner: true,
+        createdAt: true,
+        updatedAt: true,
+        lastLogin: true, // Keep valid fields
+        // Removed invalid field `lastLogout`
+        department: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        permissions: {
+          select: {
+            entityType: true,
+            entityId: true,
+            permissions: true,
+          },
+        },
+        teamMemberships: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        activityLogs: {
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            action: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
     if (!user) {
-      return next(error); // Ensure next is called with the error
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    return res.status(200).json(user);
+    return res.status(200).json({
+      message: 'User retrieved successfully',
+      user,
+    });
   } catch (error) {
-    next(error); // Ensure next is called with the error
+    next(error);
   }
 };
 
+/**
+ * @desc   Update user account
+ * @route  PUT /api/users/:id
+ * @method PUT
+ * @access Private (User or Admin)
+ */
 export const updateUserAccount = async (req, res, next) => {
   try {
     const userId = req.params.id;
@@ -146,6 +234,12 @@ export const updateUserAccount = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Update user password
+ * @route  PUT /api/users/update-password/:id
+ * @method PUT
+ * @access Private (User only)
+ */
 export const updateUserPassword = async (req, res, next) => {
   try {
     // Validate the request body
@@ -197,6 +291,12 @@ export const updateUserPassword = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc   Soft delete a user
+ * @route  DELETE /api/users/:id
+ * @method DELETE
+ * @access Private (Admin only)
+ */
 export const softDeleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -222,6 +322,13 @@ export const softDeleteUser = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Restore a soft-deleted user
+ * @route  PATCH /api/users/restore/:id
+ * @method PATCH
+ * @access Private (Admin only)
+ */
 export const restoreUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -241,6 +348,117 @@ export const restoreUser = async (req, res, next) => {
     });
 
     return res.status(200).json({ message: 'User restored successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Upload a profile picture for a user
+ * @route  POST /api/users/:id/profile-picture
+ * @method POST
+ * @access Private (User or Admin)
+ */
+
+/**
+ * @desc   Upload User Profile Picture
+ * @route  /api/users/:userId/profile-pic/upload
+ * @method POST
+ * @access private - Requires admin or user himself
+ */
+export const uploadUserProfilePic = async (req, res, next) => {
+  try {
+    const { userId } = req.params; // Ensure `userId` matches the route parameter
+
+    // Validate userId
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required',
+      });
+    }
+
+    // Check if user exists and is not deleted
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const profilePicUrl = await uploadToCloudinary(
+      req.file.buffer,
+      'profile_pictures',
+    );
+
+    // Update user profile picture URL in database
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { profilePic: profilePicUrl },
+    });
+
+    res.status(200).json({
+      message: 'Profile picture uploaded successfully',
+      profilePicUrl,
+      user: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Delete User Profile Picture
+ * @route  /api/users/:userId/profile-pic/delete
+ * @method DELETE
+ * @access private - Requires admin or user himself
+ */
+export const deleteUserProfilePic = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    // Validate userId
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required',
+      });
+    }
+
+    // Check if user exists and is not deleted
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+    });
+
+    if (!user || !user.profilePic) {
+      return res.status(404).json({ message: 'Profile picture not found' });
+    }
+
+    await deleteFromCloudinary(user.profilePic);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { profilePic: null },
+    });
+
+    res.status(200).json({
+      message: 'Profile picture deleted successfully',
+      user: updatedUser,
+    });
   } catch (error) {
     next(error);
   }

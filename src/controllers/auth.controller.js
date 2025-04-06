@@ -445,23 +445,25 @@ export const logout = async (req, res, next) => {
     // Get user ID from the authenticated request
     const userId = req.user.id;
 
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     // Find user
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
-        email: true,
-        username: true,
-        role: true,
         isActive: true,
       },
     });
 
-    if (!userId || !user || !user.isActive) {
+    // Check if user exists and is active
+    if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Clear the refresh token in the database
+    // Clear the refresh token and record logout time in the db
     await prisma.user.update({
       where: { id: userId },
       data: {

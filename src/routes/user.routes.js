@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  deleteUserProfilePic,
   getAllUsers,
   getUserById,
   restoreUser,
@@ -63,5 +64,12 @@ router.post(
   verifyAccessToken,
   verifyUserPermission,
   uploadUserProfilePic,
+);
+
+router.delete(
+  '/api/users/:userId/profile-picture',
+  verifyAccessToken,
+  verifyUserPermission,
+  deleteUserProfilePic,
 );
 export default router;

@@ -76,11 +76,9 @@ export const createDepartment = async (req, res, next) => {
     });
 
     if (existingDepartment) {
-      return res
-        .status(409)
-        .json({
-          message: 'Department name already exists in this organization',
-        });
+      return res.status(409).json({
+        message: 'Department name already exists in this organization',
+      });
     }
 
     const Is_Owner = await prisma.organization.findFirst({
@@ -90,12 +88,10 @@ export const createDepartment = async (req, res, next) => {
       },
     });
     if (!Is_Owner) {
-      return res
-        .status(403)
-        .json({
-          message:
-            'You do not have permission to create a department in this organization',
-        });
+      return res.status(403).json({
+        message:
+          'You do not have permission to create a department in this organization',
+      });
     }
 
     // Check if manager exists, is active, and belongs to the same organization
@@ -107,11 +103,9 @@ export const createDepartment = async (req, res, next) => {
     });
     //TODO: Check if the manager belongs to the same organization
     if (!manager) {
-      return res
-        .status(404)
-        .json({
-          message: 'Manager not found or does not belong to this organization',
-        });
+      return res.status(404).json({
+        message: 'Manager not found or does not belong to this organization',
+      });
     }
 
     // Create the department

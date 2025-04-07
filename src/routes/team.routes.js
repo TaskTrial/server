@@ -5,6 +5,7 @@ import {
   createTeam,
   deleteTeam,
   deleteTeamAvatar,
+  removeTeamMember,
   updateTeam,
   uploadTeamAvatar,
 } from '../controllers/team.controller.js';
@@ -44,9 +45,15 @@ router.delete(
 );
 
 router.delete(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId/',
+  '/api/organization/:organizationId/department/:departmentId/team/:teamId',
   verifyAccessToken,
   deleteTeam,
+);
+
+router.delete(
+  '/api/organization/:organizationId/department/:departmentId/team/:teamId/members/:memberId',
+  verifyAccessToken,
+  removeTeamMember,
 );
 
 export default router;

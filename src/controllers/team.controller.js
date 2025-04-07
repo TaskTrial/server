@@ -407,6 +407,183 @@ export const addTeamMember = async (req, res, next) => {
 };
 
 /**
+ * @desc   Remove member from a team (soft delete)
+ * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/members/:memberId
+ * @method DELETE
+ * @access private - admins, organization owners, department managers, or team creators
+ */
+export const removeTeamMember = async (req, res, next) => {
+  try {
+    const { organizationId, departmentId, teamId, memberId } = req.params;
+
+    if (!organizationId || !departmentId || !teamId || !memberId) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Organization ID, Department ID, Team ID, and Member ID are required',
+      });
+    }
+
+    // Check if organization exists and is not deleted
+    const existingOrg = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingOrg) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check if department exists and is not deleted
+    const existingDep = await prisma.department.findFirst({
+      where: {
+        id: departmentId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingDep) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
+    }
+
+    // Check if team exists and is not deleted
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+        organizationId,
+        departmentId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        createdBy: true,
+      },
+    });
+
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'Team not found',
+      });
+    }
+
+    // Check if team member exists
+    const teamMember = await prisma.teamMember.findFirst({
+      where: {
+        id: memberId,
+        teamId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!teamMember) {
+      return res.status(404).json({
+        success: false,
+        message: 'Team member not found or already removed',
+      });
+    }
+
+    // Check permissions - admins, org owners, dep managers, or team creators can remove members
+    const isAdmin = req.user.role === 'ADMIN';
+    const isOwner = existingOrg.owners.some(
+      (owner) => owner.userId === req.user.id,
+    );
+    const isDepManager = existingDep.managerId === req.user.id;
+    const isTeamCreator = team.createdBy === req.user.id;
+
+    if (!isAdmin && !isOwner && !isDepManager && !isTeamCreator) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to remove members from this team',
+      });
+    }
+
+    // Prevent removing the team creator if they're the only leader
+    if (teamMember.userId === team.createdBy) {
+      // Check if there are other leaders in the team
+      const otherLeaders = await prisma.teamMember.findMany({
+        where: {
+          teamId,
+          role: 'LEADER',
+          userId: { not: team.createdBy },
+        },
+      });
+
+      if (otherLeaders.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'Cannot remove the only team leader. Please assign another leader first.',
+        });
+      }
+    }
+
+    // Soft delete the team member
+    const removedMember = await prisma.teamMember.update({
+      where: { id: memberId },
+      data: { deletedAt: new Date(), isActive: false },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Team member ${removedMember.user.firstName} ${removedMember.user.lastName} removed successfully`,
+      data: {
+        removedMember: {
+          id: removedMember.id,
+          userId: removedMember.userId,
+          name: `${removedMember.user.firstName} ${removedMember.user.lastName}`,
+          removedAt: removedMember.deletedAt,
+        },
+        team: {
+          id: team.id,
+          name: team.name,
+        },
+      },
+    });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({
+        success: false,
+        message: 'Team member not found',
+      });
+    }
+    next(error);
+  }
+};
+
+/**
  * @desc   Update a team
  * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId
  * @method PUT
@@ -755,9 +932,9 @@ export const deleteTeamAvatar = async (req, res, next) => {
 
 /**
  * @desc   Delete team
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/
+ * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId
  * @method DELETE
- * @access private - admins or organization owners only
+ * @access private - admins, organization owners, department managers, or team creators
  */
 export const deleteTeam = async (req, res, next) => {
   try {
@@ -825,7 +1002,7 @@ export const deleteTeam = async (req, res, next) => {
     if (!team) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found',
+        message: 'Team not found or already deleted',
       });
     }
 

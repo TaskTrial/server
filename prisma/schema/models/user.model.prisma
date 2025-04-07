@@ -35,6 +35,7 @@ model User {
   managedDepartments   Department[]        @relation("DepartmentManager")
   createdTeams         Team[]              @relation("TeamCreator")
   teamMemberships      TeamMember[]
+  projectMemberships   ProjectMember[]
   createdProjects      Project[]           @relation("ProjectCreator")
   modifiedProjects     Project[]           @relation("ProjectModifier")
   createdTasks         Task[]              @relation("TaskCreator")

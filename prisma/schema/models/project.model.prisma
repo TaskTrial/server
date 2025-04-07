@@ -17,14 +17,15 @@ model Project {
   lastModifiedBy String?      @db.Uuid // for audit
 
   // Relations
-  creator      User          @relation("ProjectCreator", fields: [createdBy], references: [id])
-  modifier     User?         @relation("ProjectModifier", fields: [lastModifiedBy], references: [id])
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  team         Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  sprints      Sprint[]
-  tasks        Task[]
-  reports      Report[]
-  activityLogs ActivityLog[]
+  creator       User            @relation("ProjectCreator", fields: [createdBy], references: [id])
+  modifier      User?           @relation("ProjectModifier", fields: [lastModifiedBy], references: [id])
+  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team          Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  sprints       Sprint[]
+  tasks         Task[]
+  reports       Report[]
+  activityLogs  ActivityLog[]
+  ProjectMember ProjectMember[]
 
   @@unique([organizationId, name]) // to prevent duplicate project names within an organization
   @@index([organizationId])
@@ -32,6 +33,25 @@ model Project {
   @@index([createdBy])
   @@index([status])
   @@map("projects")
+}
+
+model ProjectMember {
+  id        String    @id @default(uuid()) @db.Uuid
+  projectId String    @db.Uuid
+  userId    String    @db.Uuid
+  role      String    @db.VarChar(50) // e.g., "DEVELOPER", "TESTER", "PRODUCT_OWNER"
+  isActive  Boolean   @default(true)
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId]) // A user can only have one active role in a project
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
 }
 
 model Sprint {

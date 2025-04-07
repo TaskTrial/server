@@ -472,3 +472,95 @@ export const softDeleteDepartment = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Restore a soft-deleted department
+ * @route  PATCH /api/department/:id/restore
+ * @access Private (Owner or Admin only)
+ */
+export const restoreDepartment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { userId, role } = req.user;
+
+    // 1. Check if department exists and is deleted
+    const department = await prisma.department.findUnique({
+      where: { id },
+      include: {
+        organization: true,
+        manager: true,
+      },
+    });
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
+    }
+
+    if (!department.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Department is not deleted',
+      });
+    }
+
+    // 2. Verify permissions (Owner or Admin of the organization)
+    // For ADMIN/OWNER, check if they belong to the department's organization
+    const userInOrg = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        organizationId: department.organizationId,
+        role: { in: ['ADMIN', 'OWNER'] },
+        deletedAt: null,
+      },
+    });
+
+    if (!userInOrg) {
+      return res.status(403).json({
+        success: false,
+        message:
+          'You do not have permission to restore departments in this organization',
+      });
+    }
+
+    // 3. Restore the department
+    const restoredDepartment = await prisma.department.update({
+      where: { id },
+      data: {
+        deletedAt: null,
+      },
+      include: {
+        organization: { select: { id: true, name: true } },
+        manager: {
+          select: { id: true, firstName: true, lastName: true, role: true },
+        },
+        users: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        teams: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Department restored successfully',
+      data: restoredDepartment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

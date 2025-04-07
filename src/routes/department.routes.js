@@ -1,7 +1,11 @@
 import express from 'express';
-import { getAllDepartments } from '../controllers/department.controller.js';
+import {
+  createDepartment,
+  getAllDepartments,
+} from '../controllers/department.controller.js';
 import { verifyManagerPermission } from '../middlewares/verifyManagerPermission.middleware.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
+import { validateCreateDepartment } from '../validations/department.validation.js';
 
 const router = express.Router();
 
@@ -13,3 +17,11 @@ router.get(
   getAllDepartments,
 );
 export default router;
+
+router.post(
+  '/api/department/create',
+  verifyAccessToken,
+  verifyManagerPermission,
+  validateCreateDepartment,
+  createDepartment,
+);

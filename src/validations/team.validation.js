@@ -61,3 +61,24 @@ export const addTeamMemberValidation = (obj) => {
 
   return schema.validate(obj, { abortEarly: false });
 };
+
+export const updateTeamValidation = (obj) => {
+  const schema = Joi.object({
+    name: Joi.string().min(2).max(100).optional().trim().messages({
+      'string.base': 'Team name must be a string',
+      'string.empty': 'Team name is required if provided',
+      'string.min': 'Team name must be at least {#limit} characters long',
+      'string.max': 'Team name cannot exceed {#limit} characters',
+    }),
+
+    description: Joi.string().allow('').optional().messages({
+      'string.base': 'Description must be a string',
+    }),
+
+    avatar: Joi.string().allow(null, '').optional().messages({
+      'string.base': 'Avatar must be a string URL or file path',
+    }),
+  });
+
+  return schema.validate(obj, { abortEarly: false });
+};

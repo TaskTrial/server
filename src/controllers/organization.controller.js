@@ -102,7 +102,11 @@ export const createOrganization = async (req, res, next) => {
           text: `Organization name: ${result.org.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
         });
       } catch (error) {
-        next(error);
+        return res.status(500).json({
+          success: false,
+          error,
+          message: 'Failed to send verification email. Please try again later.',
+        });
       }
     }
 

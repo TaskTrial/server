@@ -283,7 +283,7 @@ export const addTeamMember = async (req, res, next) => {
       });
     }
 
-    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic.
+    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic. and validate the these IDs
     // Check permissions - only admins and organization owners
     const isAdmin = req.user.role === 'ADMIN';
     const isOwner = existingOrg.owners.some(

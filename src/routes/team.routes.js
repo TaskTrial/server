@@ -3,6 +3,7 @@ import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   addTeamMember,
   createTeam,
+  deleteTeamAvatar,
   updateTeam,
   uploadTeamAvatar,
 } from '../controllers/team.controller.js';
@@ -33,6 +34,12 @@ router.post(
   verifyAccessToken,
   upload.single('image'),
   uploadTeamAvatar,
+);
+
+router.delete(
+  '/api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete',
+  verifyAccessToken,
+  deleteTeamAvatar,
 );
 
 export default router;

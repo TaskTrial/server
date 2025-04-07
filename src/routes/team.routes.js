@@ -3,6 +3,7 @@ import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   addTeamMember,
   createTeam,
+  deleteTeam,
   deleteTeamAvatar,
   updateTeam,
   uploadTeamAvatar,
@@ -40,6 +41,12 @@ router.delete(
   '/api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete',
   verifyAccessToken,
   deleteTeamAvatar,
+);
+
+router.delete(
+  '/api/organization/:organizationId/department/:departmentId/team/:teamId/',
+  verifyAccessToken,
+  deleteTeam,
 );
 
 export default router;

@@ -89,7 +89,16 @@ export const createOrganization = async (req, res, next) => {
         },
       });
 
-      return { org, orgOwner };
+      // 3. Update the creator's organizationId
+      const updatedUser = await tx.user.update({
+        where: { id: ownerId },
+        data: {
+          organizationId: org.id,
+          isOwner: true, // Set the user as owner if appropriate
+        },
+      });
+
+      return { org, orgOwner, updatedUser };
     });
 
     // Handle verification for non-admin creation

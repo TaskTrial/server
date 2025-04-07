@@ -6,6 +6,7 @@ import {
   deleteOrganizationLogo,
   getAllOrganizations,
   getSpecificOrganization,
+  resendOTP,
   updateOrganization,
   uploadOrganizationLogo,
   verifyOrganization,
@@ -17,6 +18,7 @@ import upload from '../middlewares/upload.middleware.js';
 const router = Router();
 
 router.post('/api/organization', verifyAccessToken, createOrganization);
+router.post('/api/organization/resendOTP/:orgId', verifyAccessToken, resendOTP);
 router.post(
   '/api/organization/verifyOrg',
   verifyAccessToken,

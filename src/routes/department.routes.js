@@ -3,6 +3,7 @@ import {
   createDepartment,
   getAllDepartments,
   getDepartmentById,
+  restoreDepartment,
   softDeleteDepartment,
   updateDepartment,
 } from '../controllers/department.controller.js';
@@ -52,5 +53,12 @@ router.delete(
   verifyAccessToken,
   verifyOwnerOrAdmin,
   softDeleteDepartment,
+);
+
+router.patch(
+  '/api/department/:id/restore',
+  verifyAccessToken,
+  verifyOwnerOrAdmin, // Use your existing middleware
+  restoreDepartment,
 );
 export default router;

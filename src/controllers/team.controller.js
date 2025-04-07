@@ -621,7 +621,7 @@ export const uploadTeamAvatar = async (req, res, next) => {
 
     const avatar = await uploadToCloudinary(req.file.buffer, 'team_avatar');
 
-    // Uplate the team avatr
+    // Upload the team avatar
     const updatedTeam = await prisma.team.update({
       where: { id: teamId },
       data: { avatar },

@@ -5,8 +5,7 @@ import prisma from '../config/prismaClient.js';
  * @route  GET /api/departments
  * @method GET
  * @access Private (Admin or Manager)
- */
-export const getAllDepartments = async (req, res, next) => {
+ */ export const getAllDepartments = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
@@ -129,13 +128,89 @@ export const createDepartment = async (req, res, next) => {
       where: { id: managerId },
       data: {
         departmentId: newDepartment.id,
-        role: 'MANAGER',
       },
     });
 
     return res.status(201).json({
       message: 'Department created successfully',
       department: newDepartment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Get a specific department by ID
+ * @route  GET /api/departments/:id
+ * @access Private (OWNER, ADMIN, MANAGER)
+ */
+export const getDepartmentById = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const department = await prisma.department.findFirst({
+      where: { id },
+      include: {
+        manager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        teams: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        users: {
+          where: { deletedAt: null }, // Only active users
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Department retrieved successfully',
+      data: {
+        id: department.id,
+        name: department.name,
+        description: department.description,
+        deletedAt: department.deletedAt,
+        createdAt: department.createdAt,
+        updatedAt: department.updatedAt,
+        manager: department.manager,
+        teams: department.teams,
+        users: department.users,
+        organization: {
+          id: department.organizationId,
+          name: department.organization.name,
+        },
+      },
     });
   } catch (error) {
     next(error);

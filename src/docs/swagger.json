@@ -1866,6 +1866,159 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/department/{departmentId}/team/{teamId}": {
+      "put": {
+        "tags": ["Team"],
+        "summary": "Update a team",
+        "description": "Update team details. Requires admin privileges, organization ownership, department management, or team leadership rights.",
+        "operationId": "updateTeam",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the department",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team to update",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Team update data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamRequest"
+              },
+              "examples": {
+                "basicUpdate": {
+                  "value": {
+                    "name": "Updated Team Name",
+                    "description": "Updated team description",
+                    "avatar": "https://example.com/new-team-avatar.jpg"
+                  }
+                },
+                "nameOnly": {
+                  "value": {
+                    "name": "New Team Name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Team updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error or missing parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "validationError": {
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "errors": ["\"name\" must be at least 2 characters long"]
+                    }
+                  },
+                  "missingParams": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization ID, Department ID, and Team ID are required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization, department or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "orgNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization not found"
+                    }
+                  },
+                  "depNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Department not found"
+                    }
+                  },
+                  "teamNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Team not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3398,6 +3551,80 @@
                   "\"email\" must be a valid email",
                   "\"password\" length must be at least 8 characters long"
                 ]
+              }
+            }
+          }
+        }
+      },
+      "UpdateTeamRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "Updated Team Name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "example": "Updated team description"
+          },
+          "avatar": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/new-team-avatar.jpg"
+          }
+        },
+        "anyOf": [
+          { "required": ["name"] },
+          { "required": ["description"] },
+          { "required": ["avatar"] }
+        ]
+      },
+      "UpdateTeamResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "team": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "avatar": {
+                "type": "string",
+                "format": "uri"
+              },
+              "organizationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "departmentId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "createdBy": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
               }
             }
           }

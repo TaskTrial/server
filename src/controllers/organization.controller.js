@@ -147,14 +147,14 @@ export const resendOTP = async (req, res, next) => {
       });
     }
 
-    const org = await prisma.organization.findFirst({
+    const org = await prisma.organization.findUnique({
       where: { id: orgId },
     });
 
     if (!org) {
       return res.status(404).json({
         success: false,
-        message: 'This organization not found',
+        message: 'Organization not found',
       });
     }
 
@@ -176,7 +176,7 @@ export const resendOTP = async (req, res, next) => {
       await sendEmail({
         to: org.contactEmail,
         subject: 'Re-verify Your Organization Email',
-        text: `Organization name: ${org.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
+        text: `Organization name: ${org.name}\nYour verification code is: ${verificationOTP}. It will expire in 10 minutes`,
       });
     } catch (emailError) {
       return res.status(500).json({

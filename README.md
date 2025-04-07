@@ -59,3 +59,8 @@ base url: `http://localhost:3000`
 
 - Create a new team in a specific organization: `POST /api/organization/:organizationId/department/:departmentId/team`
 - Add new team members: `POST /api/organization/:organizationId/department/:departmentId/team/:teamId/addMember`
+- Remove member from a team: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId/members/:memberId`
+- Update a team: `PUT /api/organization/:organizationId/department/:departmentId/team/:teamId`
+- Upload team avatar: `POST /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/upload`
+- Delete team avatar: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete`
+- Delete a team: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId`

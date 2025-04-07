@@ -2291,7 +2291,7 @@
         }
       }
     },
-    "/api/organization/{organizationId}/department/{departmentId}/team/{teamId}": {
+    "/api/organization/{organizationId}/department/{departmentId}/team/{teamId}/": {
       "delete": {
         "tags": ["Team"],
         "summary": "Delete a team",

@@ -44,7 +44,7 @@ router.delete(
 );
 
 router.delete(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId/',
+  '/api/organization/:organizationId/department/:departmentId/team/:teamId',
   verifyAccessToken,
   deleteTeam,
 );

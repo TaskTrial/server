@@ -216,3 +216,176 @@ export const getDepartmentById = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Update a department
+ * @route  PUT /api/department/:id
+ * @access Private (Admin or Manager with department access)
+ */
+export const updateDepartment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, description, addUsers, removeUsers } = req.body;
+    const { userId, role } = req.user;
+
+    // Check if department exists with organization and manager info
+    const department = await prisma.department.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        organization: true,
+        manager: true,
+        users: { where: { deletedAt: null } },
+      },
+    });
+
+    if (!department) {
+      return res.status(404).json({ message: 'Department not found' });
+    }
+
+    // Permission check (using the corrected version above)
+    if (role === 'MANAGER') {
+      if (department.managerId !== userId) {
+        return res.status(403).json({
+          message: 'You can only update departments you manage',
+        });
+      }
+    } else if (role === 'ADMIN' || role === 'OWNER') {
+      const userInOrg = await prisma.user.findFirst({
+        where: {
+          id: userId,
+          organizationId: department.organizationId,
+          role: { in: ['ADMIN', 'OWNER'] },
+          deletedAt: null,
+        },
+      });
+
+      if (!userInOrg) {
+        return res.status(403).json({
+          message: 'You do not have permission in this organization',
+        });
+      }
+    } else {
+      return res.status(403).json({
+        message: 'You do not have permission to update departments',
+      });
+    }
+
+    // If name is being changed, check for uniqueness
+    if (name && name !== department.name) {
+      const existingDept = await prisma.department.findFirst({
+        where: {
+          name,
+          organizationId: department.organizationId,
+          NOT: { id },
+          deletedAt: null,
+        },
+      });
+
+      if (existingDept) {
+        return res.status(409).json({
+          message: 'Department name already exists in this organization',
+        });
+      }
+    }
+
+    // Prepare transaction for multiple operations
+    const transaction = [];
+
+    // Update department basic info if needed
+    if (name || description !== undefined) {
+      transaction.push(
+        prisma.department.update({
+          where: { id },
+          data: {
+            name: name || department.name,
+            description:
+              description !== undefined ? description : department.description,
+          },
+        }),
+      );
+    }
+
+    // Handle user additions
+    if (addUsers && addUsers.length > 0) {
+      // Verify users exist and belong to same organization
+      const existingUsers = await prisma.user.findMany({
+        where: {
+          id: { in: addUsers },
+          organizationId: department.organizationId,
+          deletedAt: null,
+        },
+      });
+
+      if (existingUsers.length !== addUsers.length) {
+        return res.status(400).json({
+          message: 'Some users not found or not in the same organization',
+        });
+      }
+
+      transaction.push(
+        prisma.user.updateMany({
+          where: { id: { in: addUsers } },
+          data: { departmentId: id },
+        }),
+      );
+    }
+
+    // Handle user removals
+    if (removeUsers && removeUsers.length > 0) {
+      // Don't allow removing the manager
+      if (removeUsers.includes(department.managerId)) {
+        return res.status(400).json({
+          message: 'Cannot remove department manager this way',
+        });
+      }
+
+      transaction.push(
+        prisma.user.updateMany({
+          where: {
+            id: { in: removeUsers },
+            departmentId: id,
+          },
+          data: { departmentId: null },
+        }),
+      );
+    }
+
+    // Execute all operations in a transaction
+    await prisma.$transaction(transaction);
+
+    // Fetch updated department with all relations
+    const updatedDepartment = await prisma.department.findUnique({
+      where: { id },
+      include: {
+        organization: { select: { id: true, name: true } },
+        manager: {
+          select: { id: true, firstName: true, lastName: true, role: true },
+        },
+        users: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        teams: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Department updated successfully',
+      data: updatedDepartment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

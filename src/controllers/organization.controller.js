@@ -131,6 +131,71 @@ export const createOrganization = async (req, res, next) => {
 };
 
 /**
+ * @desc   Resend OTP code if it expired
+ * @route  /api/organization/resendOTP/:orgId
+ * @method POST
+ * @access private
+ */
+export const resendOTP = async (req, res, next) => {
+  try {
+    const { orgId } = req.params;
+
+    if (!orgId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    const org = await prisma.organization.findFirst({
+      where: { id: orgId },
+    });
+
+    if (!org) {
+      return res.status(404).json({
+        success: false,
+        message: 'This organization not found',
+      });
+    }
+
+    // generate OTP
+    const verificationOTP = generateOTP();
+    const hashedOTP = await hashOTP(verificationOTP);
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    await prisma.organization.update({
+      where: { id: orgId },
+      data: {
+        emailVerificationOTP: hashedOTP,
+        emailVerificationExpires: otpExpiry,
+      },
+    });
+
+    try {
+      // Send verification email
+      await sendEmail({
+        to: org.contactEmail,
+        subject: 'Re-verify Your Organization Email',
+        text: `Organization name: ${org.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
+      });
+    } catch (emailError) {
+      return res.status(500).json({
+        success: false,
+        error: emailError,
+        message: 'Failed to send verification email. Please try again later.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Code send successfully. Please check your email',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc   Verify organization's contact email using OTP
  * @route  /api/organization/verifyOrg
  * @method POST

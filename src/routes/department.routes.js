@@ -3,10 +3,14 @@ import {
   createDepartment,
   getAllDepartments,
   getDepartmentById,
+  updateDepartment,
 } from '../controllers/department.controller.js';
 import { verifyManagerPermission } from '../middlewares/verifyManagerPermission.middleware.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
-import { validateCreateDepartment } from '../validations/department.validation.js';
+import {
+  validateCreateDepartment,
+  validateUpdateDepartment,
+} from '../validations/department.validation.js';
 
 const router = express.Router();
 
@@ -33,4 +37,11 @@ router.get(
   getDepartmentById,
 );
 
+router.put(
+  '/api/department/:id',
+  verifyAccessToken,
+  verifyManagerPermission,
+  validateUpdateDepartment,
+  updateDepartment,
+);
 export default router;

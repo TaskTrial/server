@@ -5,7 +5,8 @@ import prisma from '../config/prismaClient.js';
  * @route  GET /api/departments
  * @method GET
  * @access Private (Admin or Manager)
- */ export const getAllDepartments = async (req, res, next) => {
+ */
+export const getAllDepartments = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
@@ -239,13 +240,17 @@ export const updateDepartment = async (req, res, next) => {
     });
 
     if (!department) {
-      return res.status(404).json({ message: 'Department not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
     }
 
-    // Permission check (using the corrected version above)
+    // Permission check
     if (role === 'MANAGER') {
-      if (department.managerId !== userId) {
+      if (!department.managerId || department.managerId !== userId) {
         return res.status(403).json({
+          success: false,
           message: 'You can only update departments you manage',
         });
       }
@@ -253,19 +258,36 @@ export const updateDepartment = async (req, res, next) => {
       const userInOrg = await prisma.user.findFirst({
         where: {
           id: userId,
-          organizationId: department.organizationId,
-          role: { in: ['ADMIN', 'OWNER'] },
+          departmentId: department.id, // Fixed this line
           deletedAt: null,
+        },
+        select: {
+          id: true,
+          role: true,
+          organizationId: true,
+          departmentId: true,
+          firstName: true,
+          lastName: true,
+          email: true,
         },
       });
 
       if (!userInOrg) {
         return res.status(403).json({
-          message: 'You do not have permission in this organization',
+          success: false,
+          message: 'User does not belong to this organization',
+        });
+      }
+
+      if (userInOrg.role !== 'ADMIN' && userInOrg.role !== 'OWNER') {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have the required role to perform this action',
         });
       }
     } else {
       return res.status(403).json({
+        success: false,
         message: 'You do not have permission to update departments',
       });
     }
@@ -283,6 +305,7 @@ export const updateDepartment = async (req, res, next) => {
 
       if (existingDept) {
         return res.status(409).json({
+          success: false,
           message: 'Department name already exists in this organization',
         });
       }
@@ -305,8 +328,8 @@ export const updateDepartment = async (req, res, next) => {
       );
     }
 
-    // Handle user additions
-    if (addUsers && addUsers.length > 0) {
+    // Handle user additions only if addUsers exists and has items
+    if (addUsers?.length > 0) {
       // Verify users exist and belong to same organization
       const existingUsers = await prisma.user.findMany({
         where: {
@@ -318,6 +341,7 @@ export const updateDepartment = async (req, res, next) => {
 
       if (existingUsers.length !== addUsers.length) {
         return res.status(400).json({
+          success: false,
           message: 'Some users not found or not in the same organization',
         });
       }
@@ -330,11 +354,12 @@ export const updateDepartment = async (req, res, next) => {
       );
     }
 
-    // Handle user removals
-    if (removeUsers && removeUsers.length > 0) {
+    // Handle user removals only if removeUsers exists and has items
+    if (removeUsers?.length > 0) {
       // Don't allow removing the manager
       if (removeUsers.includes(department.managerId)) {
         return res.status(400).json({
+          success: false,
           message: 'Cannot remove department manager this way',
         });
       }
@@ -350,8 +375,15 @@ export const updateDepartment = async (req, res, next) => {
       );
     }
 
-    // Execute all operations in a transaction
-    await prisma.$transaction(transaction);
+    // Only execute transaction if there are operations to perform
+    if (transaction.length > 0) {
+      await prisma.$transaction(transaction);
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields provided for update',
+      });
+    }
 
     // Fetch updated department with all relations
     const updatedDepartment = await prisma.department.findUnique({
@@ -384,6 +416,57 @@ export const updateDepartment = async (req, res, next) => {
       success: true,
       message: 'Department updated successfully',
       data: updatedDepartment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Soft delete a department
+ * @route  DELETE /api/department/:id
+ * @access Private (Owner or Admin only)
+ */
+export const softDeleteDepartment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // 1. First check if department exists and isn't deleted
+    const department = await prisma.department.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        deletedAt: true,
+        managerId: true, // Important for maintaining referential integrity
+      },
+    });
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
+    }
+
+    if (department.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Department is already deleted',
+      });
+    }
+
+    // 2. Perform all operations in a transaction
+    await prisma.$transaction([
+      // Finally: Soft delete the department itself
+      prisma.department.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Department soft deleted successfully',
     });
   } catch (error) {
     next(error);

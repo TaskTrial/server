@@ -3,6 +3,7 @@ import {
   createDepartment,
   getAllDepartments,
   getDepartmentById,
+  softDeleteDepartment,
   updateDepartment,
 } from '../controllers/department.controller.js';
 import { verifyManagerPermission } from '../middlewares/verifyManagerPermission.middleware.js';
@@ -11,6 +12,7 @@ import {
   validateCreateDepartment,
   validateUpdateDepartment,
 } from '../validations/department.validation.js';
+import { verifyOwnerOrAdmin } from '../middlewares/verifyOwnerOrAdmin.middleware.js';
 
 const router = express.Router();
 
@@ -43,5 +45,12 @@ router.put(
   verifyManagerPermission,
   validateUpdateDepartment,
   updateDepartment,
+);
+
+router.delete(
+  '/api/department/:id',
+  verifyAccessToken,
+  verifyOwnerOrAdmin,
+  softDeleteDepartment,
 );
 export default router;

@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createDepartment,
   getAllDepartments,
+  getDepartmentById,
 } from '../controllers/department.controller.js';
 import { verifyManagerPermission } from '../middlewares/verifyManagerPermission.middleware.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -16,7 +17,6 @@ router.get(
   verifyManagerPermission,
   getAllDepartments,
 );
-export default router;
 
 router.post(
   '/api/department/create',
@@ -25,3 +25,12 @@ router.post(
   validateCreateDepartment,
   createDepartment,
 );
+
+router.get(
+  '/api/department/:id',
+  verifyAccessToken,
+  verifyManagerPermission,
+  getDepartmentById,
+);
+
+export default router;

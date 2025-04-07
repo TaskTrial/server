@@ -733,7 +733,7 @@ export const deleteTeamAvatar = async (req, res, next) => {
       });
     }
 
-    if (team.avatar) {
+    if (!team.avatar) {
       return res.status(404).json({ message: 'Team avatar not found' });
     }
 

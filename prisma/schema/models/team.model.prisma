@@ -27,12 +27,13 @@ model Team {
 }
 
 model TeamMember {
-  id       String         @id @default(uuid()) @db.Uuid
-  teamId   String         @db.Uuid
-  userId   String         @db.Uuid
-  role     TeamMemberRole
-  joinedAt DateTime       @default(now())
-  isActive Boolean        @default(true)
+  id        String         @id @default(uuid()) @db.Uuid
+  teamId    String         @db.Uuid
+  userId    String         @db.Uuid
+  role      TeamMemberRole
+  joinedAt  DateTime       @default(now())
+  isActive  Boolean        @default(true)
+  deletedAt DateTime?
 
   // Relations
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)

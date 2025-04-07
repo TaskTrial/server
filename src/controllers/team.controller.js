@@ -445,7 +445,7 @@ export const updateTeam = async (req, res, next) => {
         id: departmentId,
         deletedAt: null,
       },
-      select: { managerId: null },
+      select: { managerId: true },
     });
 
     if (!existingDep) {

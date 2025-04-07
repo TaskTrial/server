@@ -23,12 +23,16 @@
       "description": "Authentication endpoints"
     },
     {
+      "name": "Users",
+      "description": "User management"
+    },
+    {
       "name": "Organization",
       "description": "Organization management"
     },
     {
-      "name": "Users",
-      "description": "User management"
+      "name": "Department",
+      "description": "Department management"
     },
     {
       "name": "Team",
@@ -1398,7 +1402,7 @@
     },
     "/api/department/all": {
       "get": {
-        "tags": ["Departments"],
+        "tags": ["Department"],
         "summary": "Get all departments",
         "description": "Retrieve a paginated list of all departments.",
         "operationId": "getAllDepartments",

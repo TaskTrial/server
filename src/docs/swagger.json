@@ -2019,6 +2019,150 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/department/{departmentId}/team/{teamId}/avatar/upload": {
+      "post": {
+        "tags": ["Team"],
+        "summary": "Upload team avatar",
+        "description": "Upload an avatar image for a team. Requires admin privileges, organization ownership, department management, or team leadership rights.",
+        "operationId": "uploadTeamAvatar",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the department",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Avatar image file (JPG/PNG)"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Team avatar uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamAvatarUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing parameters or no file uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingParams": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization ID, Department ID, and Team ID are required"
+                    }
+                  },
+                  "noFile": {
+                    "value": {
+                      "success": false,
+                      "message": "No file uploaded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization, department or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "orgNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization not found"
+                    }
+                  },
+                  "depNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Department not found"
+                    }
+                  },
+                  "teamNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Team not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error - failed to upload image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3588,6 +3732,58 @@
           "success": {
             "type": "boolean",
             "example": true
+          },
+          "team": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "avatar": {
+                "type": "string",
+                "format": "uri"
+              },
+              "organizationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "departmentId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "createdBy": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "TeamAvatarUploadResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Team avatar uploaded successfully"
           },
           "team": {
             "type": "object",

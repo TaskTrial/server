@@ -4,7 +4,9 @@ import {
   addTeamMember,
   createTeam,
   updateTeam,
+  uploadTeamAvatar,
 } from '../controllers/team.controller.js';
+import upload from '../middlewares/upload.middleware.js';
 
 const router = Router();
 
@@ -24,6 +26,13 @@ router.put(
   '/api/organization/:organizationId/department/:departmentId/team/:teamId',
   verifyAccessToken,
   updateTeam,
+);
+
+router.post(
+  '/api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/upload',
+  verifyAccessToken,
+  upload.single('image'),
+  uploadTeamAvatar,
 );
 
 export default router;

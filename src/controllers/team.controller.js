@@ -162,9 +162,10 @@ export const createTeam = async (req, res, next) => {
           user: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
-              avatar: true,
+              profilePic: true,
             },
           },
         },
@@ -364,9 +365,10 @@ export const addTeamMember = async (req, res, next) => {
           user: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
-              avatar: true,
+              profilePic: true,
             },
           },
         },

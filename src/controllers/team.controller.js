@@ -1,5 +1,8 @@
 import prisma from '../config/prismaClient.js';
-import { uploadToCloudinary } from '../utils/cloudinary.utils.js';
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from '../utils/cloudinary.utils.js';
 import {
   addTeamMemberValidation,
   createTeamValidation,
@@ -630,6 +633,119 @@ export const uploadTeamAvatar = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Team avatar uploaded successfully',
+      team: updatedTeam,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Delete team avatar
+ * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete
+ * @method DELETE
+ * @access private - admins or organization owners only
+ */
+export const deleteTeamAvatar = async (req, res, next) => {
+  try {
+    const { organizationId, departmentId, teamId } = req.params;
+
+    if (!organizationId || !departmentId || !teamId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID, Department ID, and Team ID are required',
+      });
+    }
+
+    // Check if organization exists and is not deleted
+    const existingOrg = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingOrg) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check if department exists and is not deleted
+    const existingDep = await prisma.department.findFirst({
+      where: {
+        id: departmentId,
+        deletedAt: null,
+      },
+      select: { managerId: true },
+    });
+
+    if (!existingDep) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
+    }
+
+    // Check if team exists and is not deleted
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+        organizationId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        createdBy: true,
+      },
+    });
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'Team not found',
+      });
+    }
+
+    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic.
+    // Check permissions - only admins and organization owners
+    const isAdmin = req.user.role === 'ADMIN';
+    const isOwner = existingOrg.owners.some(
+      (owner) => owner.userId === req.user.id,
+    );
+    const isDepManager = existingDep.managerId === req.user.id;
+    const isTeamManager = team.createdBy === req.user.id;
+
+    if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+      return res.status(403).json({
+        success: false,
+        message:
+          'You do not have permission to update this team in this department',
+      });
+    }
+
+    if (team.avatar) {
+      return res.status(404).json({ message: 'Team avatar not found' });
+    }
+
+    await deleteFromCloudinary(team.avatar);
+
+    const updatedTeam = await prisma.team.update({
+      where: { id: teamId },
+      data: { avatar: null },
+    });
+
+    res.status(200).json({
+      message: 'Team avatar deleted successfully',
       team: updatedTeam,
     });
   } catch (error) {

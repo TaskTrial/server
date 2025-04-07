@@ -755,9 +755,9 @@ export const deleteTeamAvatar = async (req, res, next) => {
 
 /**
  * @desc   Delete team
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/
+ * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId
  * @method DELETE
- * @access private - admins or organization owners only
+ * @access private - admins, organization owners, department managers, or team creators
  */
 export const deleteTeam = async (req, res, next) => {
   try {
@@ -825,7 +825,7 @@ export const deleteTeam = async (req, res, next) => {
     if (!team) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found',
+        message: 'Team not found or already deleted',
       });
     }
 

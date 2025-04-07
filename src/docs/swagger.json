@@ -1867,6 +1867,149 @@
         }
       }
     },
+    "/api/organization/{organizationId}/department/{departmentId}/team/{teamId}/members/{memberId}": {
+      "delete": {
+        "tags": ["Team"],
+        "summary": "Remove member from team",
+        "description": "Soft delete a team member (marks as deleted but retains in database). Requires admin privileges, organization ownership, department management, or team leadership rights. Prevents removing the only team leader.",
+        "operationId": "removeTeamMember",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the department",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team member to remove",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team member removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveTeamMemberResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing parameters or attempting to remove the only leader",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingParams": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization ID, Department ID, Team ID, and Member ID are required"
+                    }
+                  },
+                  "lastLeader": {
+                    "value": {
+                      "success": false,
+                      "message": "Cannot remove the only team leader. Please assign another leader first."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization, department, team or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "orgNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Organization not found"
+                    }
+                  },
+                  "depNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Department not found"
+                    }
+                  },
+                  "teamNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Team not found"
+                    }
+                  },
+                  "memberNotFound": {
+                    "value": {
+                      "success": false,
+                      "message": "Team member not found or already removed"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/organization/{organizationId}/department/{departmentId}/team/{teamId}": {
       "put": {
         "tags": ["Team"],
@@ -4132,6 +4275,57 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "RemoveTeamMemberResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Team member John Doe removed successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "removedMember": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "removedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              },
+              "team": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }

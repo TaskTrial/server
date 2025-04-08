@@ -1037,3 +1037,159 @@ export const deleteTeam = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get all teams
+ * @route  /api/organization/:organizationId/department/:departmentId/team/all
+ * @method GET
+ * @access private - admins, organization owners, department managers
+ */
+export const getAllTeams = async (req, res, next) => {
+  try {
+    const { organizationId, departmentId } = req.params;
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    if (!organizationId || !departmentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID and Department ID are required',
+      });
+    }
+
+    // Check if organization exists and is not deleted
+    const existingOrg = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingOrg) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check if department exists and is not deleted
+    const existingDep = await prisma.department.findFirst({
+      where: {
+        id: departmentId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingDep) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
+    }
+
+    // Check permissions
+    const isAdmin = req.user.role === 'ADMIN';
+    const isOwner = existingOrg.owners.some(
+      (owner) => owner.userId === req.user.id,
+    );
+    const isDepManager = existingDep.managerId === req.user.id;
+    const isOrgMember = await prisma.organizationOwner.findFirst({
+      where: {
+        organizationId,
+        userId: req.user.id,
+      },
+    });
+
+    if (!isAdmin && !isOwner && !isDepManager && !isOrgMember) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view teams in this department',
+      });
+    }
+
+    // pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build search filter
+    const searchFilter = search
+      ? {
+          name: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        }
+      : {};
+
+    const [teams, totalTeams] = await Promise.all([
+      // Get teams
+      prisma.team.findMany({
+        where: {
+          organizationId,
+          departmentId,
+          deletedAt: null,
+          ...searchFilter,
+        },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profilePic: true,
+                },
+              },
+            },
+          },
+          creator: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profilePic: true,
+            },
+          },
+        },
+        skip,
+        take: parseInt(limit),
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+
+      // Count total teams
+      prisma.team.count({
+        where: {
+          organizationId,
+          departmentId,
+          deletedAt: null,
+          ...searchFilter,
+        },
+      }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        teams,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalItems: totalTeams,
+          totalPages: Math.ceil(totalTeams / parseInt(limit)),
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

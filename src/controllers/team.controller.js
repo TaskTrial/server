@@ -11,9 +11,9 @@ import {
 
 /**
  * Helper function to validate required params
- * params - The parameters to validate
- * requiredParams - Array of required parameter names
- * returns - Contains success flag and error message if validation fails
+ * @param {Object} params - The parameters to validate
+ * @param {Array} requiredParams - Array of required parameter names
+ * @returns {Object} - Contains success flag and error message if validation fails
  */
 const validateParams = (params, requiredParams) => {
   for (const param of requiredParams) {
@@ -755,15 +755,46 @@ export const updateTeam = async (req, res, next) => {
 
     const { name, description, avatar } = req.body;
 
-    const updatedTeam = await prisma.team.update({
-      where: { id: teamId },
-      data: { name, description, avatar },
-    });
+    // Check if team name already exists in this organization (if name is being updated)
+    if (name && name !== team.name) {
+      const existingTeamWithName = await prisma.team.findFirst({
+        where: {
+          organizationId,
+          name,
+          id: { not: teamId }, // Exclude current team
+          deletedAt: null,
+        },
+      });
 
-    res.status(200).json({
-      success: true,
-      team: updatedTeam,
-    });
+      if (existingTeamWithName) {
+        return res.status(409).json({
+          success: false,
+          message: `A team with the name "${name}" already exists in this organization`,
+        });
+      }
+    }
+
+    // Proceed with update
+    try {
+      const updatedTeam = await prisma.team.update({
+        where: { id: teamId },
+        data: { name, description, avatar },
+      });
+
+      res.status(200).json({
+        success: true,
+        team: updatedTeam,
+      });
+    } catch (error) {
+      // Handle unique constraint violation specifically
+      if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
+        return res.status(409).json({
+          success: false,
+          message: `A team with the name "${name}" already exists in this organization`,
+        });
+      }
+      throw error; // Re-throw other errors to be caught by the outer catch
+    }
   } catch (error) {
     next(error);
   }
@@ -1035,21 +1066,6 @@ export const deleteTeam = async (req, res, next) => {
   }
 };
 
-// /**
-//  * @desc   Get all teams
-//  * @route  /api/organization/:organizationId/department/:departmentId/teams/all
-//  * @method GET
-//  * @access private - admins, organization owners, department managers
-//  */
-// export const getAllTeams = async (req, res, next) => {
-//   try {
-//     const { organizationId, departmentId } = req.params;
-//     const { page = 1, limit = 10, search = '' } = req.query;
-
-//     // Validate required parameters
-//     const paramsValidation = validateParams(
-//       { organizationId, departmentId },
-
 /**
  * @desc   Get all teams
  * @route  /api/organization/:organizationId/department/:departmentId/teams/all
@@ -1062,7 +1078,7 @@ export const getAllTeams = async (req, res, next) => {
     const { page = 1, limit = 10, search = '' } = req.query;
 
     // Validate required parameters
-    const validation = validateParams(req.params, [
+    const validation = validateParams({ organizationId, departmentId }, [
       'organizationId',
       'departmentId',
     ]);
@@ -1089,11 +1105,11 @@ export const getAllTeams = async (req, res, next) => {
     }
 
     // Check permissions
-    const permissionCheck = await checkTeamPermissions(
+    const permissionCheck = checkTeamPermissions(
       req.user,
       orgCheck.organization,
       depCheck.department,
-      null,
+      { createdBy: null },
       'view',
     );
     if (!permissionCheck.success) {
@@ -1111,6 +1127,7 @@ export const getAllTeams = async (req, res, next) => {
       : {};
 
     const [teams, totalTeams] = await Promise.all([
+      // Get teams
       prisma.team.findMany({
         where: {
           organizationId,
@@ -1147,6 +1164,7 @@ export const getAllTeams = async (req, res, next) => {
         orderBy: { createdAt: 'desc' },
       }),
 
+      // Count total teams
       prisma.team.count({
         where: {
           organizationId,
@@ -1157,10 +1175,21 @@ export const getAllTeams = async (req, res, next) => {
       }),
     ]);
 
+    const teamsWithSafeCreator = teams.map((team) => ({
+      ...team,
+      creator: team.creator || {
+        id: null,
+        firstName: 'N/A',
+        lastName: 'N/A',
+        email: null,
+        profilePic: null,
+      },
+    }));
+
     return res.status(200).json({
       success: true,
       data: {
-        teams,
+        teams: teamsWithSafeCreator,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -1185,11 +1214,10 @@ export const getSpecificTeam = async (req, res, next) => {
     const { organizationId, departmentId, teamId } = req.params;
 
     // Validate required parameters
-    const validation = validateParams(req.params, [
-      'organizationId',
-      'departmentId',
-      'teamId',
-    ]);
+    const validation = validateParams(
+      { organizationId, departmentId, teamId },
+      ['organizationId', 'departmentId', 'teamId'],
+    );
     if (!validation.success) {
       return res
         .status(400)
@@ -1212,8 +1240,39 @@ export const getSpecificTeam = async (req, res, next) => {
         .json({ success: false, message: depCheck.message });
     }
 
-    // Check if team exists
-    const teamCheck = await checkTeam(teamId, organizationId, departmentId);
+    // Check if team exists with additional fields needed for the view
+    const teamCheck = await checkTeam(teamId, organizationId, departmentId, {
+      select: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+        projects: true,
+        reports: true,
+        department: true,
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
     if (!teamCheck.success) {
       return res
         .status(404)
@@ -1221,7 +1280,7 @@ export const getSpecificTeam = async (req, res, next) => {
     }
 
     // Check permissions
-    const permissionCheck = await checkTeamPermissions(
+    const permissionCheck = checkTeamPermissions(
       req.user,
       orgCheck.organization,
       depCheck.department,
@@ -1237,14 +1296,15 @@ export const getSpecificTeam = async (req, res, next) => {
     const { team } = teamCheck;
 
     // Calculate team statistics
-    const activeMembers = team.members.length;
-    const totalProjects = team.projects.length;
-    const projectsInProgress = team.projects.filter(
-      (project) => project.status === 'IN_PROGRESS',
-    ).length;
-    const completedProjects = team.projects.filter(
-      (project) => project.status === 'COMPLETED',
-    ).length;
+    const activeMembers = team.members ? team.members.length : 0;
+    const totalProjects = team.projects ? team.projects.length : 0;
+    const projectsInProgress = team.projects
+      ? team.projects.filter((project) => project.status === 'IN_PROGRESS')
+          .length
+      : 0;
+    const completedProjects = team.projects
+      ? team.projects.filter((project) => project.status === 'COMPLETED').length
+      : 0;
 
     return res.status(200).json({
       success: true,
@@ -1257,17 +1317,25 @@ export const getSpecificTeam = async (req, res, next) => {
           createdBy: team.createdBy,
           createdAt: team.createdAt,
           updatedAt: team.updatedAt,
-          creator: team.creator,
+          creator: team.creator || {
+            id: null,
+            firstName: 'N/A',
+            lastName: 'N/A',
+            email: null,
+            profilePic: null,
+          },
           department: team.department,
         },
-        members: team.members.map((member) => ({
-          id: member.id,
-          role: member.role,
-          user: member.user,
-          joinedAt: member.joinedAt,
-        })),
-        projects: team.projects,
-        recentReports: team.reports,
+        members: team.members
+          ? team.members.map((member) => ({
+              id: member.id,
+              role: member.role,
+              user: member.user,
+              joinedAt: member.joinedAt,
+            }))
+          : [],
+        projects: team.projects || [],
+        recentReports: team.reports || [],
         statistics: {
           activeMembers,
           totalProjects,

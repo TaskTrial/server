@@ -1040,7 +1040,7 @@ export const deleteTeam = async (req, res, next) => {
 
 /**
  * @desc   Get all teams
- * @route  /api/organization/:organizationId/department/:departmentId/team/all
+ * @route  /api/organization/:organizationId/department/:departmentId/teams/all
  * @method GET
  * @access private - admins, organization owners, department managers
  */
@@ -1186,6 +1186,201 @@ export const getAllTeams = async (req, res, next) => {
           limit: parseInt(limit),
           totalItems: totalTeams,
           totalPages: Math.ceil(totalTeams / parseInt(limit)),
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Get specific team details
+ * @route  /api/organization/:organizationId/department/:departmentId/teams/:teamId
+ * @method GET
+ * @access private - admins, organization owners, department managers, team members
+ */
+export const getSpecificTeam = async (req, res, next) => {
+  try {
+    const { organizationId, departmentId, teamId } = req.params;
+
+    if (!organizationId || !departmentId || !teamId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID, Department ID, and Team ID are required',
+      });
+    }
+
+    // Check if organization exists and is not deleted
+    const existingOrg = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        owners: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingOrg) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check if department exists and is not deleted
+    const existingDep = await prisma.department.findFirst({
+      where: {
+        id: departmentId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingDep) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found',
+      });
+    }
+
+    // Check if the user has access to view this team
+    const isAdmin = req.user.role === 'ADMIN';
+    const isOwner = existingOrg.owners.some(
+      (owner) => owner.userId === req.user.id,
+    );
+    const isDepManager = existingDep.managerId === req.user.id;
+
+    // Check if the user is a member of this team
+    const isTeamMember = await prisma.teamMember.findFirst({
+      where: {
+        teamId,
+        userId: req.user.id,
+        isActive: true,
+      },
+    });
+
+    // Get the team details
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+        organizationId,
+        departmentId,
+        deletedAt: null,
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        members: {
+          where: {
+            isActive: true,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+        projects: {
+          where: {
+            deletedAt: null,
+          },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            status: true,
+          },
+        },
+        reports: {
+          select: {
+            id: true,
+            name: true,
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 5,
+        },
+        department: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'Team not found',
+      });
+    }
+
+    // If user is not admin, owner, department manager, or team member, deny access
+    if (!isAdmin && !isOwner && !isDepManager && !isTeamMember) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view this team',
+      });
+    }
+
+    // Calculate team statistics
+    const activeMembers = team.members.length;
+    const totalProjects = team.projects.length;
+    const projectsInProgress = team.projects.filter(
+      (project) => project.status === 'IN_PROGRESS',
+    ).length;
+    const completedProjects = team.projects.filter(
+      (project) => project.status === 'COMPLETED',
+    ).length;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        team: {
+          id: team.id,
+          name: team.name,
+          description: team.description,
+          avatar: team.avatar,
+          createdBy: team.createdBy,
+          createdAt: team.createdAt,
+          updatedAt: team.updatedAt,
+          creator: team.creator,
+          department: team.department,
+        },
+        members: team.members.map((member) => ({
+          id: member.id,
+          role: member.role,
+          user: member.user,
+          joinedAt: member.joinedAt,
+        })),
+        projects: team.projects,
+        recentReports: team.reports,
+        statistics: {
+          activeMembers,
+          totalProjects,
+          projectsInProgress,
+          completedProjects,
         },
       },
     });

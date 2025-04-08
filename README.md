@@ -64,3 +64,5 @@ base url: `http://localhost:3000`
 - Upload team avatar: `POST /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/upload`
 - Delete team avatar: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete`
 - Delete a team: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId`
+- Get all teams: `GET /api/organization/:organizationId/department/:departmentId/teams/all`
+- Get a specific team: `GET /api/organization/:organizationId/department/:departmentId/teams/:teamId`

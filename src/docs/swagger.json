@@ -2569,7 +2569,7 @@
         }
       }
     },
-    "/api/organization/{organizationId}/department/{departmentId}/team/all": {
+    "/api/organization/{organizationId}/department/{departmentId}/teams/all": {
       "get": {
         "tags": ["Team"],
         "summary": "Get all teams in a department",
@@ -2660,6 +2660,99 @@
           },
           "404": {
             "description": "Organization or department not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/department/{departmentId}/teams/{teamId}": {
+      "get": {
+        "tags": ["Team"],
+        "summary": "Get specific team details",
+        "description": "Retrieve detailed information about a specific team including members, projects, and statistics. Requires admin privileges, organization ownership, department management, or team membership.",
+        "operationId": "getSpecificTeam",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the department",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization, department or team not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -4592,6 +4685,170 @@
           "totalPages": {
             "type": "integer",
             "example": 3
+          }
+        }
+      },
+      "TeamDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "team": {
+                "$ref": "#/components/schemas/TeamBasicInfo"
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamMemberDetails"
+                }
+              },
+              "projects": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProjectBasicInfo"
+                }
+              },
+              "recentReports": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReportBasicInfo"
+                }
+              },
+              "statistics": {
+                "$ref": "#/components/schemas/TeamStatistics"
+              }
+            }
+          }
+        }
+      },
+      "TeamBasicInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "creator": {
+            "$ref": "#/components/schemas/UserBasicInfo"
+          },
+          "department": {
+            "$ref": "#/components/schemas/DepartmentBasicInfo"
+          }
+        }
+      },
+      "TeamMemberDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["LEADER", "MEMBER", "CONTRIBUTOR"]
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserBasicInfo"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProjectBasicInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "ON_HOLD"]
+          }
+        }
+      },
+      "ReportBasicInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TeamStatistics": {
+        "type": "object",
+        "properties": {
+          "activeMembers": {
+            "type": "integer",
+            "description": "Number of active team members"
+          },
+          "totalProjects": {
+            "type": "integer",
+            "description": "Total number of projects"
+          },
+          "projectsInProgress": {
+            "type": "integer",
+            "description": "Number of projects in progress"
+          },
+          "completedProjects": {
+            "type": "integer",
+            "description": "Number of completed projects"
+          }
+        }
+      },
+      "DepartmentBasicInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
           }
         }
       }

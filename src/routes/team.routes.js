@@ -5,6 +5,7 @@ import {
   createTeam,
   deleteTeam,
   deleteTeamAvatar,
+  getAllTeams,
   removeTeamMember,
   updateTeam,
   uploadTeamAvatar,
@@ -54,6 +55,12 @@ router.delete(
   '/api/organization/:organizationId/department/:departmentId/team/:teamId/members/:memberId',
   verifyAccessToken,
   removeTeamMember,
+);
+
+router.get(
+  '/api/organization/:organizationId/department/:departmentId/team/all',
+  verifyAccessToken,
+  getAllTeams,
 );
 
 export default router;

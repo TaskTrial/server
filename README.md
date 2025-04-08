@@ -55,6 +55,13 @@ base url: `http://localhost:3000`
 
 ### Department
 
+- Get all Departments: `GET /api/departments/all`
+- Create a Department: `POST /api/departments/create`
+- Get a specific Department: `GET /api/departments/:id`
+- Update a Department: `PUT /api/departments/:id`
+- Soft Delete a Department: `DELETE /api/departments/:id`
+- Restore a Department: `PATCH /api/departments/:id/restore`
+  
 ### Team
 
 - Create a new team in a specific organization: `POST /api/organization/:organizationId/department/:departmentId/team`

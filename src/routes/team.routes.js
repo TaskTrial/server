@@ -59,13 +59,13 @@ router.delete(
 );
 
 router.get(
-  '/api/organization/:organizationId/department/:departmentId/team/all',
+  '/api/organization/:organizationId/department/:departmentId/teams/all',
   verifyAccessToken,
   getAllTeams,
 );
 
 router.get(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId',
+  '/api/organization/:organizationId/department/:departmentId/teams/:teamId',
   verifyAccessToken,
   getSpecificTeam,
 );

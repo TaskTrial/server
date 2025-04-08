@@ -1040,7 +1040,7 @@ export const deleteTeam = async (req, res, next) => {
 
 /**
  * @desc   Get all teams
- * @route  /api/organization/:organizationId/department/:departmentId/team/all
+ * @route  /api/organization/:organizationId/department/:departmentId/teams/all
  * @method GET
  * @access private - admins, organization owners, department managers
  */
@@ -1196,7 +1196,7 @@ export const getAllTeams = async (req, res, next) => {
 
 /**
  * @desc   Get specific team details
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId
+ * @route  /api/organization/:organizationId/department/:departmentId/teams/:teamId
  * @method GET
  * @access private - admins, organization owners, department managers, team members
  */

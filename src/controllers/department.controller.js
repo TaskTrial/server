@@ -98,10 +98,12 @@ export const createDepartment = async (req, res, next) => {
     const manager = await prisma.user.findFirst({
       where: {
         id: managerId,
+        organizationId, // this line checks the manager is in the same org
         deletedAt: null,
       },
     });
-    //TODO: Check if the manager belongs to the same organization
+
+    // Check if the manager is already assigned to another department
     if (!manager) {
       return res.status(404).json({
         message: 'Manager not found or does not belong to this organization',
@@ -258,7 +260,7 @@ export const updateDepartment = async (req, res, next) => {
       const userInOrg = await prisma.user.findFirst({
         where: {
           id: userId,
-          departmentId: department.id, // Fixed this line
+          organizationId: department.organizationId, // Fixed this line
           deletedAt: null,
         },
         select: {

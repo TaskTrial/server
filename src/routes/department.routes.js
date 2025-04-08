@@ -19,14 +19,14 @@ const router = express.Router();
 
 // Admin, OWNER, or MANAGER can access these
 router.get(
-  '/api/department/all',
+  '/api/departments/all',
   verifyAccessToken,
   verifyManagerPermission,
   getAllDepartments,
 );
 
 router.post(
-  '/api/department/create',
+  '/api/departments/create',
   verifyAccessToken,
   verifyManagerPermission,
   validateCreateDepartment,
@@ -34,14 +34,14 @@ router.post(
 );
 
 router.get(
-  '/api/department/:id',
+  '/api/departments/:id',
   verifyAccessToken,
   verifyManagerPermission,
   getDepartmentById,
 );
 
 router.put(
-  '/api/department/:id',
+  '/api/departments/:id',
   verifyAccessToken,
   verifyManagerPermission,
   validateUpdateDepartment,
@@ -49,16 +49,16 @@ router.put(
 );
 
 router.delete(
-  '/api/department/:id',
+  '/api/departments/:id',
   verifyAccessToken,
   verifyOwnerOrAdmin,
   softDeleteDepartment,
 );
 
 router.patch(
-  '/api/department/:id/restore',
+  '/api/departments/:id/restore',
   verifyAccessToken,
-  verifyOwnerOrAdmin, // Use your existing middleware
+  verifyOwnerOrAdmin,
   restoreDepartment,
 );
 export default router;

@@ -714,7 +714,7 @@ export const updateTeam = async (req, res, next) => {
     const existingDep = depResult.department;
 
     // Check if team exists
-    const teamResult = await checkTeam(teamId, organizationId);
+    const teamResult = await checkTeam(teamId, organizationId, departmentId);
     if (!teamResult.success) {
       return res.status(404).json({
         success: false,

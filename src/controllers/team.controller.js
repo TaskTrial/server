@@ -10,6 +10,163 @@ import {
 } from '../validations/team.validation.js';
 
 /**
+ * Helper function to validate required params
+ * params - The parameters to validate
+ * requiredParams - Array of required parameter names
+ * returns - Contains success flag and error message if validation fails
+ */
+const validateParams = (params, requiredParams) => {
+  for (const param of requiredParams) {
+    if (!params[param]) {
+      return {
+        success: false,
+        message: `${param.charAt(0).toUpperCase() + param.slice(1)} ID is required`,
+      };
+    }
+  }
+  return { success: true };
+};
+
+/**
+ * Helper function to check if organization exists and is not deleted
+ * organizationId - The organization ID to check
+ * returns - Contains success flag, error message, and organization data
+ */
+const checkOrganization = async (organizationId) => {
+  const org = await prisma.organization.findFirst({
+    where: {
+      id: organizationId,
+      deletedAt: null,
+    },
+    include: {
+      owners: {
+        select: {
+          userId: true,
+        },
+      },
+    },
+  });
+
+  if (!org) {
+    return {
+      success: false,
+      message: 'Organization not found',
+    };
+  }
+
+  return {
+    success: true,
+    organization: org,
+  };
+};
+
+/**
+ * Helper function to check if department exists and is not deleted
+ * departmentId - The department ID to check
+ * returns - Contains success flag, error message, and department data
+ */
+const checkDepartment = async (departmentId) => {
+  const dep = await prisma.department.findFirst({
+    where: {
+      id: departmentId,
+      deletedAt: null,
+    },
+  });
+
+  if (!dep) {
+    return {
+      success: false,
+      message: 'Department not found',
+    };
+  }
+
+  return {
+    success: true,
+    department: dep,
+  };
+};
+
+/**
+ * Helper function to check if team exists and is not deleted
+ * teamId - The team ID to check
+ * organizationId - The organization ID the team belongs to
+ * [departmentId] - Optional department ID the team belongs to
+ * [options] - Additional options for the query
+ * returns - Contains success flag, error message, and team data
+ */
+const checkTeam = async (
+  teamId,
+  organizationId,
+  departmentId = null,
+  options = {},
+) => {
+  const whereClause = {
+    id: teamId,
+    organizationId,
+    deletedAt: null,
+  };
+
+  if (departmentId) {
+    whereClause.departmentId = departmentId;
+  }
+
+  const team = await prisma.team.findFirst({
+    where: whereClause,
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      createdBy: true,
+      avatar: true,
+      ...options.select,
+    },
+  });
+
+  if (!team) {
+    return {
+      success: false,
+      message: 'Team not found' + (options.notFoundSuffix || ''),
+    };
+  }
+
+  return {
+    success: true,
+    team,
+  };
+};
+
+/**
+ * Helper function to check permissions for team operations
+ * user - The user making the request
+ * organization - The organization object with owners
+ * department - The department object
+ * team - The team object
+ * action - The action being performed (for error message)
+ * returns - Contains success flag and error message if permission check fails
+ */
+const checkTeamPermissions = (user, organization, department, team, action) => {
+  const isAdmin = user.role === 'ADMIN';
+  const isOwner = organization.owners.some((owner) => owner.userId === user.id);
+  const isDepManager = department.managerId === user.id;
+  const isTeamManager = team.createdBy === user.id;
+
+  if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+    return {
+      success: false,
+      message: `You do not have permission to ${action} this team`,
+    };
+  }
+
+  return {
+    success: true,
+    isAdmin,
+    isOwner,
+    isDepManager,
+    isTeamManager,
+  };
+};
+
+/**
  * @desc   Create a new team in a specific organization
  * @route  /api/organization/:organizationId/department/:departmentId/team
  * @method POST
@@ -17,59 +174,40 @@ import {
  */
 export const createTeam = async (req, res, next) => {
   try {
-    // POST /api/organization/:organizationId/department/:departmentId/team
     const { organizationId, departmentId } = req.params;
 
-    if (!organizationId) {
+    // Validate required parameters
+    const paramsValidation = validateParams({ organizationId, departmentId }, [
+      'organizationId',
+      'departmentId',
+    ]);
+
+    if (!paramsValidation.success) {
       return res.status(400).json({
         success: false,
-        message: 'Organization ID is required',
+        message: paramsValidation.message,
       });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Organization not found',
+        message: orgResult.message,
       });
     }
+    const existingOrg = orgResult.organization;
 
-    if (!departmentId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Department ID is required',
-      });
-    }
-
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-    });
-
-    if (!existingDep) {
+    // Check if department exists
+    const depResult = await checkDepartment(departmentId);
+    if (!depResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Department not found',
+        message: depResult.message,
       });
     }
+    const existingDep = depResult.department;
 
     // Check permissions - only admins and organization owners
     const isAdmin = req.user.role === 'ADMIN';
@@ -218,88 +356,64 @@ export const createTeam = async (req, res, next) => {
  */
 export const addTeamMember = async (req, res, next) => {
   try {
-    // POST /api/organization/:organizationId/department/:departmentId/team/:teamId/addMember
     const { organizationId, departmentId, teamId } = req.params;
 
-    if (!organizationId || !departmentId || !teamId) {
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, departmentId, teamId },
+      ['organizationId', 'departmentId', 'teamId'],
+    );
+
+    if (!paramsValidation.success) {
       return res.status(400).json({
         success: false,
-        message: 'Organization ID, Department ID, and Team ID are required',
+        message: paramsValidation.message,
       });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Organization not found',
+        message: orgResult.message,
       });
     }
+    const existingOrg = orgResult.organization;
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-    });
-
-    if (!existingDep) {
+    // Check if department exists
+    const depResult = await checkDepartment(departmentId);
+    if (!depResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Department not found',
+        message: depResult.message,
       });
     }
+    const existingDep = depResult.department;
 
-    // Check if team exists and is not deleted
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        organizationId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        createdBy: true,
-      },
-    });
-    if (!team) {
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found',
+        message: teamResult.message,
       });
     }
+    const team = teamResult.team;
 
-    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic. and validate the these IDs
-    // Check permissions - only admins and organization owners
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    // Check permissions
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      existingDep,
+      team,
+      'add members to',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-    const isTeamManager = team.createdBy === req.user.id;
 
-    if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+    if (!permissionCheck.success) {
       return res.status(403).json({
         success: false,
-        message:
-          'You do not have permission to add members to this team in this department',
+        message: permissionCheck.message,
       });
     }
 
@@ -362,7 +476,7 @@ export const addTeamMember = async (req, res, next) => {
         }
       }
 
-      // 2. fetch all team members for the response
+      // Fetch all team members for the response
       const allTeamMembers = await tx.teamMember.findMany({
         where: { teamId: teamId },
         include: {
@@ -416,72 +530,48 @@ export const removeTeamMember = async (req, res, next) => {
   try {
     const { organizationId, departmentId, teamId, memberId } = req.params;
 
-    if (!organizationId || !departmentId || !teamId || !memberId) {
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, departmentId, teamId, memberId },
+      ['organizationId', 'departmentId', 'teamId', 'memberId'],
+    );
+
+    if (!paramsValidation.success) {
       return res.status(400).json({
         success: false,
-        message:
-          'Organization ID, Department ID, Team ID, and Member ID are required',
+        message: paramsValidation.message,
       });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Organization not found',
+        message: orgResult.message,
       });
     }
+    const existingOrg = orgResult.organization;
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-    });
-
-    if (!existingDep) {
+    // Check if department exists
+    const depResult = await checkDepartment(departmentId);
+    if (!depResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Department not found',
+        message: depResult.message,
       });
     }
+    const existingDep = depResult.department;
 
-    // Check if team exists and is not deleted
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        organizationId,
-        departmentId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        createdBy: true,
-      },
-    });
-
-    if (!team) {
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId, departmentId);
+    if (!teamResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found',
+        message: teamResult.message,
       });
     }
+    const team = teamResult.team;
 
     // Check if team member exists
     const teamMember = await prisma.teamMember.findFirst({
@@ -507,18 +597,19 @@ export const removeTeamMember = async (req, res, next) => {
       });
     }
 
-    // Check permissions - admins, org owners, dep managers, or team creators can remove members
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    // Check permissions
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      existingDep,
+      team,
+      'remove members from',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-    const isTeamCreator = team.createdBy === req.user.id;
 
-    if (!isAdmin && !isOwner && !isDepManager && !isTeamCreator) {
+    if (!permissionCheck.success) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to remove members from this team',
+        message: permissionCheck.message,
       });
     }
 
@@ -593,86 +684,62 @@ export const updateTeam = async (req, res, next) => {
   try {
     const { organizationId, departmentId, teamId } = req.params;
 
-    if (!organizationId || !departmentId || !teamId) {
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, departmentId, teamId },
+      ['organizationId', 'departmentId', 'teamId'],
+    );
+
+    if (!paramsValidation.success) {
       return res.status(400).json({
         success: false,
-        message: 'Organization ID, Department ID, and Team ID are required',
+        message: paramsValidation.message,
       });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Organization not found',
+        message: orgResult.message,
       });
     }
+    const existingOrg = orgResult.organization;
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-      select: { managerId: true },
-    });
-
-    if (!existingDep) {
+    // Check if department exists
+    const depResult = await checkDepartment(departmentId);
+    if (!depResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Department not found',
+        message: depResult.message,
       });
     }
+    const existingDep = depResult.department;
 
-    // Check if team exists and is not deleted
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        organizationId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        createdBy: true,
-      },
-    });
-    if (!team) {
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found',
+        message: teamResult.message,
       });
     }
+    const team = teamResult.team;
 
-    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic.
-    // Check permissions - only admins and organization owners
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    // Check permissions
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      existingDep,
+      team,
+      'update',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-    const isTeamManager = team.createdBy === req.user.id;
 
-    if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+    if (!permissionCheck.success) {
       return res.status(403).json({
         success: false,
-        message:
-          'You do not have permission to update this team in this department',
+        message: permissionCheck.message,
       });
     }
 
@@ -712,86 +779,62 @@ export const uploadTeamAvatar = async (req, res, next) => {
   try {
     const { organizationId, departmentId, teamId } = req.params;
 
-    if (!organizationId || !departmentId || !teamId) {
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, departmentId, teamId },
+      ['organizationId', 'departmentId', 'teamId'],
+    );
+
+    if (!paramsValidation.success) {
       return res.status(400).json({
         success: false,
-        message: 'Organization ID, Department ID, and Team ID are required',
+        message: paramsValidation.message,
       });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Organization not found',
+        message: orgResult.message,
       });
     }
+    const existingOrg = orgResult.organization;
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-      select: { managerId: true },
-    });
-
-    if (!existingDep) {
+    // Check if department exists
+    const depResult = await checkDepartment(departmentId);
+    if (!depResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Department not found',
+        message: depResult.message,
       });
     }
+    const existingDep = depResult.department;
 
-    // Check if team exists and is not deleted
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        organizationId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        createdBy: true,
-      },
-    });
-    if (!team) {
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found',
+        message: teamResult.message,
       });
     }
+    const team = teamResult.team;
 
-    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic.
-    // Check permissions - only admins and organization owners
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    // Check permissions
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      existingDep,
+      team,
+      'update avatar for',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-    const isTeamManager = team.createdBy === req.user.id;
 
-    if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+    if (!permissionCheck.success) {
       return res.status(403).json({
         success: false,
-        message:
-          'You do not have permission to update this team in this department',
+        message: permissionCheck.message,
       });
     }
 
@@ -827,86 +870,62 @@ export const deleteTeamAvatar = async (req, res, next) => {
   try {
     const { organizationId, departmentId, teamId } = req.params;
 
-    if (!organizationId || !departmentId || !teamId) {
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, departmentId, teamId },
+      ['organizationId', 'departmentId', 'teamId'],
+    );
+
+    if (!paramsValidation.success) {
       return res.status(400).json({
         success: false,
-        message: 'Organization ID, Department ID, and Team ID are required',
+        message: paramsValidation.message,
       });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Organization not found',
+        message: orgResult.message,
       });
     }
+    const existingOrg = orgResult.organization;
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-      select: { managerId: true },
-    });
-
-    if (!existingDep) {
+    // Check if department exists
+    const depResult = await checkDepartment(departmentId);
+    if (!depResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Department not found',
+        message: depResult.message,
       });
     }
+    const existingDep = depResult.department;
 
-    // Check if team exists and is not deleted
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        organizationId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        createdBy: true,
-      },
-    });
-    if (!team) {
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found',
+        message: teamResult.message,
       });
     }
+    const team = teamResult.team;
 
-    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic.
-    // Check permissions - only admins and organization owners
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    // Check permissions
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      existingDep,
+      team,
+      'delete avatar for',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-    const isTeamManager = team.createdBy === req.user.id;
 
-    if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+    if (!permissionCheck.success) {
       return res.status(403).json({
         success: false,
-        message:
-          'You do not have permission to update this team in this department',
+        message: permissionCheck.message,
       });
     }
 
@@ -940,86 +959,64 @@ export const deleteTeam = async (req, res, next) => {
   try {
     const { organizationId, departmentId, teamId } = req.params;
 
-    if (!organizationId || !departmentId || !teamId) {
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, departmentId, teamId },
+      ['organizationId', 'departmentId', 'teamId'],
+    );
+
+    if (!paramsValidation.success) {
       return res.status(400).json({
         success: false,
-        message: 'Organization ID, Department ID, and Team ID are required',
+        message: paramsValidation.message,
       });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Organization not found',
+        message: orgResult.message,
       });
     }
+    const existingOrg = orgResult.organization;
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-      select: { managerId: true },
-    });
-
-    if (!existingDep) {
+    // Check if department exists
+    const depResult = await checkDepartment(departmentId);
+    if (!depResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Department not found',
+        message: depResult.message,
       });
     }
+    const existingDep = depResult.department;
 
-    // Check if team exists and is not deleted
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        organizationId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        createdBy: true,
-      },
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId, null, {
+      notFoundSuffix: ' or already deleted',
     });
-    if (!team) {
+    if (!teamResult.success) {
       return res.status(404).json({
         success: false,
-        message: 'Team not found or already deleted',
+        message: teamResult.message,
       });
     }
+    const team = teamResult.team;
 
-    // TODO: Extract all permission checks into a helper function like hasTeamAddPermission(user, org, dep, team) to simplify controller logic.
-    // Check permissions - only admins and organization owners
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    // Check permissions
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      existingDep,
+      team,
+      'delete',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-    const isTeamManager = team.createdBy === req.user.id;
 
-    if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+    if (!permissionCheck.success) {
       return res.status(403).json({
         success: false,
-        message:
-          'You do not have permission to delete this team in this department',
+        message: permissionCheck.message,
       });
     }
 
@@ -1038,6 +1035,21 @@ export const deleteTeam = async (req, res, next) => {
   }
 };
 
+// /**
+//  * @desc   Get all teams
+//  * @route  /api/organization/:organizationId/department/:departmentId/teams/all
+//  * @method GET
+//  * @access private - admins, organization owners, department managers
+//  */
+// export const getAllTeams = async (req, res, next) => {
+//   try {
+//     const { organizationId, departmentId } = req.params;
+//     const { page = 1, limit = 10, search = '' } = req.query;
+
+//     // Validate required parameters
+//     const paramsValidation = validateParams(
+//       { organizationId, departmentId },
+
 /**
  * @desc   Get all teams
  * @route  /api/organization/:organizationId/department/:departmentId/teams/all
@@ -1049,85 +1061,56 @@ export const getAllTeams = async (req, res, next) => {
     const { organizationId, departmentId } = req.params;
     const { page = 1, limit = 10, search = '' } = req.query;
 
-    if (!organizationId || !departmentId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Organization ID and Department ID are required',
-      });
+    // Validate required parameters
+    const validation = validateParams(req.params, [
+      'organizationId',
+      'departmentId',
+    ]);
+    if (!validation.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: validation.message });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
-      return res.status(404).json({
-        success: false,
-        message: 'Organization not found',
-      });
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res
+        .status(404)
+        .json({ success: false, message: orgCheck.message });
     }
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-    });
-
-    if (!existingDep) {
-      return res.status(404).json({
-        success: false,
-        message: 'Department not found',
-      });
+    // Check if department exists
+    const depCheck = await checkDepartment(departmentId);
+    if (!depCheck.success) {
+      return res
+        .status(404)
+        .json({ success: false, message: depCheck.message });
     }
 
     // Check permissions
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    const permissionCheck = await checkTeamPermissions(
+      req.user,
+      orgCheck.organization,
+      depCheck.department,
+      null,
+      'view',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-    const isOrgMember = await prisma.organizationOwner.findFirst({
-      where: {
-        organizationId,
-        userId: req.user.id,
-      },
-    });
-
-    if (!isAdmin && !isOwner && !isDepManager && !isOrgMember) {
-      return res.status(403).json({
-        success: false,
-        message: 'You do not have permission to view teams in this department',
-      });
+    if (!permissionCheck.success) {
+      return res
+        .status(403)
+        .json({ success: false, message: permissionCheck.message });
     }
 
-    // pagination
+    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Build search filter
     const searchFilter = search
-      ? {
-          name: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        }
+      ? { name: { contains: search, mode: 'insensitive' } }
       : {};
 
     const [teams, totalTeams] = await Promise.all([
-      // Get teams
       prisma.team.findMany({
         where: {
           organizationId,
@@ -1161,12 +1144,9 @@ export const getAllTeams = async (req, res, next) => {
         },
         skip,
         take: parseInt(limit),
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
       }),
 
-      // Count total teams
       prisma.team.count({
         where: {
           organizationId,
@@ -1204,145 +1184,57 @@ export const getSpecificTeam = async (req, res, next) => {
   try {
     const { organizationId, departmentId, teamId } = req.params;
 
-    if (!organizationId || !departmentId || !teamId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Organization ID, Department ID, and Team ID are required',
-      });
+    // Validate required parameters
+    const validation = validateParams(req.params, [
+      'organizationId',
+      'departmentId',
+      'teamId',
+    ]);
+    if (!validation.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: validation.message });
     }
 
-    // Check if organization exists and is not deleted
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        id: organizationId,
-        deletedAt: null,
-      },
-      include: {
-        owners: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    if (!existingOrg) {
-      return res.status(404).json({
-        success: false,
-        message: 'Organization not found',
-      });
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res
+        .status(404)
+        .json({ success: false, message: orgCheck.message });
     }
 
-    // Check if department exists and is not deleted
-    const existingDep = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        deletedAt: null,
-      },
-    });
-
-    if (!existingDep) {
-      return res.status(404).json({
-        success: false,
-        message: 'Department not found',
-      });
+    // Check if department exists
+    const depCheck = await checkDepartment(departmentId);
+    if (!depCheck.success) {
+      return res
+        .status(404)
+        .json({ success: false, message: depCheck.message });
     }
 
-    // Check if the user has access to view this team
-    const isAdmin = req.user.role === 'ADMIN';
-    const isOwner = existingOrg.owners.some(
-      (owner) => owner.userId === req.user.id,
+    // Check if team exists
+    const teamCheck = await checkTeam(teamId, organizationId, departmentId);
+    if (!teamCheck.success) {
+      return res
+        .status(404)
+        .json({ success: false, message: teamCheck.message });
+    }
+
+    // Check permissions
+    const permissionCheck = await checkTeamPermissions(
+      req.user,
+      orgCheck.organization,
+      depCheck.department,
+      teamCheck.team,
+      'view',
     );
-    const isDepManager = existingDep.managerId === req.user.id;
-
-    // Check if the user is a member of this team
-    const isTeamMember = await prisma.teamMember.findFirst({
-      where: {
-        teamId,
-        userId: req.user.id,
-        isActive: true,
-      },
-    });
-
-    // Get the team details
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        organizationId,
-        departmentId,
-        deletedAt: null,
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            profilePic: true,
-          },
-        },
-        members: {
-          where: {
-            isActive: true,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                profilePic: true,
-              },
-            },
-          },
-        },
-        projects: {
-          where: {
-            deletedAt: null,
-          },
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            status: true,
-          },
-        },
-        reports: {
-          select: {
-            id: true,
-            name: true,
-            createdAt: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: 5,
-        },
-        department: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    if (!team) {
-      return res.status(404).json({
-        success: false,
-        message: 'Team not found',
-      });
+    if (!permissionCheck.success) {
+      return res
+        .status(403)
+        .json({ success: false, message: permissionCheck.message });
     }
 
-    // If user is not admin, owner, department manager, or team member, deny access
-    if (!isAdmin && !isOwner && !isDepManager && !isTeamMember) {
-      return res.status(403).json({
-        success: false,
-        message: 'You do not have permission to view this team',
-      });
-    }
+    const { team } = teamCheck;
 
     // Calculate team statistics
     const activeMembers = team.members.length;

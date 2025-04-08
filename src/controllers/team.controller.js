@@ -29,8 +29,8 @@ const validateParams = (params, requiredParams) => {
 
 /**
  * Helper function to check if organization exists and is not deleted
- * organizationId - The organization ID to check
- * returns - Contains success flag, error message, and organization data
+ * @param {string} organizationId - The organization ID to check
+ * @returns {Promise<Object>} - Contains success flag, error message, and organization data
  */
 const checkOrganization = async (organizationId) => {
   const org = await prisma.organization.findFirst({
@@ -87,12 +87,9 @@ const checkDepartment = async (departmentId) => {
 };
 
 /**
- * Helper function to check if team exists and is not deleted
- * teamId - The team ID to check
- * organizationId - The organization ID the team belongs to
- * [departmentId] - Optional department ID the team belongs to
- * [options] - Additional options for the query
- * returns - Contains success flag, error message, and team data
+ * Helper function to check if department exists and is not deleted
+ * @param {string} departmentId - The department ID to check
+ * @returns {Promise<Object>} - Contains success flag, error message, and department data
  */
 const checkTeam = async (
   teamId,
@@ -136,13 +133,12 @@ const checkTeam = async (
 };
 
 /**
- * Helper function to check permissions for team operations
- * user - The user making the request
- * organization - The organization object with owners
- * department - The department object
- * team - The team object
- * action - The action being performed (for error message)
- * returns - Contains success flag and error message if permission check fails
+ * Helper function to check if team exists and is not deleted
+ * @param {string} teamId - The team ID to check
+ * @param {string} organizationId - The organization ID the team belongs to
+ * @param {string} [departmentId] - Optional department ID the team belongs to
+ * @param {Object} [options] - Additional options for the query
+ * @returns {Promise<Object>} - Contains success flag, error message, and team data
  */
 const checkTeamPermissions = (user, organization, department, team, action) => {
   const isAdmin = user.role === 'ADMIN';

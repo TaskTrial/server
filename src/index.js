@@ -53,7 +53,6 @@ app.use(cors());
 
 // Helmet
 app.use(helmet());
-app.use(helmet.contentSecurityPolicy());
 
 configureGoogleStrategy();
 

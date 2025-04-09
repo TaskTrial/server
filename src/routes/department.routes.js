@@ -3,62 +3,61 @@ import {
   createDepartment,
   getAllDepartments,
   getDepartmentById,
-  restoreDepartment,
-  softDeleteDepartment,
   updateDepartment,
+  softDeleteDepartment,
+  restoreDepartment,
+  getCreatedDepartments,
 } from '../controllers/department.controller.js';
-import { verifyManagerPermission } from '../middlewares/verifyManagerPermission.middleware.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
-import {
-  validateCreateDepartment,
-  validateUpdateDepartment,
-} from '../validations/department.validation.js';
-import { verifyOwnerOrAdmin } from '../middlewares/verifyOwnerOrAdmin.middleware.js';
-
 const router = express.Router();
 
-// Admin, OWNER, or MANAGER can access these
+// Routes for Organization Owners and Admins only
 router.get(
-  '/api/departments/all',
+  '/api/organizations/:organizationId/departments/all',
   verifyAccessToken,
-  verifyManagerPermission,
   getAllDepartments,
 );
 
-router.post(
-  '/api/departments/create',
+// Routes accessible by Department Managers
+router.get(
+  '/api/organizations/:organizationId/departments/created',
   verifyAccessToken,
-  verifyManagerPermission,
-  validateCreateDepartment,
+  getCreatedDepartments,
+);
+
+// Create department - Admin/Owner only
+router.post(
+  '/api/organizations/:organizationId/departments/create',
+  verifyAccessToken,
   createDepartment,
 );
 
+// Get department by ID
 router.get(
-  '/api/departments/:id',
+  '/api/organizations/:organizationId/departments/:id',
   verifyAccessToken,
-  verifyManagerPermission,
   getDepartmentById,
 );
 
+// Update department - Admin/Owner only
 router.put(
-  '/api/departments/:id',
+  '/api/organizations/:organizationId/departments/:id',
   verifyAccessToken,
-  verifyManagerPermission,
-  validateUpdateDepartment,
   updateDepartment,
 );
 
+// Soft delete department - Admin/Owner only
 router.delete(
-  '/api/departments/:id',
+  '/api/organizations/:organizationId/departments/:id',
   verifyAccessToken,
-  verifyOwnerOrAdmin,
   softDeleteDepartment,
 );
 
+// Restore department - Admin/Owner only
 router.patch(
-  '/api/departments/:id/restore',
+  '/api/organizations/:organizationId/departments/:id/restore',
   verifyAccessToken,
-  verifyOwnerOrAdmin,
   restoreDepartment,
 );
+
 export default router;

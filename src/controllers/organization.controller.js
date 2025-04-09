@@ -878,6 +878,19 @@ export const addOwners = async (req, res, next) => {
       skipDuplicates: true,
     });
 
+    await prisma.user.updateMany({
+      where: {
+        id: {
+          in: newOwnerIds,
+        },
+      },
+      data: {
+        organizationId: organizationId,
+        isOwner: true,
+      },
+    });
+    // Send email notifications to new owners
+
     return res.status(200).json({
       success: true,
       message: `Successfully added ${newOwnerRecords.count} owner(s) to the organization`,

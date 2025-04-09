@@ -14,6 +14,7 @@ import authRouter from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import orgRouter from './routes/organization.routes.js';
 import teamRoutes from './routes/team.routes.js';
+// import projectRoutes from './routes/project.routes.js';
 import {
   errorHandler,
   notFound,
@@ -48,17 +49,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Cors Policy
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGIN,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true,
-  }),
-); // Allow all origins temporarily
+app.use(cors());
 
 // Helmet
 app.use(helmet());
-app.use(helmet.contentSecurityPolicy());
 
 configureGoogleStrategy();
 
@@ -75,6 +69,7 @@ app.use(orgRouter);
 app.use(userRoutes);
 app.use(departmentRoutes);
 app.use(teamRoutes);
+// app.use(projectRoutes);
 
 // Error handling middleware
 app.use(notFound);

@@ -4510,7 +4510,10 @@
         "type": "object",
         "properties": {
           "name": { "type": "string", "example": "Engineering" },
-          "description": { "type": "string", "example": "Handles engineering tasks" },
+          "description": {
+            "type": "string",
+            "example": "Handles engineering tasks"
+          },
           "organizationId": { "type": "string", "format": "uuid" },
           "managerId": { "type": "string", "format": "uuid" }
         },
@@ -4519,7 +4522,10 @@
       "CreateDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department created successfully" },
+          "message": {
+            "type": "string",
+            "example": "Department created successfully"
+          },
           "department": {
             "type": "object",
             "properties": {
@@ -4535,7 +4541,10 @@
       "GetAllDepartmentsResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Departments retrieved successfully" },
+          "message": {
+            "type": "string",
+            "example": "Departments retrieved successfully"
+          },
           "departments": {
             "type": "array",
             "items": {
@@ -4567,7 +4576,10 @@
       "GetDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department retrieved successfully" },
+          "message": {
+            "type": "string",
+            "example": "Department retrieved successfully"
+          },
           "department": {
             "type": "object",
             "properties": {
@@ -4603,7 +4615,10 @@
       "UpdateDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department updated successfully" },
+          "message": {
+            "type": "string",
+            "example": "Department updated successfully"
+          },
           "department": {
             "type": "object",
             "properties": {
@@ -4617,13 +4632,19 @@
       "SoftDeleteDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department soft deleted successfully" }
+          "message": {
+            "type": "string",
+            "example": "Department soft deleted successfully"
+          }
         }
       },
       "RestoreDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department restored successfully" }
+          "message": {
+            "type": "string",
+            "example": "Department restored successfully"
+          }
         }
       }
     }

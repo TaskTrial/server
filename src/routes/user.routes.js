@@ -46,13 +46,14 @@ router.patch(
 );
 
 router.delete(
-  '/users/:id',
+  '/api/users/:id',
   verifyAccessToken,
   verifyAdminPermission,
   softDeleteUser,
 );
+
 router.patch(
-  '/users/restore/:id',
+  '/api/users/restore/:id', // Added missing `/` at the beginning
   verifyAccessToken,
   verifyAdminPermission,
   restoreUser,
@@ -72,4 +73,5 @@ router.delete(
   verifyUserPermission,
   deleteUserProfilePic,
 );
+
 export default router;

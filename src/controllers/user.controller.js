@@ -301,12 +301,14 @@ export const softDeleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findFirst({ where: { id } });
 
-    if (!user || user.deletedAt) {
-      return res
-        .status(404)
-        .json({ message: 'User not found or already deleted' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.deletedAt) {
+      return res.status(400).json({ message: 'User already deleted' });
     }
 
     await prisma.user.update({

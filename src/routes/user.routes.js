@@ -38,7 +38,7 @@ router.put(
   updateUserAccount,
 );
 
-router.put(
+router.patch(
   '/api/users/update-password/:id',
   verifyAccessToken,
   verifyUserPermission,

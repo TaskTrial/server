@@ -1055,7 +1055,6 @@
         }
       }
     },
-
     "/api/users/all": {
       "get": {
         "tags": ["Users"],
@@ -1435,41 +1434,98 @@
         }
       }
     },
-    "/api/departments/create": {
+    "/api/departments/organization/{organizationId}/manager/{managerId}": {
       "post": {
-        "tags": ["Department"],
-        "summary": "Create a new department",
-        "description": "Allows authorized users to create a new department.",
-        "operationId": "createDepartment",
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateDepartmentRequest"
-              }
-            }
-          }
+      "tags": ["Department"],
+      "summary": "Create a new department",
+      "description": "Allows authorized users to create a new department within a specific organization and assign a manager.",
+      "operationId": "createDepartment",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+        "name": "organizationId",
+        "in": "path",
+        "required": true,
+        "description": "ID of the organization where the department will be created",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
         },
-        "responses": {
-          "201": {
-            "description": "Department created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateDepartmentResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestError"
-          },
-          "409": {
-            "$ref": "#/components/responses/ConflictError"
+        {
+        "name": "managerId",
+        "in": "path",
+        "required": true,
+        "description": "ID of the user to be assigned as the department manager",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "description": "Details of the department to be created",
+        "content": {
+        "application/json": {
+          "schema": {
+          "$ref": "#/components/schemas/CreateDepartmentRequest"
           }
         }
+        }
+      },
+      "responses": {
+        "201": {
+        "description": "Department created successfully",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/CreateDepartmentResponse"
+          }
+          }
+        }
+        },
+        "400": {
+        "description": "Invalid input or validation error",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ErrorResponse"
+          }
+          }
+        }
+        },
+        "403": {
+        "description": "Forbidden - insufficient permissions",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ErrorResponse"
+          }
+          }
+        }
+        },
+        "409": {
+        "description": "Conflict - department with the same name already exists",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ErrorResponse"
+          }
+          }
+        }
+        },
+        "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ErrorResponse"
+          }
+          }
+        }
+        }
+      }
       }
     },
     "/api/departments/{departmentId}": {
@@ -1501,39 +1557,98 @@
         }
       }
     },
-    "/api/departments/{departmentId}/update": {
+    "/api/departments/{departmentId}/": {
       "put": {
-        "tags": ["Department"],
-        "summary": "Update department details",
-        "description": "Update the details of a specific department.",
-        "operationId": "updateDepartment",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "departmentId",
-            "in": "path",
-            "required": true,
-            "description": "ID of the department to update",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
+      "tags": ["Department"],
+      "summary": "Create a new department",
+      "description": "Update the details of a specific department, including its name and description.",
+      "operationId": "updateDepartment",
+      "security": [{ "bearerAuth": [] }],
+      "parameters": [
+        {
+        "name": "departmentId",
+        "in": "path",
+        "required": true,
+        "description": "ID of the department to update",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+        }
+      ],
+      "requestBody": {
+        "description": "Department update data",
+        "required": true,
+        "content": {
+        "application/json": {
+          "schema": {
+          "$ref": "#/components/schemas/UpdateDepartmentRequest"
+          },
+          "examples": {
+          "updateNameAndDescription": {
+            "value": {
+            "name": "Updated Department Name",
+            "description": "Updated description for the department"
+            }
+          },
+          "updateNameOnly": {
+            "value": {
+            "name": "New Department Name"
             }
           }
-        ],
-        "requestBody": {
-          "$ref": "#/components/requestBodies/UpdateDepartmentRequest"
-        },
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/DepartmentDetailResponse"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestError"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
           }
         }
+        }
+      },
+      "responses": {
+        "200": {
+        "description": "Department updated successfully",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/UpdateDepartmentResponse"
+          }
+          }
+        }
+        },
+        "400": {
+        "description": "Invalid input or validation error",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ErrorResponse"
+          },
+          "examples": {
+            "validationError": {
+            "value": {
+              "success": false,
+              "message": "Validation failed",
+              "errors": ["\"name\" must be at least 2 characters long"]
+            }
+            }
+          }
+          }
+        }
+        },
+        "404": {
+        "description": "Department not found",
+        "content": {
+          "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ErrorResponse"
+          },
+          "examples": {
+            "notFound": {
+            "value": {
+              "success": false,
+              "message": "Department not found"
+            }
+            }
+          }
+          }
+        }
+        }
+      }
       }
     },
     "/api/departments/{id}": {
@@ -4510,7 +4625,10 @@
         "type": "object",
         "properties": {
           "name": { "type": "string", "example": "Engineering" },
-          "description": { "type": "string", "example": "Handles engineering tasks" },
+          "description": {
+            "type": "string",
+            "example": "Handles engineering tasks"
+          },
           "organizationId": { "type": "string", "format": "uuid" },
           "managerId": { "type": "string", "format": "uuid" }
         },
@@ -4519,7 +4637,10 @@
       "CreateDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department created successfully" },
+          "message": {
+            "type": "string",
+            "example": "Department created successfully"
+          },
           "department": {
             "type": "object",
             "properties": {
@@ -4535,7 +4656,10 @@
       "GetAllDepartmentsResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Departments retrieved successfully" },
+          "message": {
+            "type": "string",
+            "example": "Departments retrieved successfully"
+          },
           "departments": {
             "type": "array",
             "items": {
@@ -4567,7 +4691,10 @@
       "GetDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department retrieved successfully" },
+          "message": {
+            "type": "string",
+            "example": "Department retrieved successfully"
+          },
           "department": {
             "type": "object",
             "properties": {
@@ -4603,7 +4730,10 @@
       "UpdateDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department updated successfully" },
+          "message": {
+            "type": "string",
+            "example": "Department updated successfully"
+          },
           "department": {
             "type": "object",
             "properties": {
@@ -4617,13 +4747,19 @@
       "SoftDeleteDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department soft deleted successfully" }
+          "message": {
+            "type": "string",
+            "example": "Department soft deleted successfully"
+          }
         }
       },
       "RestoreDepartmentResponse": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Department restored successfully" }
+          "message": {
+            "type": "string",
+            "example": "Department restored successfully"
+          }
         }
       }
     }

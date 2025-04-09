@@ -61,7 +61,7 @@ base url: `http://localhost:3000`
 - Update a Department: `PUT /api/departments/:id`
 - Soft Delete a Department: `DELETE /api/departments/:id`
 - Restore a Department: `PATCH /api/departments/:id/restore`
-  
+
 ### Team
 
 - Create a new team in a specific organization: `POST /api/organization/:organizationId/department/:departmentId/team`

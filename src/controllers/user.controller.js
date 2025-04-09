@@ -8,7 +8,7 @@ import {
   updatePasswordValidation,
   updateUserAccountValidation,
 } from '../validations/user.validation.js';
-/* eslint no-undef:off */
+
 /**
  * @desc   Get all users with pagination
  * @route  GET /api/users/all?page=1
@@ -174,7 +174,7 @@ export const updateUserAccount = async (req, res, next) => {
       updateData.lastName = value.lastName;
     }
     if (value.phoneNumber) {
-      updateData.phoneNumber = encrypt(value.phoneNumber);
+      updateData.phoneNumber = value.phoneNumber;
     }
     if (value.jobTitle) {
       updateData.jobTitle = value.jobTitle;

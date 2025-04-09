@@ -7,58 +7,46 @@ import {
   softDeleteDepartment,
   updateDepartment,
 } from '../controllers/department.controller.js';
-import { verifyManagerPermission } from '../middlewares/verifyManagerPermission.middleware.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   validateCreateDepartment,
   validateUpdateDepartment,
 } from '../validations/department.validation.js';
-import { verifyOwnerOrAdmin } from '../middlewares/verifyOwnerOrAdmin.middleware.js';
 
 const router = express.Router();
 
-// Admin, OWNER, or MANAGER can access these
-router.get(
-  '/api/departments/all',
-  verifyAccessToken,
-  verifyManagerPermission,
-  getAllDepartments,
-);
+// All routes below are restricted to Organization Owners and Admins only
 
+// Get all departments (with pagination)
+router.get('/api/departments', verifyAccessToken, getAllDepartments);
+
+// Create department
 router.post(
-  '/api/departments/create',
+  '/api/departments/organization/:organizationId/manager/:managerId',
   verifyAccessToken,
-  verifyManagerPermission,
   validateCreateDepartment,
   createDepartment,
 );
 
-router.get(
-  '/api/departments/:id',
-  verifyAccessToken,
-  verifyManagerPermission,
-  getDepartmentById,
-);
+// Get department by ID
+router.get('/api/departments/:id', verifyAccessToken, getDepartmentById);
 
+// Update department
 router.put(
   '/api/departments/:id',
   verifyAccessToken,
-  verifyManagerPermission,
   validateUpdateDepartment,
   updateDepartment,
 );
 
-router.delete(
-  '/api/departments/:id',
-  verifyAccessToken,
-  verifyOwnerOrAdmin,
-  softDeleteDepartment,
-);
+// Soft delete department
+router.delete('/api/departments/:id', verifyAccessToken, softDeleteDepartment);
 
+// Restore department
 router.patch(
   '/api/departments/:id/restore',
   verifyAccessToken,
-  verifyOwnerOrAdmin,
   restoreDepartment,
 );
+
 export default router;

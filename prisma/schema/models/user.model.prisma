@@ -14,7 +14,7 @@ model User {
   updatedAt                DateTime  @updatedAt
   isActive                 Boolean   @default(true)
   deletedAt                DateTime?
-  phoneNumber              String?   @db.VarChar(50)
+  phoneNumber              String?   @db.VarChar(255)
   jobTitle                 String?   @db.VarChar(100)
   timezone                 String?   @db.VarChar(50)
   bio                      String?   @db.Text

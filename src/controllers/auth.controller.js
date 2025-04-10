@@ -3,7 +3,7 @@ dotenv.config();
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prismaClient.js';
 import { comparePassword, hashPassword } from '../utils/password.utils.js';
-import { generateOTP } from '../utils/otp.utils.js';
+import { generateOTP, hashOTP, validateOTP } from '../utils/otp.utils.js';
 import { sendEmail } from '../utils/email.utils.js';
 import {
   forgotPasswordValidation,
@@ -53,7 +53,7 @@ export const signup = async (req, res, next) => {
 
     // Generate email verification OTP
     const verificationOTP = generateOTP();
-    // TODO: hash otp when you save it in the db
+    const hashedOTP = await hashOTP(verificationOTP);
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
     // Create user
@@ -66,7 +66,7 @@ export const signup = async (req, res, next) => {
         password: hashedPassword,
         role: 'MEMBER', // Default role
         isActive: false, // Require email verification
-        emailVerificationToken: verificationOTP,
+        emailVerificationToken: hashedOTP,
         emailVerificationExpires: otpExpiry,
       },
     });
@@ -82,6 +82,71 @@ export const signup = async (req, res, next) => {
       message: 'User created. Please verify your email.',
       userId: user.id,
       user: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Resend OTP code if it expired
+ * @route  /api/auth/resendOTP/
+ * @method POST
+ * @access private
+ */
+export const resendOTP = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email',
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // generate OTP
+    const verificationOTP = generateOTP();
+    const hashedOTP = await hashOTP(verificationOTP);
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { email },
+      data: {
+        emailVerificationToken: hashedOTP,
+        emailVerificationExpires: otpExpiry,
+      },
+    });
+
+    try {
+      // Send verification email
+      await sendEmail({
+        to: email,
+        subject: 'Re-verify Your Email',
+        text: `Your verification code is: ${verificationOTP}. It will expire in 10 minutes`,
+      });
+    } catch (emailError) {
+      return res.status(500).json({
+        success: false,
+        error: emailError,
+        message: 'Failed to send verification email. Please try again later.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Code send successfully. Please check your email',
     });
   } catch (error) {
     next(error);
@@ -111,9 +176,15 @@ export const verifyEmail = async (req, res, next) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    if (!user.emailVerificationToken || !user.emailVerificationExpires) {
+      return res
+        .status(400)
+        .json({ message: 'Email already verified or invalid token' });
+    }
+
     // Check OTP
     if (
-      user.emailVerificationToken !== otp ||
+      !(await validateOTP(otp, user.emailVerificationToken)) ||
       user.emailVerificationExpires < new Date()
     ) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });

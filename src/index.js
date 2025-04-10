@@ -50,7 +50,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Cors Policy
-app.use(cors());
+app.use(
+  cors({
+    credentials: true, // allow cookies
+  }),
+);
 
 // Helmet
 app.use(helmet());

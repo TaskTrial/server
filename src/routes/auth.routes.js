@@ -11,6 +11,8 @@ import {
   googleOAuthLogin,
   logout,
   resendOTP,
+  forgotPasswordWithoutEmail,
+  resetPasswordWithoutEmail,
 } from '../controllers/auth.controller.js';
 import { apiLimiter } from '../utils/apiLimiter.utils.js';
 
@@ -22,6 +24,16 @@ router.post('/api/auth/verifyEmail', apiLimiter, verifyEmail);
 router.post('/api/auth/signin', apiLimiter, signin);
 router.post('/api/auth/forgotPassword', apiLimiter, forgotPassword);
 router.post('/api/auth/resetPassword', apiLimiter, resetPassword);
+router.post(
+  '/api/auth/forgotPasswordWithoutEmail',
+  apiLimiter,
+  forgotPasswordWithoutEmail,
+);
+router.post(
+  '/api/auth/resetPasswordWithoutEmail',
+  apiLimiter,
+  resetPasswordWithoutEmail,
+);
 router.post('/api/auth/refreshAccessToken', apiLimiter, refreshAccessToken);
 
 // Google OAuth Routes

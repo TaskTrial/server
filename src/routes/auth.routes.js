@@ -13,7 +13,6 @@ import {
   resendOTP,
 } from '../controllers/auth.controller.js';
 import { apiLimiter } from '../utils/apiLimiter.utils.js';
-import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
@@ -48,6 +47,6 @@ router.get(
 router.post('/auth/google', googleOAuthLogin);
 
 // Logout
-router.post('/api/auth/logout', verifyAccessToken, logout);
+router.post('/api/auth/logout', logout);
 
 export default router;

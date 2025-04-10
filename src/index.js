@@ -6,6 +6,7 @@ dotenv.config();
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
@@ -53,6 +54,8 @@ app.use(cors());
 
 // Helmet
 app.use(helmet());
+
+app.use(cookieParser());
 
 configureGoogleStrategy();
 

@@ -226,32 +226,36 @@ export const signin = async (req, res, next) => {
       where: { email: email },
     });
 
-    if (!user) {
+    if (!user || !(await comparePassword(password, user.password))) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     // Check if user is active
     if (!user.isActive) {
-      return res.status(403).json({ message: 'Account not activated' });
-    }
-
-    // Verify password
-    const isPasswordValid = await comparePassword(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res
+        .status(403)
+        .json({ message: 'Account not activated. Please verify your email' });
     }
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    // Save refresh token in DB (useful for logout)
     await prisma.user.update({
       where: { id: user.id },
       data: {
         refreshToken,
         lastLogin: new Date(),
       },
+    });
+
+    // Set refresh token as httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'development',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     return res.status(200).json({
@@ -384,35 +388,33 @@ export const resetPassword = async (req, res, next) => {
  */
 export const refreshAccessToken = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(400).json({ message: 'Refresh token is required' });
+    const token = req.cookies.refreshToken;
+    if (!token) {
+      return res.status(401).json({ message: 'Refresh token missing' });
     }
 
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    jwt.verify(token, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid refresh token' });
+      }
 
-    // Find user
-    const user = await prisma.user.findFirst({
-      where: {
-        id: decoded.id,
-        refreshToken,
-      },
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+      });
+      if (!user || user.refreshToken !== token) {
+        return res.status(403).json({ message: 'Token mismatch' });
+      }
+
+      const newAccessToken = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_ACCESS_SECRET,
+        { expiresIn: '1h' },
+      );
+
+      res.status(200).json({ accessToken: newAccessToken });
     });
-
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid refresh token' });
-    }
-
-    // Generate new access token
-    const newAccessToken = generateAccessToken(user);
-
-    return res.status(200).json({
-      accessToken: newAccessToken,
-    });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -513,38 +515,29 @@ export const googleOAuthLogin = async (req, res) => {
  */
 export const logout = async (req, res, next) => {
   try {
-    // Get user ID from the authenticated request
-    const userId = req.user.id;
-
-    if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    const token = req.cookies.refreshToken;
+    if (!token) {
+      return res.sendStatus(204); // No content
     }
 
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        isActive: true,
-      },
-    });
-
-    // Check if user exists and is active
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    const decoded = jwt.decode(token);
+    if (decoded?.id) {
+      await prisma.user.update({
+        where: { id: decoded.id },
+        data: { refreshToken: null },
+      });
     }
 
-    // Clear the refresh token and record logout time in the db
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        refreshToken: null,
-        lastLogout: new Date(),
-      },
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'Strict',
     });
 
-    return res.status(200).json({ message: 'Logged out successfully' });
-  } catch (error) {
-    next(error);
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (err) {
+    next(err);
   }
 };

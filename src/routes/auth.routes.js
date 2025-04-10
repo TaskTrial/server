@@ -10,6 +10,7 @@ import {
   googleOAuthCallback,
   googleOAuthLogin,
   logout,
+  resendOTP,
 } from '../controllers/auth.controller.js';
 import { apiLimiter } from '../utils/apiLimiter.utils.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -17,6 +18,7 @@ import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 const router = Router();
 
 router.post('/api/auth/signup', apiLimiter, signup);
+router.post('/api/auth/resendOTP/', apiLimiter, resendOTP);
 router.post('/api/auth/verifyEmail', apiLimiter, verifyEmail);
 router.post('/api/auth/signin', apiLimiter, signin);
 router.post('/api/auth/forgotPassword', apiLimiter, forgotPassword);

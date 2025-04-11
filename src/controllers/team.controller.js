@@ -62,8 +62,6 @@ const checkOrganization = async (organizationId) => {
 
 /**
  * Helper function to check if department exists and is not deleted
- * @param {string} departmentId - The department ID to check
- * @returns {Promise<Object>} - Contains success flag, error message, and department data
  */
 const checkTeam = async (
   teamId,
@@ -110,7 +108,6 @@ const checkTeam = async (
  * Helper function to check if team exists and is not deleted
  * @param {string} teamId - The team ID to check
  * @param {string} organizationId - The organization ID the team belongs to
- * @param {string} [departmentId] - Optional department ID the team belongs to
  * @param {Object} [options] - Additional options for the query
  * @returns {Promise<Object>} - Contains success flag, error message, and team data
  */
@@ -305,7 +302,7 @@ export const createTeam = async (req, res, next) => {
 
 /**
  * @desc   Add new team members
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/addMember
+ * @route  /api/organization/:organizationId/team/:teamId/addMember
  * @method POST
  * @access private - admins or organization owners only
  */
@@ -466,9 +463,9 @@ export const addTeamMember = async (req, res, next) => {
 
 /**
  * @desc   Remove member from a team (soft delete)
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/members/:memberId
+ * @route  /api/organization/:organizationId/team/:teamId/members/:memberId
  * @method DELETE
- * @access private - admins, organization owners, department managers, or team creators
+ * @access private - admins, organization owners or team creators
  */
 export const removeTeamMember = async (req, res, next) => {
   try {
@@ -609,7 +606,7 @@ export const removeTeamMember = async (req, res, next) => {
 
 /**
  * @desc   Update a team
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId
+ * @route  /api/organization/:organizationId/team/:teamId
  * @method PUT
  * @access private - admins or organization owners only
  */
@@ -724,7 +721,7 @@ export const updateTeam = async (req, res, next) => {
 
 /**
  * @desc   Upload team avatar
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/upload
+ * @route  /api/organization/:organizationId/team/:teamId/avatar/upload
  * @method POST
  * @access private - admins or organization owners only
  */
@@ -804,7 +801,7 @@ export const uploadTeamAvatar = async (req, res, next) => {
 
 /**
  * @desc   Delete team avatar
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete
+ * @route  /api/organization/:organizationId/team/:teamId/avatar/delete
  * @method DELETE
  * @access private - admins or organization owners only
  */
@@ -882,9 +879,9 @@ export const deleteTeamAvatar = async (req, res, next) => {
 
 /**
  * @desc   Delete team
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId
+ * @route  /api/organization/:organizationId/team/:teamId
  * @method DELETE
- * @access private - admins, organization owners, department managers, or team creators
+ * @access private - admins, organization owners or team creators
  */
 export const deleteTeam = async (req, res, next) => {
   try {
@@ -957,9 +954,9 @@ export const deleteTeam = async (req, res, next) => {
 
 /**
  * @desc   Get all teams
- * @route  /api/organization/:organizationId/department/:departmentId/teams/all
+ * @route  /api/organization/:organizationId/teams/all
  * @method GET
- * @access private - admins, organization owners, department managers
+ * @access private - admins, organization owners
  */
 export const getAllTeams = async (req, res, next) => {
   try {
@@ -1080,9 +1077,9 @@ export const getAllTeams = async (req, res, next) => {
 
 /**
  * @desc   Get specific team details
- * @route  /api/organization/:organizationId/department/:departmentId/teams/:teamId
+ * @route  /api/organization/:organizationId/teams/:teamId
  * @method GET
- * @access private - admins, organization owners, department managers, team members
+ * @access private - admins, organization owners, team members
  */
 export const getSpecificTeam = async (req, res, next) => {
   try {

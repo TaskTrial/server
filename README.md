@@ -13,6 +13,10 @@ npm install
 npm run start:dev # and makesure there is no error
 ```
 
+## Project Structure Flow
+
+![tasktrial flow](./images/tasktrial_flow.png)
+
 ## Completed Endpoints
 
 You can test your APIs using **_Swagger_** from [_here_](http://localhost:3000/api-docs/) after running the server

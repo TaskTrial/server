@@ -22,29 +22,33 @@ base url: `http://localhost:3000`
 ### Auth
 
 - Sign up or register: `POST /api/auth/signup`
+- Resend OTP: `POST /api/auth/resendOTP`
 - Verify email: `POST /api/auth/verifyEmail`
 - Sign in or login: `POST /api/auth/signin`
 - Forget Password: `POST /api/auth/forgotPassword`
 - Reset Password: `POST /api/auth/resetPassword`
+- Forget password without email: `POST /api/auth/forgotPasswordWithoutEmail`
+- Reset password without email: `POST /api/auth/resetPasswordWithoutEmail`
 - Refresh Access Token: `POST /api/auth/refreshAccessToken`
 - Login with google: `POST /api/auth/google`
 - Logout: `POST /api/auth/logout`
 
 ### User
 
-- Get all Users: `GET /api/users/all`
-- Get a specific User: `GET /api/users/:id`
-- Update a User: `PUT /api/users/:id`
-- Update User Password: `PUT /api/users/update-password/:id`
-- Delete a User: `DELETE /api/users/:id`
-- Restore a User: `PATCH /api/users/restore/:id`
-- Upload User Profile Picture: `POST /api/users/:userId/profile-picture`
-- Delete User Profile Picture: `DELETE /api/users/:userId/profile-picture`
+- Get all users: `GET /api/users/all`
+- Get a specific user: `GET /api/users/:id`
+- Update a user: `PUT /api/users/:id`
+- Update user password: `PATCH /api/users/update-password/:id`
+- Delete a user: `DELETE /api/users/delete/:id`
+- Restore a user: `PATCH /api/users/restore/:id`
+- Upload user profile picture: `POST /api/users/:id/profile-picture`
+- Delete user profile picture: `DELETE /api/users/:id/profile-picture`
 
 ### Organization
 
 - Create an Organization: `POST /api/organization`
-- Verify an Organization: `POST /api/organization/verifyOrg`
+- Resend OTP: `POST /api/organization/resendOTP/:orgId`
+- Verify an Organization: `POST /api/organization/verifyOrg/:orgId`
 - Get all Organizations: `GET /api/organization/all`
 - Get a specific Organization: `GET /api/organization/:organizationId`
 - Update an Organization: `PUT /api/organization/:organizationId`
@@ -55,21 +59,21 @@ base url: `http://localhost:3000`
 
 ### Department
 
-- Get all Departments: `GET /api/departments/all`
-- Create a Department: `POST /api/departments/create`
-- Get a specific Department: `GET /api/departments/:id`
-- Update a Department: `PUT /api/departments/:id`
-- Soft Delete a Department: `DELETE /api/departments/:id`
-- Restore a Department: `PATCH /api/departments/:id/restore`
+- Get all Departments: `GET /api/organizations/:organizationId/departments/all`
+- Get department by id: `GET /api/organizations/:organizationId/departments/:departmentId`
+- Create a Department: `POST /api/organizations/:organizationId/departments/create`
+- Update a Department: `PUT /api/organizations/:organizationId/departments/:departmentId`
+- Soft Delete a Department: `DELETE /api/organizations/:organizationId/departments/:departmentId/delete`
+- Restore a Department: `PATCH /api/organizations/:organizationId/departments/:departmentId/restore`
 
 ### Team
 
-- Create a new team in a specific organization: `POST /api/organization/:organizationId/department/:departmentId/team`
-- Add new team members: `POST /api/organization/:organizationId/department/:departmentId/team/:teamId/addMember`
-- Remove member from a team: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId/members/:memberId`
-- Update a team: `PUT /api/organization/:organizationId/department/:departmentId/team/:teamId`
-- Upload team avatar: `POST /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/upload`
-- Delete team avatar: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete`
-- Delete a team: `DELETE /api/organization/:organizationId/department/:departmentId/team/:teamId`
-- Get all teams: `GET /api/organization/:organizationId/department/:departmentId/teams/all`
-- Get a specific team: `GET /api/organization/:organizationId/department/:departmentId/teams/:teamId`
+- Create a new team in a specific organization: `POST /api/organization/:organizationId/team`
+- Add new team members: `POST /api/organization/:organizationId/team/:teamId/addMember`
+- Remove member from a team: `DELETE /api/organization/:organizationId/team/:teamId/members/:memberId`
+- Update a team: `PUT /api/organization/:organizationId/team/:teamId`
+- Upload team avatar: `POST /api/organization/:organizationId/team/:teamId/avatar/upload`
+- Delete team avatar: `DELETE /api/organization/:organizationId/team/:teamId/avatar/delete`
+- Delete a team: `DELETE /api/organization/:organizationId/team/:teamId`
+- Get all teams: `GET /api/organization/:organizationId/teams/all`
+- Get a specific team: `GET /api/organization/:organizationId/teams/:teamId`

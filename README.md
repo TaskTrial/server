@@ -15,7 +15,7 @@ npm run start:dev # and makesure there is no error
 
 ## Project Structure Flow
 
-![tasktrial flow](./images/tasktrial_flow.png)
+![tasktrial flow](./images/structure_flow.png)
 
 ## Completed Endpoints
 

@@ -9,12 +9,15 @@
     "start": "node ./src/index.js",
     "start:dev": "nodemon ./src/index.js",
     "format": "npx prettier . --write",
-    "lint": "npx eslint . --fix",
+    "lint": "npx eslint . --fix --ignore-pattern 'prisma/**'",
     "prepare": "husky install"
   },
   "keywords": [],
   "author": "TaskTrial",
   "license": "ISC",
+  "prisma": {
+    "schema": "./prisma/schema.prisma"
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",

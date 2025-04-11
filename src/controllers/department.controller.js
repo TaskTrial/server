@@ -62,9 +62,10 @@ const checkDepartmentPermissions = (user, organization, action) => {
 };
 
 /**
- * @desc Get all active departments (paginated) for the specified organization
- * @route GET /api/organizations/:organizationId/departments
- * @access Private (Admin/Owner only)
+ * @desc   Get all active departments (paginated) for the specified organization
+ * @route  /api/organizations/:organizationId/departments
+ * @method GET
+ * @access private (Admin/Owner only)
  */
 export const getAllDepartments = async (req, res, next) => {
   try {
@@ -132,9 +133,10 @@ export const getAllDepartments = async (req, res, next) => {
 };
 
 /**
- * @desc Get department by ID with related data (users, teams)
- * @route GET /api/organizations/:organizationId/departments/:id
- * @access Private (Owner/Admin only)
+ * @desc   Get department by ID with related data (users, teams)
+ * @route  /api/organizations/:organizationId/departments/:id
+ * @method GET
+ * @access private (Owner/Admin only)
  */
 export const getDepartmentById = async (req, res, next) => {
   try {
@@ -218,9 +220,10 @@ export const getDepartmentById = async (req, res, next) => {
 };
 
 /**
- * @desc Get departments managed by current user in specified organization
- * @route GET /api/organizations/:organizationId/departments/managed
- * @access Private
+ * @desc   Get departments managed by current user in specified organization
+ * @route  /api/organizations/:organizationId/departments/managed
+ * @method GET
+ * @access private
  */
 export const getCreatedDepartments = async (req, res, next) => {
   try {
@@ -293,9 +296,10 @@ export const getCreatedDepartments = async (req, res, next) => {
 };
 
 /**
- * @desc Create a new department
- * @route POST /api/organizations/:organizationId/departments/create
- * @access Private (Owner/Admin only)
+ * @desc   Create a new department
+ * @route  /api/organizations/:organizationId/departments/create
+ * @method POST
+ * @access private (Owner/Admin only)
  */
 export const createDepartment = async (req, res, next) => {
   try {
@@ -371,9 +375,10 @@ export const createDepartment = async (req, res, next) => {
 };
 
 /**
- * @desc Update department details
- * @route PUT /api/organizations/:organizationId/departments/:id
- * @access Private (Owner/Admin only)
+ * @desc   Update department details
+ * @route  /api/organizations/:organizationId/departments/:id
+ * @method PUT
+ * @access private (Owner/Admin only)
  */
 export const updateDepartment = async (req, res, next) => {
   try {
@@ -494,9 +499,10 @@ export const updateDepartment = async (req, res, next) => {
 };
 
 /**
- * @desc Soft delete a department by setting its `deletedAt` field to the current timestamp.
- * @route DELETE /api/organizations/:organizationId/departments/:id
- * @access Private (Owner/Admin only)
+ * @desc   Soft delete a department by setting its `deletedAt` field to the current timestamp.
+ * @route  /api/organizations/:organizationId/departments/:id
+ * @method DELETE
+ * @access private (Owner/Admin only)
  */
 export const softDeleteDepartment = async (req, res, next) => {
   try {
@@ -563,9 +569,10 @@ export const softDeleteDepartment = async (req, res, next) => {
 };
 
 /**
- * @desc Restore a soft-deleted department by setting its `deletedAt` field to `null`.
- * @route PATCH /api/organizations/:organizationId/departments/:id/restore
- * @access Private (Owner/Admin only)
+ * @desc   Restore a soft-deleted department by setting its `deletedAt` field to `null`.
+ * @route  /api/organizations/:organizationId/departments/:id/restore
+ * @method PATCH
+ * @access private (Owner/Admin only)
  */
 export const restoreDepartment = async (req, res, next) => {
   try {

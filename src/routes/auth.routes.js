@@ -19,7 +19,7 @@ import { apiLimiter } from '../utils/apiLimiter.utils.js';
 const router = Router();
 
 router.post('/api/auth/signup', apiLimiter, signup);
-router.post('/api/auth/resendOTP/', apiLimiter, resendOTP);
+router.post('/api/auth/resendOTP', apiLimiter, resendOTP);
 router.post('/api/auth/verifyEmail', apiLimiter, verifyEmail);
 router.post('/api/auth/signin', apiLimiter, signin);
 router.post('/api/auth/forgotPassword', apiLimiter, forgotPassword);

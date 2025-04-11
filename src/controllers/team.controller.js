@@ -62,32 +62,6 @@ const checkOrganization = async (organizationId) => {
 
 /**
  * Helper function to check if department exists and is not deleted
- * departmentId - The department ID to check
- * returns - Contains success flag, error message, and department data
- */
-const checkDepartment = async (departmentId) => {
-  const dep = await prisma.department.findFirst({
-    where: {
-      id: departmentId,
-      deletedAt: null,
-    },
-  });
-
-  if (!dep) {
-    return {
-      success: false,
-      message: 'Department not found',
-    };
-  }
-
-  return {
-    success: true,
-    department: dep,
-  };
-};
-
-/**
- * Helper function to check if department exists and is not deleted
  * @param {string} departmentId - The department ID to check
  * @returns {Promise<Object>} - Contains success flag, error message, and department data
  */
@@ -140,13 +114,12 @@ const checkTeam = async (
  * @param {Object} [options] - Additional options for the query
  * @returns {Promise<Object>} - Contains success flag, error message, and team data
  */
-const checkTeamPermissions = (user, organization, department, team, action) => {
+const checkTeamPermissions = (user, organization, team, action) => {
   const isAdmin = user.role === 'ADMIN';
   const isOwner = organization.owners.some((owner) => owner.userId === user.id);
-  const isDepManager = department.managerId === user.id;
   const isTeamManager = team.createdBy === user.id;
 
-  if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+  if (!isAdmin && !isOwner && !isTeamManager) {
     return {
       success: false,
       message: `You do not have permission to ${action} this team`,
@@ -157,25 +130,23 @@ const checkTeamPermissions = (user, organization, department, team, action) => {
     success: true,
     isAdmin,
     isOwner,
-    isDepManager,
     isTeamManager,
   };
 };
 
 /**
  * @desc   Create a new team in a specific organization
- * @route  /api/organization/:organizationId/department/:departmentId/team
+ * @route  /api/organization/:organizationId/team
  * @method POST
  * @access private - admins or organization owners only
  */
 export const createTeam = async (req, res, next) => {
   try {
-    const { organizationId, departmentId } = req.params;
+    const { organizationId } = req.params;
 
     // Validate required parameters
-    const paramsValidation = validateParams({ organizationId, departmentId }, [
+    const paramsValidation = validateParams({ organizationId }, [
       'organizationId',
-      'departmentId',
     ]);
 
     if (!paramsValidation.success) {
@@ -195,24 +166,13 @@ export const createTeam = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check permissions - only admins and organization owners
     const isAdmin = req.user.role === 'ADMIN';
     const isOwner = existingOrg.owners.some(
       (owner) => owner.userId === req.user.id,
     );
-    const isDepManager = existingDep.managerId === req.user.id;
 
-    if (!isAdmin && !isOwner && !isDepManager) {
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({
         success: false,
         message:
@@ -255,7 +215,6 @@ export const createTeam = async (req, res, next) => {
           avatar,
           createdBy: req.user.id,
           organizationId: organizationId,
-          departmentId: departmentId,
         },
       });
 
@@ -352,13 +311,13 @@ export const createTeam = async (req, res, next) => {
  */
 export const addTeamMember = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId } = req.params;
+    const { organizationId, teamId } = req.params;
 
     // Validate required parameters
-    const paramsValidation = validateParams(
-      { organizationId, departmentId, teamId },
-      ['organizationId', 'departmentId', 'teamId'],
-    );
+    const paramsValidation = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
 
     if (!paramsValidation.success) {
       return res.status(400).json({
@@ -377,16 +336,6 @@ export const addTeamMember = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check if team exists
     const teamResult = await checkTeam(teamId, organizationId);
     if (!teamResult.success) {
@@ -401,7 +350,6 @@ export const addTeamMember = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       existingOrg,
-      existingDep,
       team,
       'add members to',
     );
@@ -524,12 +472,12 @@ export const addTeamMember = async (req, res, next) => {
  */
 export const removeTeamMember = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId, memberId } = req.params;
+    const { organizationId, teamId, memberId } = req.params;
 
     // Validate required parameters
     const paramsValidation = validateParams(
-      { organizationId, departmentId, teamId, memberId },
-      ['organizationId', 'departmentId', 'teamId', 'memberId'],
+      { organizationId, teamId, memberId },
+      ['organizationId', 'teamId', 'memberId'],
     );
 
     if (!paramsValidation.success) {
@@ -549,18 +497,8 @@ export const removeTeamMember = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check if team exists
-    const teamResult = await checkTeam(teamId, organizationId, departmentId);
+    const teamResult = await checkTeam(teamId, organizationId, null);
     if (!teamResult.success) {
       return res.status(404).json({
         success: false,
@@ -597,7 +535,6 @@ export const removeTeamMember = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       existingOrg,
-      existingDep,
       team,
       'remove members from',
     );
@@ -678,13 +615,13 @@ export const removeTeamMember = async (req, res, next) => {
  */
 export const updateTeam = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId } = req.params;
+    const { organizationId, teamId } = req.params;
 
     // Validate required parameters
-    const paramsValidation = validateParams(
-      { organizationId, departmentId, teamId },
-      ['organizationId', 'departmentId', 'teamId'],
-    );
+    const paramsValidation = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
 
     if (!paramsValidation.success) {
       return res.status(400).json({
@@ -703,18 +640,8 @@ export const updateTeam = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check if team exists
-    const teamResult = await checkTeam(teamId, organizationId, departmentId);
+    const teamResult = await checkTeam(teamId, organizationId);
     if (!teamResult.success) {
       return res.status(404).json({
         success: false,
@@ -727,7 +654,6 @@ export const updateTeam = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       existingOrg,
-      existingDep,
       team,
       'update',
     );
@@ -804,13 +730,13 @@ export const updateTeam = async (req, res, next) => {
  */
 export const uploadTeamAvatar = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId } = req.params;
+    const { organizationId, teamId } = req.params;
 
     // Validate required parameters
-    const paramsValidation = validateParams(
-      { organizationId, departmentId, teamId },
-      ['organizationId', 'departmentId', 'teamId'],
-    );
+    const paramsValidation = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
 
     if (!paramsValidation.success) {
       return res.status(400).json({
@@ -829,16 +755,6 @@ export const uploadTeamAvatar = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check if team exists
     const teamResult = await checkTeam(teamId, organizationId);
     if (!teamResult.success) {
@@ -853,7 +769,6 @@ export const uploadTeamAvatar = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       existingOrg,
-      existingDep,
       team,
       'update avatar for',
     );
@@ -895,13 +810,13 @@ export const uploadTeamAvatar = async (req, res, next) => {
  */
 export const deleteTeamAvatar = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId } = req.params;
+    const { organizationId, teamId } = req.params;
 
     // Validate required parameters
-    const paramsValidation = validateParams(
-      { organizationId, departmentId, teamId },
-      ['organizationId', 'departmentId', 'teamId'],
-    );
+    const paramsValidation = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
 
     if (!paramsValidation.success) {
       return res.status(400).json({
@@ -920,16 +835,6 @@ export const deleteTeamAvatar = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check if team exists
     const teamResult = await checkTeam(teamId, organizationId);
     if (!teamResult.success) {
@@ -944,7 +849,6 @@ export const deleteTeamAvatar = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       existingOrg,
-      existingDep,
       team,
       'delete avatar for',
     );
@@ -984,13 +888,13 @@ export const deleteTeamAvatar = async (req, res, next) => {
  */
 export const deleteTeam = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId } = req.params;
+    const { organizationId, teamId } = req.params;
 
     // Validate required parameters
-    const paramsValidation = validateParams(
-      { organizationId, departmentId, teamId },
-      ['organizationId', 'departmentId', 'teamId'],
-    );
+    const paramsValidation = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
 
     if (!paramsValidation.success) {
       return res.status(400).json({
@@ -1009,16 +913,6 @@ export const deleteTeam = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check if team exists
     const teamResult = await checkTeam(teamId, organizationId, null, {
       notFoundSuffix: ' or already deleted',
@@ -1035,7 +929,6 @@ export const deleteTeam = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       existingOrg,
-      existingDep,
       team,
       'delete',
     );
@@ -1070,14 +963,11 @@ export const deleteTeam = async (req, res, next) => {
  */
 export const getAllTeams = async (req, res, next) => {
   try {
-    const { organizationId, departmentId } = req.params;
+    const { organizationId } = req.params;
     const { page = 1, limit = 10, search = '' } = req.query;
 
     // Validate required parameters
-    const validation = validateParams({ organizationId, departmentId }, [
-      'organizationId',
-      'departmentId',
-    ]);
+    const validation = validateParams({ organizationId }, ['organizationId']);
     if (!validation.success) {
       return res
         .status(400)
@@ -1092,19 +982,10 @@ export const getAllTeams = async (req, res, next) => {
         .json({ success: false, message: orgCheck.message });
     }
 
-    // Check if department exists
-    const depCheck = await checkDepartment(departmentId);
-    if (!depCheck.success) {
-      return res
-        .status(404)
-        .json({ success: false, message: depCheck.message });
-    }
-
     // Check permissions
     const permissionCheck = checkTeamPermissions(
       req.user,
       orgCheck.organization,
-      depCheck.department,
       { createdBy: null },
       'view',
     );
@@ -1127,7 +1008,6 @@ export const getAllTeams = async (req, res, next) => {
       prisma.team.findMany({
         where: {
           organizationId,
-          departmentId,
           deletedAt: null,
           ...searchFilter,
         },
@@ -1164,7 +1044,6 @@ export const getAllTeams = async (req, res, next) => {
       prisma.team.count({
         where: {
           organizationId,
-          departmentId,
           deletedAt: null,
           ...searchFilter,
         },
@@ -1207,13 +1086,13 @@ export const getAllTeams = async (req, res, next) => {
  */
 export const getSpecificTeam = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId } = req.params;
+    const { organizationId, teamId } = req.params;
 
     // Validate required parameters
-    const validation = validateParams(
-      { organizationId, departmentId, teamId },
-      ['organizationId', 'departmentId', 'teamId'],
-    );
+    const validation = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
     if (!validation.success) {
       return res
         .status(400)
@@ -1228,16 +1107,8 @@ export const getSpecificTeam = async (req, res, next) => {
         .json({ success: false, message: orgCheck.message });
     }
 
-    // Check if department exists
-    const depCheck = await checkDepartment(departmentId);
-    if (!depCheck.success) {
-      return res
-        .status(404)
-        .json({ success: false, message: depCheck.message });
-    }
-
     // Check if team exists with additional fields needed for the view
-    const teamCheck = await checkTeam(teamId, organizationId, departmentId, {
+    const teamCheck = await checkTeam(teamId, organizationId, null, {
       select: {
         members: {
           include: {
@@ -1279,7 +1150,6 @@ export const getSpecificTeam = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       orgCheck.organization,
-      depCheck.department,
       teamCheck.team,
       'view',
     );

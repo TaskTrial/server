@@ -302,12 +302,13 @@ export const forgotPassword = async (req, res, next) => {
 
     // Generate password reset OTP
     const resetOTP = generateOTP();
+    const hashedOTP = await hashOTP(resetOTP);
 
     // Store reset token with expiration
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordResetToken: resetOTP,
+        passwordResetToken: hashedOTP,
         passwordResetExpires: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
@@ -353,7 +354,7 @@ export const resetPassword = async (req, res, next) => {
 
     // Validate reset token
     if (
-      user.passwordResetToken !== otp ||
+      !(await validateOTP(otp, user.passwordResetToken)) ||
       user.passwordResetExpires < new Date()
     ) {
       return res
@@ -367,6 +368,128 @@ export const resetPassword = async (req, res, next) => {
     // Update password and clear reset tokens
     await prisma.user.update({
       where: { email: email },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    return res.status(200).json({ message: 'Password reset successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Initiate password reset using refreshToken to identify user
+ * @route  /api/auth/forgotPassword
+ * @method POST
+ * @access private (via refreshToken cookie)
+ */
+export const forgotPasswordWithoutEmail = async (req, res, next) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    if (!decoded?.id) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!user) {
+      return res.status(200).json({
+        message: 'If an account exists, a reset code has been sent',
+      });
+    }
+
+    // Generate password reset OTP
+    const resetOTP = generateOTP();
+    const hashedOTP = await hashOTP(resetOTP);
+
+    // Store reset token with expiration
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: hashedOTP,
+        passwordResetExpires: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    // Send OTP via email
+    await sendEmail({
+      to: user.email,
+      subject: 'Password Reset Request',
+      text: `Your password reset code is: ${resetOTP}`,
+    });
+
+    return res.status(200).json({
+      message: 'Password reset OTP sent',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Reset user password using the OTP received via email
+ * @route  /api/auth/resetPassword
+ * @method POST
+ * @access public
+ */
+export const resetPasswordWithoutEmail = async (req, res, next) => {
+  try {
+    const { error } = resetPasswordValidation();
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const token = req.cookies.refreshToken;
+
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    if (!decoded?.id) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { otp, newPassword } = req.body;
+
+    // Validate reset token
+    if (
+      !(await validateOTP(otp, user.passwordResetToken)) ||
+      user.passwordResetExpires < new Date()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Hash new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update password and clear reset tokens
+    await prisma.user.update({
+      where: { email: user.email },
       data: {
         password: hashedPassword,
         passwordResetToken: null,

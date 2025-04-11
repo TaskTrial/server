@@ -1,28 +1,34 @@
 import Joi from 'joi';
 
-export const validateCreateDepartment = (req, res, next) => {
+export const createDepartmentValidation = (obj) => {
   const schema = Joi.object({
-    name: Joi.string().max(100).required(),
-    description: Joi.string().optional().allow('', null),
+    name: Joi.string().max(100).required().messages({
+      'string.base': 'Name must be a string',
+      'string.max': 'Name cannot be more than 100 characters',
+      'any.required': 'Name is required',
+    }),
+    description: Joi.string().allow('', null).optional().messages({
+      'string.base': 'Description must be a string',
+    }),
   });
 
-  const { error } = schema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  next();
+  return schema.validate(obj, { abortEarly: false });
 };
-export const validateUpdateDepartment = (req, res, next) => {
-  const schema = Joi.object({
-    name: Joi.string().max(100).optional(),
-    description: Joi.string().optional().allow('', null),
-    addUsers: Joi.array().items(Joi.string().uuid()).optional(),
-    removeUsers: Joi.array().items(Joi.string().uuid()).optional(),
-  }).min(1); // At least one field should be provided
 
-  const { error } = schema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  next();
+export const updateDepartmentValidation = (obj) => {
+  const schema = Joi.object({
+    name: Joi.string().max(100).optional().messages({
+      'string.base': 'Name must be a string',
+      'string.max': 'Name cannot be more than 100 characters',
+    }),
+    description: Joi.string().allow('', null).optional().messages({
+      'string.base': 'Description must be a string',
+    }),
+  })
+    .min(1)
+    .messages({
+      'object.min': 'At least one field (name or description) must be provided',
+    });
+
+  return schema.validate(obj, { abortEarly: false });
 };

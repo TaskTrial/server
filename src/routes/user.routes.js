@@ -46,21 +46,21 @@ router.patch(
 );
 
 router.delete(
-  '/api/users/:id',
+  '/api/users/delete/:id',
   verifyAccessToken,
-  verifyAdminPermission,
+  verifyUserPermission,
   softDeleteUser,
 );
 
 router.patch(
-  '/api/users/restore/:id', // Added missing `/` at the beginning
+  '/api/users/restore/:id',
   verifyAccessToken,
   verifyAdminPermission,
   restoreUser,
 );
 
 router.post(
-  '/api/users/:userId/profile-picture', // Changed `:id` to `:userId` to match the function
+  '/api/users/:id/profile-picture',
   upload.single('image'),
   verifyAccessToken,
   verifyUserPermission,
@@ -68,7 +68,7 @@ router.post(
 );
 
 router.delete(
-  '/api/users/:userId/profile-picture',
+  '/api/users/:id/profile-picture',
   verifyAccessToken,
   verifyUserPermission,
   deleteUserProfilePic,

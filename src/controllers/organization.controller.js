@@ -217,14 +217,21 @@ export const verifyOrganization = async (req, res, next) => {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, otp } = req.body;
+    const { orgId } = req.params;
+    const { otp } = req.body;
 
     const org = await prisma.organization.findFirst({
-      where: { contactEmail: email }, // TODO: make email must entered in prisma and unique
+      where: { id: orgId },
     });
 
     if (!org) {
       return res.status(404).json({ message: 'Organization not found' });
+    }
+
+    if (org.isVerified) {
+      return res
+        .status(200)
+        .json({ message: 'Organization is already verified' });
     }
 
     // Check OTP
@@ -653,24 +660,33 @@ export const updateOrganization = async (req, res, next) => {
           data: {
             emailVerificationOTP: hashedOTP,
             emailVerificationExpires: new Date(Date.now() + 10 * 60 * 1000),
-            isVerified: false, // ensure this is persisted
+            isVerified: false,
+            status: 'PENDING',
           },
         });
 
         // Send verification email
         await sendEmail({
-          to: updateData.contactEmail,
+          to: value.contactEmail,
           subject: 'Verify Your Updated Organization Email',
           text: `Organization name: ${updateData.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
         });
       } catch (emailError) {
-        next(emailError);
+        return res.status(500).json({
+          success: false,
+          message: 'Organization updated but failed to send verification email',
+          error: emailError.message, // You can remove this in production
+        });
       }
     }
 
     return res.status(200).json({
       success: true,
       message: 'Organization updated successfully',
+      note:
+        updateData.contactEmail !== existingOrg.contactEmail
+          ? 'Please verify your organization email'
+          : '',
       data: {
         id: updatedOrg.id,
         name: updatedOrg.name,
@@ -845,6 +861,7 @@ export const addOwners = async (req, res, next) => {
         id: {
           in: newOwnerIds,
         },
+        deletedAt: null,
       },
       select: {
         id: true,
@@ -862,7 +879,8 @@ export const addOwners = async (req, res, next) => {
 
       return res.status(400).json({
         success: false,
-        message: 'One or more specified users do not exist',
+        message:
+          'One or more specified users do not exist. Please enter a valid user(s)',
         errors: {
           invalidUserIds: notFoundUserIds,
         },

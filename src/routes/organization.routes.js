@@ -20,7 +20,7 @@ const router = Router();
 router.post('/api/organization', verifyAccessToken, createOrganization);
 router.post('/api/organization/resendOTP/:orgId', verifyAccessToken, resendOTP);
 router.post(
-  '/api/organization/verifyOrg',
+  '/api/organization/verifyOrg/:orgId',
   verifyAccessToken,
   verifyOrganization,
 );

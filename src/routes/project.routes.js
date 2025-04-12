@@ -3,6 +3,7 @@ import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   createProject,
   updateProject,
+  updateProjectPriority,
   updateProjectStatus,
 } from '../controllers/project.controller.js';
 
@@ -24,6 +25,12 @@ router.patch(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/status',
   verifyAccessToken,
   updateProjectStatus,
+);
+
+router.patch(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/priority',
+  verifyAccessToken,
+  updateProjectPriority,
 );
 
 export default router;

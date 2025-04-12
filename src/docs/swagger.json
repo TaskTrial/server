@@ -3397,7 +3397,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/status": {
       "patch": {
-        "tags": ["project"],
+        "tags": ["Project"],
         "summary": "Update project status",
         "description": "Updates the status of an existing project. Requires appropriate permissions (admin, organization owner, team manager, or project owner/manager).",
         "parameters": [
@@ -3512,6 +3512,150 @@
                     "message": {
                       "type": "string",
                       "example": "You do not have permission to update this project's status"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Organization, team or project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Project not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/priority": {
+      "patch": {
+        "tags": ["Project"],
+        "summary": "Update project priority",
+        "description": "Updates the priority of an existing project. Requires appropriate permissions (admin, organization owner, team manager, or project owner/manager).",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["priority"],
+                "properties": {
+                  "priority": {
+                    "type": "string",
+                    "description": "New project priority",
+                    "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"],
+                    "example": "HIGH"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project priority updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Project priority updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProjectBasic"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid priority or missing priority field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to update this project's priority"
                     }
                   }
                 }

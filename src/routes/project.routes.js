@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   createProject,
+  deleteProject,
   updateProject,
   updateProjectPriority,
   updateProjectStatus,
@@ -31,6 +32,12 @@ router.patch(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/priority',
   verifyAccessToken,
   updateProjectPriority,
+);
+
+router.delete(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId',
+  verifyAccessToken,
+  deleteProject,
 );
 
 export default router;

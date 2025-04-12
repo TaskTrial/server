@@ -60,7 +60,7 @@ export const getUserById = async (req, res, next) => {
 
   try {
     const user = await prisma.user.findFirst({
-      where: { id },
+      where: { id, deletedAt: null },
       select: {
         id: true,
         email: true,
@@ -78,8 +78,8 @@ export const getUserById = async (req, res, next) => {
         isOwner: true,
         createdAt: true,
         updatedAt: true,
-        lastLogin: true, // Keep valid fields
-        // Removed invalid field `lastLogout`
+        lastLogin: true,
+        lastLogout: true,
         department: {
           select: {
             id: true,
@@ -153,7 +153,7 @@ export const updateUserAccount = async (req, res, next) => {
     }
 
     const user = await prisma.user.findFirst({
-      where: { id: userId },
+      where: { id: userId, deletedAt: null },
     });
 
     if (!user) {
@@ -253,7 +253,7 @@ export const updateUserPassword = async (req, res, next) => {
 
     // Fetch the user by ID
     const user = await prisma.user.findUnique({
-      where: { id },
+      where: { id, deletedAt: null },
       select: { id: true, password: true },
     });
 
@@ -301,7 +301,9 @@ export const softDeleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const user = await prisma.user.findFirst({ where: { id } });
+    const user = await prisma.user.findFirst({
+      where: { id, deletedAt: null },
+    });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -319,7 +321,7 @@ export const softDeleteUser = async (req, res, next) => {
       },
     });
 
-    return res.status(200).json({ message: 'User soft-deleted successfully' });
+    return res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     next(error);
   }
@@ -363,10 +365,10 @@ export const restoreUser = async (req, res, next) => {
  */
 export const uploadUserProfilePic = async (req, res, next) => {
   try {
-    const { userId } = req.params; // Ensure `userId` matches the route parameter
+    const { id } = req.params; // Ensure `userId` matches the route parameter
 
     // Validate userId
-    if (!userId) {
+    if (!id) {
       return res.status(400).json({
         success: false,
         message: 'User ID is required',
@@ -376,7 +378,7 @@ export const uploadUserProfilePic = async (req, res, next) => {
     // Check if user exists and is not deleted
     const user = await prisma.user.findFirst({
       where: {
-        id: userId,
+        id: id,
         deletedAt: null,
       },
     });
@@ -399,7 +401,7 @@ export const uploadUserProfilePic = async (req, res, next) => {
 
     // Update user profile picture URL in database
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: id },
       data: { profilePic: profilePicUrl },
     });
 
@@ -421,10 +423,10 @@ export const uploadUserProfilePic = async (req, res, next) => {
  */
 export const deleteUserProfilePic = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;
 
     // Validate userId
-    if (!userId) {
+    if (!id) {
       return res.status(400).json({
         success: false,
         message: 'User ID is required',
@@ -434,7 +436,7 @@ export const deleteUserProfilePic = async (req, res, next) => {
     // Check if user exists and is not deleted
     const user = await prisma.user.findFirst({
       where: {
-        id: userId,
+        id: id,
         deletedAt: null,
       },
     });
@@ -446,7 +448,7 @@ export const deleteUserProfilePic = async (req, res, next) => {
     await deleteFromCloudinary(user.profilePic);
 
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: id },
       data: { profilePic: null },
     });
 

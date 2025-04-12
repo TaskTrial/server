@@ -70,10 +70,6 @@ export const createOrganizationValidation = (obj) => {
 
 export const verifyOrganizationValidation = (obj) => {
   const schema = Joi.object({
-    email: Joi.string().email().required().messages({
-      'string.email': 'Contact email must be a valid email address',
-      'string.empty': 'Contact email is required',
-    }),
     otp: Joi.string().required().trim().messages({
       'string.empty': 'OTP is required.',
     }),

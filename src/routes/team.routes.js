@@ -16,56 +16,56 @@ import upload from '../middlewares/upload.middleware.js';
 const router = Router();
 
 router.post(
-  '/api/organization/:organizationId/department/:departmentId/team',
+  '/api/organization/:organizationId/team',
   verifyAccessToken,
   createTeam,
 );
 
 router.post(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId/addMember',
+  '/api/organization/:organizationId/team/:teamId/addMember',
   verifyAccessToken,
   addTeamMember,
 );
 
 router.put(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId',
+  '/api/organization/:organizationId/team/:teamId',
   verifyAccessToken,
   updateTeam,
 );
 
 router.post(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/upload',
+  '/api/organization/:organizationId/team/:teamId/avatar/upload',
   verifyAccessToken,
   upload.single('image'),
   uploadTeamAvatar,
 );
 
 router.delete(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId/avatar/delete',
+  '/api/organization/:organizationId/team/:teamId/avatar/delete',
   verifyAccessToken,
   deleteTeamAvatar,
 );
 
 router.delete(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId',
+  '/api/organization/:organizationId/team/:teamId',
   verifyAccessToken,
   deleteTeam,
 );
 
 router.delete(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId/members/:memberId',
+  '/api/organization/:organizationId/team/:teamId/members/:memberId',
   verifyAccessToken,
   removeTeamMember,
 );
 
 router.get(
-  '/api/organization/:organizationId/department/:departmentId/teams/all',
+  '/api/organization/:organizationId/teams/all',
   verifyAccessToken,
   getAllTeams,
 );
 
 router.get(
-  '/api/organization/:organizationId/department/:departmentId/teams/:teamId',
+  '/api/organization/:organizationId/teams/:teamId',
   verifyAccessToken,
   getSpecificTeam,
 );

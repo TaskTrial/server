@@ -9,12 +9,15 @@
     "start": "node ./src/index.js",
     "start:dev": "nodemon ./src/index.js",
     "format": "npx prettier . --write",
-    "lint": "npx eslint . --fix",
+    "lint": "npx eslint . --fix --ignore-pattern 'prisma/generated**'",
     "prepare": "husky install"
   },
   "keywords": [],
   "author": "TaskTrial",
   "license": "ISC",
+  "prisma": {
+    "schema": "./prisma/schema.prisma"
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
@@ -25,13 +28,14 @@
     "lint-staged": "^15.5.0",
     "nodemon": "^3.1.9",
     "prettier": "3.4.2",
-    "prisma": "^6.0.1"
+    "prisma": "^6.6.0"
   },
   "dependencies": {
-    "@prisma/client": "^6.0.1",
+    "@prisma/client": "^6.6.0",
     "@supabase/supabase-js": "^2.49.1",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",

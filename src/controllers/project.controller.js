@@ -999,7 +999,7 @@ export const addProjectMember = async (req, res, next) => {
 /**
  * @desc   Remove project member
  * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/removeMember
- * @method DELET
+ * @method DELETE
  * @access private
  */
 export const removeProjectMember = async (req, res, next) => {

@@ -238,7 +238,7 @@ model ProjectMember {
   id        String    @id @default(uuid()) @db.Uuid
   projectId String    @db.Uuid
   userId    String    @db.Uuid
-  role      String    @db.VarChar(50) // e.g., "DEVELOPER", "TESTER", "PRODUCT_OWNER"
+  role      String    @db.VarChar(50) // e.g., "DEVELOPER", "TESTER", "PRODUCT_OWNER" // make it as enum
   isActive  Boolean   @default(true)
   joinedAt  DateTime  @default(now())
   leftAt    DateTime?

@@ -15,7 +15,7 @@ import authRouter from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import orgRouter from './routes/organization.routes.js';
 import teamRoutes from './routes/team.routes.js';
-// import projectRoutes from './routes/project.routes.js';
+import projectRoutes from './routes/project.routes.js';
 import {
   errorHandler,
   notFound,
@@ -76,7 +76,7 @@ app.use(orgRouter);
 app.use(userRoutes);
 app.use(departmentRoutes);
 app.use(teamRoutes);
-// app.use(projectRoutes);
+app.use(projectRoutes);
 
 // Error handling middleware
 app.use(notFound);

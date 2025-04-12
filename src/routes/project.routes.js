@@ -5,7 +5,7 @@ import { createProject } from '../controllers/project.controller.js';
 const router = Router();
 
 router.post(
-  '/api/organization/:organizationId/department/:departmentId/team/:teamId/project',
+  '/api/organization/:organizationId/team/:teamId/project',
   verifyAccessToken,
   createProject,
 );

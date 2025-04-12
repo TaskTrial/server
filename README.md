@@ -81,3 +81,7 @@ base url: `http://localhost:3000`
 - Delete a team: `DELETE /api/organization/:organizationId/team/:teamId`
 - Get all teams: `GET /api/organization/:organizationId/teams/all`
 - Get a specific team: `GET /api/organization/:organizationId/teams/:teamId`
+
+### Project
+
+- Create a new project: `POST /api/organization/:organizationId/team/:teamId/project`

@@ -54,32 +54,6 @@ const checkOrganization = async (organizationId) => {
 
 /**
  * Helper function to check if department exists and is not deleted
- * departmentId - The department ID to check
- * returns - Contains success flag, error message, and department data
- */
-const checkDepartment = async (departmentId) => {
-  const dep = await prisma.department.findFirst({
-    where: {
-      id: departmentId,
-      deletedAt: null,
-    },
-  });
-
-  if (!dep) {
-    return {
-      success: false,
-      message: 'Department not found',
-    };
-  }
-
-  return {
-    success: true,
-    department: dep,
-  };
-};
-
-/**
- * Helper function to check if department exists and is not deleted
  * @param {string} departmentId - The department ID to check
  * @returns {Promise<Object>} - Contains success flag, error message, and department data
  */
@@ -132,13 +106,12 @@ const checkTeam = async (
  * @param {Object} [options] - Additional options for the query
  * @returns {Promise<Object>} - Contains success flag, error message, and team data
  */
-const checkTeamPermissions = (user, organization, department, team, action) => {
+const checkTeamPermissions = (user, organization, team, action) => {
   const isAdmin = user.role === 'ADMIN';
   const isOwner = organization.owners.some((owner) => owner.userId === user.id);
-  const isDepManager = department.managerId === user.id;
   const isTeamManager = team.createdBy === user.id;
 
-  if (!isAdmin && !isOwner && !isDepManager && !isTeamManager) {
+  if (!isAdmin && !isOwner && !isTeamManager) {
     return {
       success: false,
       message: `You do not have permission to ${action} this team`,
@@ -149,26 +122,25 @@ const checkTeamPermissions = (user, organization, department, team, action) => {
     success: true,
     isAdmin,
     isOwner,
-    isDepManager,
     isTeamManager,
   };
 };
 
 /**
  * @desc   Create a new project
- * @route  /api/organization/:organizationId/department/:departmentId/team/:teamId/project
+ * @route  /api/organization/:organizationId/team/:teamId/project
  * @method POST
  * @access private
  */
 export const createProject = async (req, res, next) => {
   try {
-    const { organizationId, departmentId, teamId } = req.params;
+    const { organizationId, teamId } = req.params;
 
     // Validate required parameters
-    const paramsValidation = validateParams(
-      { organizationId, departmentId, teamId },
-      ['organizationId', 'departmentId', 'teamId'],
-    );
+    const paramsValidation = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
 
     if (!paramsValidation.success) {
       return res.status(400).json({
@@ -187,18 +159,8 @@ export const createProject = async (req, res, next) => {
     }
     const existingOrg = orgResult.organization;
 
-    // Check if department exists
-    const depResult = await checkDepartment(departmentId);
-    if (!depResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: depResult.message,
-      });
-    }
-    const existingDep = depResult.department;
-
     // Check if team exists
-    const teamResult = await checkTeam(teamId, organizationId, departmentId);
+    const teamResult = await checkTeam(teamId, organizationId);
     if (!teamResult.success) {
       return res.status(404).json({
         success: false,
@@ -211,7 +173,6 @@ export const createProject = async (req, res, next) => {
     const permissionCheck = checkTeamPermissions(
       req.user,
       existingOrg,
-      existingDep,
       team,
       'create a project in',
     );
@@ -233,16 +194,93 @@ export const createProject = async (req, res, next) => {
       });
     }
 
-    // const {
-    //   name,
-    //   description,
-    //   status = 'PLANNING',
-    //   startDate,
-    //   endDate,
-    //   priority = 'MEDIUM',
-    //   budget = null,
-    //   members = [],
-    // } = req.body;
+    const {
+      name,
+      description,
+      status = 'PLANNING',
+      startDate,
+      endDate,
+      priority = 'MEDIUM',
+      budget = null,
+      members = [],
+    } = req.body;
+
+    if (new Date(startDate) >= new Date(endDate)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date must be before end date',
+      });
+    }
+
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. create project
+        const project = await tx.project.create({
+          data: {
+            name,
+            description,
+            status,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            priority,
+            budget,
+            teamId,
+            organizationId,
+            lastModifiedBy: req.user.id,
+            createdBy: req.user.id,
+            progress: 0,
+          },
+        });
+
+        // 2. create project leader
+        const projectLeader = await tx.projectMember.create({
+          data: {
+            projectId: project.id,
+            userId: req.user.id,
+            role: 'PROJECT_OWNER',
+            isActive: true,
+          },
+        });
+
+        // 3. Create project members if any
+        const projectMembers = [];
+        if (members.length > 0) {
+          for (const member of members) {
+            const createMember = await tx.projectMember.create({
+              data: {
+                projectId: project.id,
+                userId: member.userId,
+                role: member.role || 'MEMBER',
+                isActive: true,
+              },
+            });
+            projectMembers.push(createMember);
+          }
+        }
+
+        return { project, projectLeader, projectMembers };
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Project created successfully.',
+        data: {
+          project: result.project,
+          projectOwner: result.projectLeader,
+          members: result.projectMembers,
+        },
+      });
+    } catch (error) {
+      // Handle unique constraint violation
+      if (error.code === 'P2002') {
+        return res.status(400).json({
+          success: false,
+          message:
+            'A project with this name already exists in this organization',
+        });
+      }
+      throw error;
+    }
   } catch (error) {
     next(error);
   }

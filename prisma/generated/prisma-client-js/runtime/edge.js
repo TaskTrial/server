@@ -7939,7 +7939,7 @@ p();
 m();
 function _s(e) {
   if (
-    e.generator?.previewFeatures.some((r) =>
+    !!e.generator?.previewFeatures.some((r) =>
       r.toLowerCase().includes('metrics'),
     )
   )

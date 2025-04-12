@@ -242,6 +242,7 @@ model ProjectMember {
   isActive  Boolean   @default(true)
   joinedAt  DateTime  @default(now())
   leftAt    DateTime?
+  deletedAt DateTime?
 
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

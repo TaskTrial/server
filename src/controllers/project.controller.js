@@ -995,3 +995,97 @@ export const addProjectMember = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Remove project member
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/removeMember
+ * @method DELET
+ * @access private
+ */
+export const removeProjectMember = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId } = req.params;
+    const { userId } = req.body;
+    const user = req.user;
+
+    // Validate required parameters
+    const validationResult = validateParams(
+      { organizationId, teamId, projectId, userId },
+      ['organizationId', 'teamId', 'projectId', 'userId'],
+    );
+
+    if (!validationResult.success) {
+      return res.status(400).json({ message: validationResult.message });
+    }
+
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
+      return res.status(404).json({ message: orgResult.message });
+    }
+
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
+      return res.status(404).json({ message: teamResult.message });
+    }
+
+    // Check if project exists
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Check user permissions
+    const permissionResult = checkTeamPermissions(
+      user,
+      orgResult.organization,
+      teamResult.team,
+      'remove members from',
+    );
+    if (!permissionResult.success) {
+      return res.status(403).json({ message: permissionResult.message });
+    }
+
+    // Check if the member exists in the project
+    const memberToRemove = await prisma.projectMember.findFirst({
+      where: {
+        projectId,
+        userId,
+        deletedAt: null,
+      },
+    });
+
+    if (!memberToRemove) {
+      return res
+        .status(404)
+        .json({ message: 'User is not a member of this project' });
+    }
+
+    // Soft delete the project member
+    await prisma.projectMember.update({
+      where: {
+        id: memberToRemove.id,
+      },
+      data: {
+        deletedAt: new Date(),
+        leftAt: new Date(),
+        isActive: false,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Member removed from project successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};

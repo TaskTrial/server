@@ -4,6 +4,7 @@ import {
   addProjectMember,
   createProject,
   deleteProject,
+  removeProjectMember,
   updateProject,
   updateProjectPriority,
   updateProjectStatus,
@@ -45,6 +46,12 @@ router.post(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/addMember',
   verifyAccessToken,
   addProjectMember,
+);
+
+router.delete(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/removeMember',
+  verifyAccessToken,
+  removeProjectMember,
 );
 
 export default router;

@@ -843,7 +843,7 @@ export const deleteProject = async (req, res, next) => {
       },
       data: {
         deletedAt: new Date(),
-        updatedBy: user.id,
+        lastModifiedBy: user.id,
       },
     });
 

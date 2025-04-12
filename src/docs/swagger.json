@@ -3973,7 +3973,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/removeMember": {
       "delete": {
-        "tags": ["project"],
+        "tags": ["Project"],
         "summary": "Remove a member from a project",
         "description": "Removes a member from a project (soft delete). Requires admin, organization owner, or team manager permissions.",
         "parameters": [

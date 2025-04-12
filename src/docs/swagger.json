@@ -3205,6 +3205,94 @@
           }
         ]
       }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project": {
+      "post": {
+        "tags": ["project"],
+        "summary": "Create a new project",
+        "description": "Creates a new project within a team. Requires appropriate permissions.",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Validation failed"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          },
+          "404": {
+            "description": "Not found - Organization or team not found"
+          },
+          "409": {
+            "description": "Conflict - Project with this name already exists"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
 
@@ -4249,6 +4337,190 @@
                 }
               }
             }
+          }
+        }
+      },
+      "CreateProject": {
+        "type": "object",
+        "required": ["name", "startDate", "endDate"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Project name",
+            "minLength": 3,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "description": "Project description",
+            "nullable": true,
+            "maxLength": 1000
+          },
+          "status": {
+            "type": "string",
+            "description": "Project status",
+            "enum": [
+              "PLANNING",
+              "IN_PROGRESS",
+              "ON_HOLD",
+              "COMPLETED",
+              "CANCELLED"
+            ],
+            "default": "PLANNING"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Project start date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Project end date"
+          },
+          "priority": {
+            "type": "string",
+            "description": "Project priority",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+            "default": "MEDIUM"
+          },
+          "budget": {
+            "type": "number",
+            "description": "Project budget",
+            "nullable": true,
+            "minimum": 0
+          },
+          "members": {
+            "type": "array",
+            "description": "Initial project members",
+            "items": {
+              "$ref": "#/components/schemas/ProjectMemberInput"
+            },
+            "default": []
+          }
+        }
+      },
+      "ProjectMemberInput": {
+        "type": "object",
+        "required": ["userId"],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User ID to add as project member"
+          },
+          "role": {
+            "type": "string",
+            "description": "Member role",
+            "enum": ["MEMBER", "CONTRIBUTOR", "REVIEWER", "MANAGER"],
+            "default": "MEMBER"
+          }
+        }
+      },
+      "ProjectCreatedResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Project created successfully."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "project": {
+                "$ref": "#/components/schemas/ProjectBasic"
+              },
+              "projectOwner": {
+                "$ref": "#/components/schemas/ProjectMember"
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProjectMember"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ProjectBasic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "budget": {
+            "type": "number",
+            "nullable": true
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "lastModifiedBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProjectMember": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       }

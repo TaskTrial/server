@@ -502,3 +502,144 @@ export const updateProject = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Update project status
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/status
+ * @method PATCH
+ * @access private
+ */
+export const updateProjectStatus = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId } = req.params;
+    const { status } = req.body;
+
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, teamId, projectId },
+      ['organizationId', 'teamId', 'projectId'],
+    );
+
+    if (!paramsValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: paramsValidation.message,
+      });
+    }
+
+    // Validate status
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status is required',
+      });
+    }
+
+    // Validate status value
+    const validStatuses = [
+      'PLANNING',
+      'ACTIVE',
+      'ON_HOLD',
+      'COMPLETED',
+      'CANCELED',
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Status must be one of: ${validStatuses.join(', ')}`,
+      });
+    }
+
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgResult.message,
+      });
+    }
+    const existingOrg = orgResult.organization;
+
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamResult.message,
+      });
+    }
+    const team = teamResult.team;
+
+    // Check if project exists
+    const existingProject = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId: teamId,
+        organizationId: organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+
+    // Check permissions
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      team,
+      'update status of',
+    );
+
+    // Check if user is a project member with appropriate rights
+    const projectMembership = await prisma.projectMember.findFirst({
+      where: {
+        projectId: projectId,
+        userId: req.user.id,
+        isActive: true,
+        role: {
+          in: ['PROJECT_OWNER', 'PROJECT_MANAGER'],
+        },
+      },
+    });
+
+    const hasPermission = permissionCheck.success || projectMembership !== null;
+
+    if (!hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to update this project's status",
+      });
+    }
+
+    // If status is the same, no need to update
+    if (existingProject.status === status) {
+      return res.status(200).json({
+        success: true,
+        message: 'Project status remains unchanged',
+        data: existingProject,
+      });
+    }
+
+    // Update the project status
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        status,
+        lastModifiedBy: req.user.id,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Project status updated successfully',
+      data: updatedProject,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

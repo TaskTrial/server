@@ -86,3 +86,4 @@ base url: `http://localhost:3000`
 
 - Create a new project: `POST /api/organization/:organizationId/team/:teamId/project`
 - Update a project: `PUT /api/organization/:organizationId/team/:teamId/project/:projectId`
+- Update the project status: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/status`

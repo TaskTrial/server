@@ -855,3 +855,143 @@ export const deleteProject = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Add project members
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/addMembers
+ * @method POST
+ * @access private
+ */
+export const addProjectMember = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId } = req.params;
+    const { members } = req.body; // Array of { userId, role }
+
+    // Validate required parameters
+    const validationResult = validateParams(
+      { organizationId, teamId, projectId, members },
+      ['organizationId', 'teamId', 'projectId', 'members'],
+    );
+
+    if (!validationResult.success) {
+      return res.status(400).json({ message: validationResult.message });
+    }
+
+    // Check if members is an array
+    if (!Array.isArray(members) || members.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'Members should be a non-empty array' });
+    }
+
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
+      return res.status(404).json({ message: orgResult.message });
+    }
+
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
+      return res.status(404).json({ message: teamResult.message });
+    }
+
+    // Check if project exists
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Check user permissions
+    const permissionResult = checkTeamPermissions(
+      req.user,
+      orgResult.organization,
+      teamResult.team,
+      'add members to',
+    );
+    if (!permissionResult.success) {
+      return res.status(403).json({ message: permissionResult.message });
+    }
+
+    // Extract all userIds to validate them
+    const userIds = members.map((member) => member.userId);
+
+    // Check if all users exist
+    const existingUsers = await prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const existingUserIds = existingUsers.map((user) => user.id);
+    const nonExistingUserIds = userIds.filter(
+      (id) => !existingUserIds.includes(id),
+    );
+
+    if (nonExistingUserIds.length > 0) {
+      return res.status(404).json({
+        message: 'Some users were not found',
+        userIds: nonExistingUserIds,
+      });
+    }
+
+    // Check which users are already members
+    const existingMembers = await prisma.projectMember.findMany({
+      where: {
+        projectId,
+        userId: {
+          in: userIds,
+        },
+        leftAt: null, // Only consider active members
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    const existingMemberIds = existingMembers.map((member) => member.userId);
+    const newMemberData = members.filter(
+      (member) => !existingMemberIds.includes(member.userId),
+    );
+
+    if (newMemberData.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'All users are already members of this project' });
+    }
+
+    // Add the new members to the project
+    const projectMembers = await prisma.projectMember.createMany({
+      data: newMemberData.map((member) => ({
+        projectId,
+        userId: member.userId,
+        role: member.role || 'MEMBER', // Default role if not specified
+        joinedAt: new Date(),
+        isActive: true,
+      })),
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully added ${newMemberData.length} members to the project`,
+      data: {
+        count: projectMembers.count,
+        skipped: userIds.length - newMemberData.length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

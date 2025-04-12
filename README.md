@@ -89,3 +89,4 @@ base url: `http://localhost:3000`
 - Update the project status: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/status`
 - Update the project priority: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/priority`
 - Delete a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId`
+- Add new member in the project: `POST /api/organization/:organizationId/team/:teamId/project/:projectId/addMember`

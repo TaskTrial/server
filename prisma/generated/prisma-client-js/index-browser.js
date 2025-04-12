@@ -113,56 +113,34 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable',
 });
 
-exports.Prisma.TimelogScalarFieldEnum = {
+exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
-  taskId: 'taskId',
-  userId: 'userId',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  description: 'description',
-};
-
-exports.Prisma.CommentScalarFieldEnum = {
-  id: 'id',
-  taskId: 'taskId',
-  userId: 'userId',
-  content: 'content',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-};
-
-exports.Prisma.ActivityLogScalarFieldEnum = {
-  id: 'id',
-  entityType: 'entityType',
-  entityId: 'entityId',
-  userId: 'userId',
-  action: 'action',
-  details: 'details',
-  createdAt: 'createdAt',
-};
-
-exports.Prisma.DepartmentScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
+  email: 'email',
+  username: 'username',
+  password: 'password',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  role: 'role',
+  profilePic: 'profilePic',
+  departmentId: 'departmentId',
   organizationId: 'organizationId',
-  managerId: 'managerId',
+  isOwner: 'isOwner',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  isActive: 'isActive',
   deletedAt: 'deletedAt',
-};
-
-exports.Prisma.NotificationScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  content: 'content',
-  isRead: 'isRead',
-  type: 'type',
-  metadata: 'metadata',
-  createdAt: 'createdAt',
-  deletedAt: 'deletedAt',
-  entityType: 'entityType',
-  entityId: 'entityId',
+  phoneNumber: 'phoneNumber',
+  jobTitle: 'jobTitle',
+  timezone: 'timezone',
+  bio: 'bio',
+  preferences: 'preferences',
+  emailVerificationToken: 'emailVerificationToken',
+  emailVerificationExpires: 'emailVerificationExpires',
+  passwordResetToken: 'passwordResetToken',
+  passwordResetExpires: 'passwordResetExpires',
+  refreshToken: 'refreshToken',
+  lastLogin: 'lastLogin',
+  lastLogout: 'lastLogout',
 };
 
 exports.Prisma.OrganizationScalarFieldEnum = {
@@ -194,6 +172,40 @@ exports.Prisma.OrganizationOwnerScalarFieldEnum = {
   updatedAt: 'updatedAt',
 };
 
+exports.Prisma.DepartmentScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  organizationId: 'organizationId',
+  managerId: 'managerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt',
+};
+
+exports.Prisma.TeamScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdBy: 'createdBy',
+  organizationId: 'organizationId',
+  departmentId: 'departmentId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt',
+  avatar: 'avatar',
+};
+
+exports.Prisma.TeamMemberScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  userId: 'userId',
+  role: 'role',
+  joinedAt: 'joinedAt',
+  isActive: 'isActive',
+  deletedAt: 'deletedAt',
+};
+
 exports.Prisma.ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -221,6 +233,7 @@ exports.Prisma.ProjectMemberScalarFieldEnum = {
   isActive: 'isActive',
   joinedAt: 'joinedAt',
   leftAt: 'leftAt',
+  deletedAt: 'deletedAt',
 };
 
 exports.Prisma.SprintScalarFieldEnum = {
@@ -233,25 +246,6 @@ exports.Prisma.SprintScalarFieldEnum = {
   status: 'status',
   goal: 'goal',
   order: 'order',
-};
-
-exports.Prisma.ReportScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
-  reportType: 'reportType',
-  format: 'format',
-  parameters: 'parameters',
-  filePath: 'filePath',
-  generatedBy: 'generatedBy',
-  createdAt: 'createdAt',
-  organizationId: 'organizationId',
-  teamId: 'teamId',
-  projectId: 'projectId',
-  departmentId: 'departmentId',
-  userId: 'userId',
-  storageProvider: 'storageProvider',
-  storageKey: 'storageKey',
 };
 
 exports.Prisma.TaskScalarFieldEnum = {
@@ -313,57 +307,64 @@ exports.Prisma.TaskTemplateScalarFieldEnum = {
   isPublic: 'isPublic',
 };
 
-exports.Prisma.TeamScalarFieldEnum = {
+exports.Prisma.TimelogScalarFieldEnum = {
+  id: 'id',
+  taskId: 'taskId',
+  userId: 'userId',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  description: 'description',
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  taskId: 'taskId',
+  userId: 'userId',
+  content: 'content',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.ActivityLogScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  userId: 'userId',
+  action: 'action',
+  details: 'details',
+  createdAt: 'createdAt',
+};
+
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  content: 'content',
+  isRead: 'isRead',
+  type: 'type',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
+  entityType: 'entityType',
+  entityId: 'entityId',
+};
+
+exports.Prisma.ReportScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
-  createdBy: 'createdBy',
-  organizationId: 'organizationId',
-  departmentId: 'departmentId',
+  reportType: 'reportType',
+  format: 'format',
+  parameters: 'parameters',
+  filePath: 'filePath',
+  generatedBy: 'generatedBy',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt',
-  avatar: 'avatar',
-};
-
-exports.Prisma.TeamMemberScalarFieldEnum = {
-  id: 'id',
+  organizationId: 'organizationId',
   teamId: 'teamId',
-  userId: 'userId',
-  role: 'role',
-  joinedAt: 'joinedAt',
-  isActive: 'isActive',
-  deletedAt: 'deletedAt',
-};
-
-exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
-  email: 'email',
-  username: 'username',
-  password: 'password',
-  firstName: 'firstName',
-  lastName: 'lastName',
-  role: 'role',
-  profilePic: 'profilePic',
+  projectId: 'projectId',
   departmentId: 'departmentId',
-  organizationId: 'organizationId',
-  isOwner: 'isOwner',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  isActive: 'isActive',
-  deletedAt: 'deletedAt',
-  phoneNumber: 'phoneNumber',
-  jobTitle: 'jobTitle',
-  timezone: 'timezone',
-  bio: 'bio',
-  preferences: 'preferences',
-  emailVerificationToken: 'emailVerificationToken',
-  emailVerificationExpires: 'emailVerificationExpires',
-  passwordResetToken: 'passwordResetToken',
-  passwordResetExpires: 'passwordResetExpires',
-  refreshToken: 'refreshToken',
-  lastLogin: 'lastLogin',
-  lastLogout: 'lastLogout',
+  userId: 'userId',
+  storageProvider: 'storageProvider',
+  storageKey: 'storageKey',
 };
 
 exports.Prisma.PermissionScalarFieldEnum = {
@@ -395,29 +396,34 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive',
 };
 
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last',
-};
-
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull,
 };
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last',
+};
+exports.UserRole = exports.$Enums.UserRole = {
+  OWNER: 'OWNER',
+  MANAGER: 'MANAGER',
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER',
+  GUEST: 'GUEST',
+};
+
+exports.TeamMemberRole = exports.$Enums.TeamMemberRole = {
+  MEMBER: 'MEMBER',
+  LEADER: 'LEADER',
+  VIEWER: 'VIEWER',
+};
+
 exports.TaskPriority = exports.$Enums.TaskPriority = {
   LOW: 'LOW',
   MEDIUM: 'MEDIUM',
   HIGH: 'HIGH',
-};
-
-exports.ReportType = exports.$Enums.ReportType = {
-  ORGANIZATION: 'ORGANIZATION',
-  DEPARTMENT: 'DEPARTMENT',
-  TEAM: 'TEAM',
-  PROJECT: 'PROJECT',
-  TASK: 'TASK',
-  USER_PERFORMANCE: 'USER_PERFORMANCE',
 };
 
 exports.TaskStatus = exports.$Enums.TaskStatus = {
@@ -434,39 +440,34 @@ exports.DependencyType = exports.$Enums.DependencyType = {
   DUPLICATES: 'DUPLICATES',
 };
 
-exports.TeamMemberRole = exports.$Enums.TeamMemberRole = {
-  MEMBER: 'MEMBER',
-  LEADER: 'LEADER',
-  VIEWER: 'VIEWER',
-};
-
-exports.UserRole = exports.$Enums.UserRole = {
-  OWNER: 'OWNER',
-  MANAGER: 'MANAGER',
-  ADMIN: 'ADMIN',
-  MEMBER: 'MEMBER',
-  GUEST: 'GUEST',
+exports.ReportType = exports.$Enums.ReportType = {
+  ORGANIZATION: 'ORGANIZATION',
+  DEPARTMENT: 'DEPARTMENT',
+  TEAM: 'TEAM',
+  PROJECT: 'PROJECT',
+  TASK: 'TASK',
+  USER_PERFORMANCE: 'USER_PERFORMANCE',
 };
 
 exports.Prisma.ModelName = {
-  Timelog: 'Timelog',
-  Comment: 'Comment',
-  ActivityLog: 'ActivityLog',
-  Department: 'Department',
-  Notification: 'Notification',
+  User: 'User',
   Organization: 'Organization',
   OrganizationOwner: 'OrganizationOwner',
+  Department: 'Department',
+  Team: 'Team',
+  TeamMember: 'TeamMember',
   Project: 'Project',
   ProjectMember: 'ProjectMember',
   Sprint: 'Sprint',
-  Report: 'Report',
   Task: 'Task',
   TaskAttachment: 'TaskAttachment',
   TaskDependency: 'TaskDependency',
   TaskTemplate: 'TaskTemplate',
-  Team: 'Team',
-  TeamMember: 'TeamMember',
-  User: 'User',
+  Timelog: 'Timelog',
+  Comment: 'Comment',
+  ActivityLog: 'ActivityLog',
+  Notification: 'Notification',
+  Report: 'Report',
   Permission: 'Permission',
 };
 

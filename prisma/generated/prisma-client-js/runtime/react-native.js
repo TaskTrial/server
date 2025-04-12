@@ -10586,11 +10586,3 @@ f();
     warnOnce,
   });
 //# sourceMappingURL=react-native.js.map
-/* eslint no-unused-vars: off */
-/* eslint no-cond-assign: off */
-/* eslint no-prototype-builtins: off */
-/* eslint no-redeclare: off */
-/* eslint no-undef: off */
-/* eslint no-empty: off */
-/* eslint no-constant-binary-expression: off */
-/* eslint no-unused-vars: off */

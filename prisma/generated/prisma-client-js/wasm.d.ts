@@ -1,1 +1,1 @@
-export * from './index'; /* eslint-disable-line */
+export * from './index';

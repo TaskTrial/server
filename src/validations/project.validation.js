@@ -83,3 +83,56 @@ export const createProjectValidation = (obj) => {
 
   return schema.validate(obj, { abortEarly: false });
 };
+
+export const updateProjectValidation = (obj) => {
+  const schema = Joi.object({
+    name: Joi.string().trim().min(3).max(100).messages({
+      'string.base': 'Project name must be a string',
+      'string.empty': 'Project name cannot be empty',
+      'string.min': 'Project name must be at least 3 characters long',
+      'string.max': 'Project name cannot exceed 100 characters',
+    }),
+
+    description: Joi.string().trim().allow('').max(1000).messages({
+      'string.base': 'Description must be a string',
+      'string.max': 'Description cannot exceed 1000 characters',
+    }),
+
+    status: Joi.string()
+      .valid('PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELED')
+      .messages({
+        'string.base': 'Status must be a string',
+        'any.only':
+          'Status must be one of: PLANNING, ACTIVE, ON_HOLD, COMPLETED, CANCELED',
+      }),
+
+    startDate: Joi.date().iso().messages({
+      'date.base': 'Start date must be a valid date',
+      'date.format': 'Start date must be in ISO format (YYYY-MM-DD)',
+    }),
+
+    endDate: Joi.date().iso().messages({
+      'date.base': 'End date must be a valid date',
+      'date.format': 'End date must be in ISO format (YYYY-MM-DD)',
+    }),
+
+    priority: Joi.string().valid('LOW', 'MEDIUM', 'HIGH', 'URGENT').messages({
+      'string.base': 'Priority must be a string',
+      'any.only': 'Priority must be one of: LOW, MEDIUM, HIGH, URGENT',
+    }),
+
+    budget: Joi.number().precision(2).min(0).allow(null).messages({
+      'number.base': 'Budget must be a number',
+      'number.min': 'Budget cannot be negative',
+      'number.precision': 'Budget cannot have more than 2 decimal places',
+    }),
+
+    progress: Joi.number().min(0).max(100).messages({
+      'number.base': 'Progress must be a number',
+      'number.min': 'Progress cannot be less than 0',
+      'number.max': 'Progress cannot exceed 100',
+    }),
+  });
+
+  return schema.validate(obj, { abortEarly: false });
+};

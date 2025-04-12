@@ -1,5 +1,8 @@
 import prisma from '../config/prismaClient.js';
-import { createProjectValidation } from '../validations/project.validation.js';
+import {
+  createProjectValidation,
+  updateProjectValidation,
+} from '../validations/project.validation.js';
 
 /**
  * Helper function to validate required params
@@ -269,6 +272,220 @@ export const createProject = async (req, res, next) => {
           projectOwner: result.projectLeader,
           members: result.projectMembers,
         },
+      });
+    } catch (error) {
+      // Handle unique constraint violation
+      if (error.code === 'P2002') {
+        return res.status(400).json({
+          success: false,
+          message:
+            'A project with this name already exists in this organization',
+        });
+      }
+      throw error;
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Update a project
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId
+ * @method PUT
+ * @access private
+ */
+export const updateProject = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId } = req.params;
+
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, teamId, projectId },
+      ['organizationId', 'teamId', 'projectId'],
+    );
+
+    if (!paramsValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: paramsValidation.message,
+      });
+    }
+
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgResult.message,
+      });
+    }
+    const existingOrg = orgResult.organization;
+
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamResult.message,
+      });
+    }
+    const team = teamResult.team;
+
+    // Check if project exists
+    const existingProject = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId: teamId,
+        organizationId: organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+
+    // Check permissions (can be done via a similar helper function as in create)
+    const permissionCheck = checkTeamPermissions(
+      req.user,
+      existingOrg,
+      team,
+      'update',
+    );
+
+    if (!permissionCheck.success) {
+      return res.status(403).json({
+        success: false,
+        message: permissionCheck.message,
+      });
+    }
+
+    // Additional project-specific permissions check if needed
+    const isProjectOwner = await prisma.projectMember.findFirst({
+      where: {
+        projectId: projectId,
+        userId: req.user.id,
+        role: 'PROJECT_OWNER',
+        isActive: true,
+      },
+    });
+
+    const hasPermission =
+      permissionCheck.isAdmin ||
+      permissionCheck.isOwner ||
+      permissionCheck.isTeamManager ||
+      isProjectOwner;
+
+    if (!hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to update this project',
+      });
+    }
+
+    // Validate input
+    const { error } = updateProjectValidation(req.body);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: error.details.map((e) => e.message),
+      });
+    }
+
+    const {
+      name,
+      description,
+      status,
+      startDate,
+      endDate,
+      priority,
+      budget,
+      progress,
+    } = req.body;
+
+    // Check date validation if both dates are provided
+    if (startDate && endDate) {
+      const normalizedStartDate = new Date(startDate);
+      normalizedStartDate.setHours(0, 0, 0, 0);
+
+      const normalizedEndDate = new Date(endDate);
+      normalizedEndDate.setHours(0, 0, 0, 0);
+
+      if (normalizedStartDate >= normalizedEndDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Start date must be before end date',
+        });
+      }
+    }
+
+    try {
+      // Construct update data with only the fields that were provided
+      const updateData = {};
+
+      if (name !== undefined) {
+        updateData.name = name;
+      }
+      if (description !== undefined) {
+        updateData.description = description;
+      }
+      if (status !== undefined) {
+        updateData.status = status;
+      }
+      if (priority !== undefined) {
+        updateData.priority = priority;
+      }
+      if (budget !== undefined) {
+        updateData.budget = budget;
+      }
+      if (progress !== undefined) {
+        updateData.progress = progress;
+      }
+      if (startDate !== undefined) {
+        updateData.startDate = new Date(startDate);
+      }
+      if (endDate !== undefined) {
+        updateData.endDate = new Date(endDate);
+      }
+
+      // Always update lastModifiedBy
+      updateData.lastModifiedBy = req.user.id;
+
+      // Check for name uniqueness if name is being updated
+      if (name && name !== existingProject.name) {
+        const duplicateProject = await prisma.project.findFirst({
+          where: {
+            organizationId,
+            name,
+            id: { not: projectId },
+            deletedAt: null,
+          },
+        });
+
+        if (duplicateProject) {
+          return res.status(400).json({
+            success: false,
+            message:
+              'A project with this name already exists in this organization',
+          });
+        }
+      }
+
+      // Update the project
+      const updatedProject = await prisma.project.update({
+        where: { id: projectId },
+        data: updateData,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Project updated successfully',
+        data: updatedProject,
       });
     } catch (error) {
       // Handle unique constraint violation

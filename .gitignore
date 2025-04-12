@@ -1,5 +1,5 @@
 # prisma
-./prisma/generated
+prisma/generated
 
 # Logs
 logs

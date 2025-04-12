@@ -858,7 +858,7 @@ export const deleteProject = async (req, res, next) => {
 
 /**
  * @desc   Add project members
- * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/addMembers
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/addMember
  * @method POST
  * @access private
  */

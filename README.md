@@ -92,3 +92,4 @@ base url: `http://localhost:3000`
 - Restore a project: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/restore`
 - Add new member in the project: `POST /api/organization/:organizationId/team/:teamId/project/:projectId/addMember`
 - Remove member from a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/removeMember`
+- Get all projects: `GET /api/organization/:organizationId/team/:teamId/project/all`

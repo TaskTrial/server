@@ -56,9 +56,7 @@ const checkOrganization = async (organizationId) => {
 };
 
 /**
- * Helper function to check if department exists and is not deleted
- * @param {string} departmentId - The department ID to check
- * @returns {Promise<Object>} - Contains success flag, error message, and department data
+ * Helper function to check if team exists and is not deleted
  */
 const checkTeam = async (
   teamId,
@@ -105,7 +103,6 @@ const checkTeam = async (
  * Helper function to check if team exists and is not deleted
  * @param {string} teamId - The team ID to check
  * @param {string} organizationId - The organization ID the team belongs to
- * @param {string} [departmentId] - Optional department ID the team belongs to
  * @param {Object} [options] - Additional options for the query
  * @returns {Promise<Object>} - Contains success flag, error message, and team data
  */

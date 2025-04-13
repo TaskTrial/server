@@ -4100,7 +4100,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/restore": {
       "patch": {
-        "tags": ["project"],
+        "tags": ["Project"],
         "summary": "Restore a deleted project",
         "description": "Restores a previously soft-deleted project. Requires admin, organization owner, or team manager permissions.",
         "parameters": [
@@ -4210,7 +4210,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/all": {
       "get": {
-        "tags": ["project"],
+        "tags": ["Project"],
         "summary": "Get all projects for a team",
         "description": "Retrieves all projects for a specific team. Regular users only see projects they're members of, while admins/owners/managers see all projects.",
         "parameters": [
@@ -4314,7 +4314,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/": {
       "get": {
-        "tags": ["project"],
+        "tags": ["Project"],
         "summary": "Get a specific project with details",
         "description": "Retrieves detailed information about a specific project including members and tasks. Users must be project members or have team permissions to view.",
         "parameters": [

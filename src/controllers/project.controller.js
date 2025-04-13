@@ -781,7 +781,7 @@ export const updateProjectPriority = async (req, res, next) => {
 
 /**
  * @desc   Delete a project
- * @route  /api/organization/:organizationId/team/:teamId/project/:projectId
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/delete
  * @method DELETE
  * @access private
  */
@@ -1287,6 +1287,132 @@ export const getAllProjects = async (req, res, next) => {
         })),
       });
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Get a specific project
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId
+ * @method GET
+ * @access private
+ */
+export const getSpecificProject = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId } = req.params;
+    const user = req.user;
+
+    // Validate required parameters
+    const validationResult = validateParams(
+      { organizationId, teamId, projectId },
+      ['organizationId', 'teamId', 'projectId'],
+    );
+
+    if (!validationResult.success) {
+      return res.status(400).json({ message: validationResult.message });
+    }
+
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
+      return res.status(404).json({ message: orgResult.message });
+    }
+
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
+      return res.status(404).json({ message: teamResult.message });
+    }
+
+    // Check if project exists
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId,
+        deletedAt: null,
+      },
+      include: {
+        ProjectMember: {
+          where: {
+            leftAt: null,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                profilePic: true,
+              },
+            },
+          },
+          orderBy: {
+            joinedAt: 'asc',
+          },
+        },
+        tasks: {
+          where: {
+            deletedAt: null,
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            dueDate: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Check if user is a project member or has team permissions
+    const isMember = project.ProjectMember.some(
+      (member) => member.userId === user.id,
+    );
+    const permissionResult = checkTeamPermissions(
+      user,
+      orgResult.organization,
+      teamResult.team,
+      'view',
+    );
+
+    if (!isMember && !permissionResult.success) {
+      return res
+        .status(403)
+        .json({ message: 'You do not have permission to view this project' });
+    }
+
+    // Format the response data
+    const formattedProject = {
+      ...project,
+      members: project.ProjectMember.map((member) => ({
+        id: member.id,
+        userId: member.userId,
+        role: member.role,
+        joinedAt: member.joinedAt,
+        isActive: member.isActive,
+        user: member.user,
+      })),
+      memberCount: project.ProjectMember.length,
+      taskCount: project.tasks.length,
+      userRole:
+        project.ProjectMember.find((member) => member.userId === user.id)
+          ?.role || null,
+    };
+
+    res.status(200).json({
+      success: true,
+      data: formattedProject,
+    });
   } catch (error) {
     next(error);
   }

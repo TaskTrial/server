@@ -3690,7 +3690,7 @@
         ]
       }
     },
-    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/": {
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/delete": {
       "delete": {
         "tags": ["Project"],
         "summary": "Delete a project",
@@ -4100,7 +4100,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/restore": {
       "patch": {
-        "tags": ["project"],
+        "tags": ["Project"],
         "summary": "Restore a deleted project",
         "description": "Restores a previously soft-deleted project. Requires admin, organization owner, or team manager permissions.",
         "parameters": [
@@ -4210,7 +4210,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/all": {
       "get": {
-        "tags": ["project"],
+        "tags": ["Project"],
         "summary": "Get all projects for a team",
         "description": "Retrieves all projects for a specific team. Regular users only see projects they're members of, while admins/owners/managers see all projects.",
         "parameters": [
@@ -4298,6 +4298,116 @@
                     "message": {
                       "type": "string",
                       "example": "Organization or team not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/": {
+      "get": {
+        "tags": ["Project"],
+        "summary": "Get a specific project with details",
+        "description": "Retrieves detailed information about a specific project including members and tasks. Users must be project members or have team permissions to view.",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "Organization ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "Team ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProjectDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing or invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Project ID is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User doesn't have permission to view this project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to view this project"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Organization, team or project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Project not found"
                     }
                   }
                 }
@@ -5691,6 +5801,117 @@
               "MANAGER",
               "PROJECT_OWNER"
             ]
+          }
+        }
+      },
+      "ProjectDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PLANNING",
+              "IN_PROGRESS",
+              "ON_HOLD",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"]
+          },
+          "budget": {
+            "type": "number",
+            "nullable": true
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectMember"
+            }
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectTask"
+            }
+          },
+          "memberCount": {
+            "type": "integer"
+          },
+          "taskCount": {
+            "type": "integer"
+          },
+          "userRole": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "MEMBER",
+              "CONTRIBUTOR",
+              "REVIEWER",
+              "MANAGER",
+              "PROJECT_OWNER"
+            ]
+          }
+        }
+      },
+      "ProjectTask": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       }

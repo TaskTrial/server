@@ -40,7 +40,7 @@ router.patch(
 );
 
 router.delete(
-  '/api/organization/:organizationId/team/:teamId/project/:projectId',
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/delete',
   verifyAccessToken,
   deleteProject,
 );

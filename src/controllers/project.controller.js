@@ -781,7 +781,7 @@ export const updateProjectPriority = async (req, res, next) => {
 
 /**
  * @desc   Delete a project
- * @route  /api/organization/:organizationId/team/:teamId/project/:projectId
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/delete
  * @method DELETE
  * @access private
  */

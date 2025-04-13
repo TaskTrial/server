@@ -88,7 +88,7 @@ base url: `http://localhost:3000`
 - Update a project: `PUT /api/organization/:organizationId/team/:teamId/project/:projectId`
 - Update the project status: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/status`
 - Update the project priority: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/priority`
-- Delete a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId`
+- Delete a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/delete`
 - Restore a project: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/restore`
 - Add new member in the project: `POST /api/organization/:organizationId/team/:teamId/project/:projectId/addMember`
 - Remove member from a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/removeMember`

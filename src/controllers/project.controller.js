@@ -1165,3 +1165,129 @@ export const removeProjectMember = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get all projects
+ * @route  /api/organization/:organizationId/team/:teamId/project/all
+ * @method GET
+ * @access private
+ */
+export const getAllProjects = async (req, res, next) => {
+  try {
+    const { organizationId, teamId } = req.params;
+    const user = req.user;
+
+    // Validate required parameters
+    const validationResult = validateParams({ organizationId, teamId }, [
+      'organizationId',
+      'teamId',
+    ]);
+
+    if (!validationResult.success) {
+      return res.status(400).json({ message: validationResult.message });
+    }
+
+    // Check if organization exists
+    const orgResult = await checkOrganization(organizationId);
+    if (!orgResult.success) {
+      return res.status(404).json({ message: orgResult.message });
+    }
+
+    // Check if team exists
+    const teamResult = await checkTeam(teamId, organizationId);
+    if (!teamResult.success) {
+      return res.status(404).json({ message: teamResult.message });
+    }
+
+    // Determine if the user has special permissions for this team
+    const permissionResult = checkTeamPermissions(
+      user,
+      orgResult.organization,
+      teamResult.team,
+      'view projects in',
+    );
+
+    // Define base query conditions
+    const whereConditions = {
+      teamId,
+      deletedAt: null,
+    };
+
+    // If user is not admin, owner, or team manager, only show projects they are a member of
+    if (!permissionResult.success) {
+      // Get all projects where user is a member
+      const projects = await prisma.project.findMany({
+        where: whereConditions,
+        include: {
+          ProjectMember: {
+            where: {
+              userId: user.id,
+              leftAt: null,
+            },
+            select: {
+              role: true,
+            },
+          },
+          _count: {
+            select: {
+              ProjectMember: {
+                where: {
+                  leftAt: null,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      // Filter to only include projects where user is a member
+      const filteredProjects = projects.filter(
+        (project) => project.ProjectMember.length > 0,
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: filteredProjects.map((project) => ({
+          ...project,
+          memberCount: project._count.ProjectMember,
+          userRole: project.members[0]?.role || null,
+          ProjectMember: undefined,
+          _count: undefined,
+        })),
+      });
+    } else {
+      // For users with team permissions, show all projects
+      const projects = await prisma.project.findMany({
+        where: whereConditions,
+        include: {
+          _count: {
+            select: {
+              ProjectMember: {
+                where: {
+                  leftAt: null,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: projects.map((project) => ({
+          ...project,
+          memberCount: project._count.ProjectMember,
+          _count: undefined,
+        })),
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};

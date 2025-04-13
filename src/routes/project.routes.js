@@ -4,6 +4,7 @@ import {
   addProjectMember,
   createProject,
   deleteProject,
+  getAllProjects,
   removeProjectMember,
   restoreProject,
   updateProject,
@@ -59,6 +60,12 @@ router.delete(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/removeMember',
   verifyAccessToken,
   removeProjectMember,
+);
+
+router.get(
+  '/api/organization/:organizationId/team/:teamId/project/all',
+  verifyAccessToken,
+  getAllProjects,
 );
 
 export default router;

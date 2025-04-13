@@ -1245,7 +1245,7 @@ export const getAllProjects = async (req, res, next) => {
 
       // Filter to only include projects where user is a member
       const filteredProjects = projects.filter(
-        (project) => project.members.length > 0,
+        (project) => project.ProjectMember.length > 0,
       );
 
       return res.status(200).json({

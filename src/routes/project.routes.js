@@ -5,6 +5,7 @@ import {
   createProject,
   deleteProject,
   removeProjectMember,
+  restoreProject,
   updateProject,
   updateProjectPriority,
   updateProjectStatus,
@@ -40,6 +41,12 @@ router.delete(
   '/api/organization/:organizationId/team/:teamId/project/:projectId',
   verifyAccessToken,
   deleteProject,
+);
+
+router.patch(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/restore',
+  verifyAccessToken,
+  restoreProject,
 );
 
 router.post(

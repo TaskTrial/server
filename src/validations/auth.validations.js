@@ -12,12 +12,19 @@ export const signupValidation = (obj) => {
       'string.min': 'Last name must be at least 3 characters long.',
       'string.max': 'Last name must be at most 30 characters long.',
     }),
-    username: Joi.string().trim().required().messages({
-      'string.alphanum': 'Username must contain only alphanumeric characters',
-      'string.min': 'Username must be at least 3 characters long',
-      'string.max': 'Username cannot be longer than 30 characters',
-      'any.required': 'Username is required',
-    }),
+    username: Joi.string()
+      .trim()
+      .pattern(/^[a-zA-Z0-9_]+$/)
+      .min(3)
+      .max(30)
+      .required()
+      .messages({
+        'string.pattern.base':
+          'Username must contain only letters, numbers, and underscores',
+        'string.min': 'Username must be at least 3 characters long',
+        'string.max': 'Username cannot be longer than 30 characters',
+        'any.required': 'Username is required',
+      }),
     email: Joi.string().email().required().trim().messages({
       'string.empty': 'Email is required.',
       'string.email': 'Please enter a valid email address.',

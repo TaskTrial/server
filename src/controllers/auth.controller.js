@@ -37,8 +37,7 @@ export const signup = async (req, res, next) => {
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        email,
-        username,
+        OR: [{ email }, { username }],
       },
     });
 
@@ -548,7 +547,7 @@ export const refreshAccessToken = async (req, res, next) => {
  * @access public
  */
 export const googleOAuthCallback = (req, res) => {
-  res.status(200).json({ message: 'user signup successfully' });
+  res.status(200).json({ message: 'user login successfully' });
 };
 
 /**

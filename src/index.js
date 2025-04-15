@@ -16,6 +16,7 @@ import userRoutes from './routes/user.routes.js';
 import orgRouter from './routes/organization.routes.js';
 import teamRoutes from './routes/team.routes.js';
 import projectRoutes from './routes/project.routes.js';
+// import taskRoutes from './routes/task.routes.js';
 import {
   errorHandler,
   notFound,
@@ -77,12 +78,13 @@ app.use(userRoutes);
 app.use(departmentRoutes);
 app.use(teamRoutes);
 app.use(projectRoutes);
+// app.use(taskRoutes);
 
 // Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   /* eslint no-console:off */
   console.log(
     `Server is running in ${process.env.NODE_ENV} enviroment on port ${PORT}`,

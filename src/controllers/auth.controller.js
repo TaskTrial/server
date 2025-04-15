@@ -29,7 +29,7 @@ export const signup = async (req, res, next) => {
   try {
     const { error } = signupValidation(req.body);
     if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+      return res.status(400).json({ message: error.details[0].message });
     }
 
     const { email, password, firstName, lastName, username } = req.body;

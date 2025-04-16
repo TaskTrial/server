@@ -102,22 +102,22 @@ export const createOrganization = async (req, res, next) => {
     });
 
     // Handle verification for non-admin creation
-    if (!isAdminCreation && contactEmail) {
-      try {
-        // Send verification email
-        await sendEmail({
-          to: contactEmail,
-          subject: 'Verify Your Organization Email',
-          text: `Organization name: ${result.org.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
-        });
-      } catch (error) {
-        return res.status(500).json({
-          success: false,
-          error,
-          message: 'Failed to send verification email. Please try again later.',
-        });
-      }
-    }
+    // if (!isAdminCreation && contactEmail) {
+    //   try {
+    //     // Send verification email
+    //     await sendEmail({
+    //       to: contactEmail,
+    //       subject: 'Verify Your Organization Email',
+    //       text: `Organization name: ${result.org.name}\nYour verification code is: ${verificationOTP}. will expire in 10 min`,
+    //     });
+    //   } catch (error) {
+    //     return res.status(500).json({
+    //       success: false,
+    //       error,
+    //       message: 'Failed to send verification email. Please try again later.',
+    //     });
+    //   }
+    // }
 
     return res.status(201).json({
       success: true,

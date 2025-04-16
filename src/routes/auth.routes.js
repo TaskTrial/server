@@ -66,7 +66,7 @@ router.post('/api/auth/logout', logout);
 // Firebase sign-in endpoint
 router.post('/api/auth/firebase', firebaseLogin);
 
-// Protected route
+// Get current user profile
 router.get('/me', verifyFirebaseToken, async (req, res) => {
   if (!req.user) {
     return res.status(404).json({ message: 'User not found in database' });

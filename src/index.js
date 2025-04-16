@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
@@ -28,6 +29,7 @@ import { configureGoogleStrategy } from './strategies/google-strategy.js';
 const PORT = process.env.PORT;
 
 const app = express();
+app.use(bodyParser.json());
 
 const swaggerDocument = JSON.parse(
   fs.readFileSync(path.resolve('./src/docs/swagger.json'), 'utf8'),

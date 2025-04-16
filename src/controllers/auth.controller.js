@@ -29,7 +29,7 @@ export const signup = async (req, res, next) => {
   try {
     const { error } = signupValidation(req.body);
     if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+      return res.status(400).json({ message: error.details[0].message });
     }
 
     const { email, password, firstName, lastName, username } = req.body;
@@ -37,8 +37,7 @@ export const signup = async (req, res, next) => {
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        email,
-        username,
+        OR: [{ email }, { username }],
       },
     });
 
@@ -548,7 +547,7 @@ export const refreshAccessToken = async (req, res, next) => {
  * @access public
  */
 export const googleOAuthCallback = (req, res) => {
-  res.status(200).json({ message: 'user signup successfully' });
+  res.status(200).json({ message: 'user login successfully' });
 };
 
 /**

@@ -121,7 +121,7 @@ export const createOrganization = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: `Organization created successfully. ${!isAdminCreation ? 'Please verify your org' : ''}`,
+      message: `Organization created successfully.`,
       data: {
         organization: {
           id: result.org.id,

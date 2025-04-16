@@ -56,7 +56,7 @@ router.get(
   googleOAuthCallback,
 );
 
-router.post('/auth/google', googleOAuthLogin);
+router.post('/api/auth/google', googleOAuthLogin);
 
 // Logout
 router.post('/api/auth/logout', logout);

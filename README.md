@@ -36,6 +36,7 @@ base url: `http://localhost:3000`
 - Refresh Access Token: `POST /api/auth/refreshAccessToken`
 - Login with google: `POST /api/auth/google`
 - Logout: `POST /api/auth/logout`
+- Login using firebase: `POST /api/auth/firebase`
 
 ### User
 

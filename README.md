@@ -102,4 +102,4 @@ base url: `http://localhost:3000`
 - Update a task: `PUT /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId`
 - Update the task priority: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/priority`
 - Update a task status: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/status`
-- Get all tasks: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/all`
+- Get all tasks: `GET /api/organization/:organizationId/team/:teamId/project/:projectId/task/all`

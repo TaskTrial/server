@@ -261,6 +261,35 @@ export const createTask = async (req, res, next) => {
       }
     }
 
+    // If assignedTo is provided, verify the user exists
+    if (assignedTo) {
+      const assignedUser = await prisma.user.findUnique({
+        where: { id: assignedTo },
+      });
+
+      if (!assignedUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'Assigned user not found',
+        });
+      }
+
+      // Optional: Check if the user is a member of the project
+      const isProjectMember = await prisma.projectMember.findFirst({
+        where: {
+          projectId,
+          userId: assignedTo,
+        },
+      });
+
+      if (!isProjectMember) {
+        return res.status(400).json({
+          success: false,
+          message: 'Assigned user is not a member of the project',
+        });
+      }
+    }
+
     // Check task permissions
     const permissionsCheck = checkTaskPermissions(
       user,

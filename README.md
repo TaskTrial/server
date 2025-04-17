@@ -105,3 +105,4 @@ base url: `http://localhost:3000`
 - Get all tasks: `GET /api/organization/:organizationId/team/:teamId/project/:projectId/task/all`
 - Get a specific task: `GET /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId`
 - Delete a task: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/delete`
+- Restore the deleted task: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/restore`

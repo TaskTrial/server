@@ -1,5 +1,8 @@
 import prisma from '../config/prismaClient.js';
-import { sprintvalidation } from '../validations/sprint.validation.js';
+import {
+  sprintvalidation,
+  updateSprintValidation,
+} from '../validations/sprint.validation.js';
 
 /**
  * Validate required parameters
@@ -317,6 +320,204 @@ export const createSprint = async (req, res, next) => {
       throw error;
     }
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Update a sprint
+ * @route  PUT /api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId
+ * @method PUT
+ * @access private
+ */
+export const updateSprint = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, sprintId } = req.params;
+    const user = req.user;
+
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, teamId, projectId, sprintId },
+      ['organizationId', 'teamId', 'projectId', 'sprintId'],
+    );
+
+    if (!paramsValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: paramsValidation.message,
+      });
+    }
+
+    // Check project access and permissions
+    const accessCheck = await checkProjectAccess(
+      projectId,
+      organizationId,
+      teamId,
+      user,
+    );
+    if (!accessCheck.success) {
+      return res
+        .status(accessCheck.message === 'Project not found' ? 404 : 403)
+        .json({
+          success: false,
+          message: accessCheck.message,
+        });
+    }
+
+    if (!accessCheck.hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to update sprints in this project',
+      });
+    }
+
+    // Validate input
+    const { error } = updateSprintValidation.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: error.details.map((e) => e.message),
+      });
+    }
+
+    // Check if sprint exists
+    const existingSprint = await prisma.sprint.findFirst({
+      where: {
+        id: sprintId,
+        projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingSprint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sprint not found',
+      });
+    }
+
+    const { name, description, startDate, endDate, goal, status, order } =
+      req.body;
+
+    // Prepare update data
+    const updateData = {
+      lastModifiedAt: new Date(),
+    };
+
+    if (name !== undefined) {
+      // Check for name uniqueness if name is being updated
+      if (name !== existingSprint.name) {
+        const duplicateSprint = await prisma.sprint.findFirst({
+          where: {
+            projectId,
+            name,
+            id: { not: sprintId },
+            deletedAt: null,
+          },
+        });
+
+        if (duplicateSprint) {
+          return res.status(400).json({
+            success: false,
+            message: 'A sprint with this name already exists in this project',
+          });
+        }
+      }
+      updateData.name = name;
+    }
+
+    if (description !== undefined) {
+      updateData.description = description;
+    }
+    if (goal !== undefined) {
+      updateData.goal = goal;
+    }
+    if (status !== undefined) {
+      updateData.status = status;
+    }
+    if (order !== undefined) {
+      updateData.order = order;
+    }
+
+    // Handle date updates
+    let newStartDate = existingSprint.startDate;
+    let newEndDate = existingSprint.endDate;
+    let shouldRecalculateStatus = false;
+
+    if (startDate !== undefined) {
+      newStartDate = new Date(startDate);
+      updateData.startDate = newStartDate;
+      shouldRecalculateStatus = true;
+    }
+
+    if (endDate !== undefined) {
+      newEndDate = new Date(endDate);
+      updateData.endDate = newEndDate;
+      shouldRecalculateStatus = true;
+    }
+
+    // Validate dates if either is being updated
+    if (startDate !== undefined || endDate !== undefined) {
+      // Basic date validation
+      if (newStartDate >= newEndDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Start date must be before end date',
+        });
+      }
+
+      // Check for overlapping sprints (excluding current sprint)
+      const overlappingSprint = await prisma.sprint.findFirst({
+        where: {
+          projectId,
+          id: { not: sprintId },
+          OR: [
+            {
+              startDate: { lte: newEndDate },
+              endDate: { gte: newStartDate },
+            },
+            {
+              startDate: { gte: newStartDate },
+              endDate: { lte: newEndDate },
+            },
+          ],
+          deletedAt: null,
+        },
+      });
+
+      if (overlappingSprint) {
+        return res.status(400).json({
+          success: false,
+          message: 'Sprint dates overlap with existing sprint',
+          data: { overlappingSprint },
+        });
+      }
+
+      // Recalculate status if dates changed
+      if (shouldRecalculateStatus && status === undefined) {
+        updateData.status = calculateSprintStatus(newStartDate, newEndDate);
+      }
+    }
+
+    // Update the sprint
+    const updatedSprint = await prisma.sprint.update({
+      where: { id: sprintId },
+      data: updateData,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Sprint updated successfully',
+      data: updatedSprint,
+    });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: 'A sprint with this name already exists in this project',
+      });
+    }
     next(error);
   }
 };

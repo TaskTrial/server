@@ -5867,6 +5867,197 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/task/{taskId}/restore": {
+      "patch": {
+        "tags": ["Task"],
+        "summary": "Restore a deleted task",
+        "description": "Restores a soft-deleted task and optionally its subtasks. Requires the parent task to be active if the task has one.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the project",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the task to restore",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "restoreSubtasks": {
+                    "type": "boolean",
+                    "description": "Whether to restore all deleted subtasks (default: true)",
+                    "default": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task restored successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": {
+                      "type": "string",
+                      "example": "Task restored successfully with its subtasks"
+                    },
+                    "task": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "title": { "type": "string" },
+                        "description": { "type": "string" },
+                        "priority": { "type": "string" },
+                        "status": { "type": "string" },
+                        "projectId": { "type": "string" },
+                        "sprintId": { "type": "string" },
+                        "createdBy": { "type": "string" },
+                        "assignedTo": { "type": "string" },
+                        "dueDate": { "type": "string", "format": "date-time" },
+                        "estimatedTime": { "type": "number" },
+                        "parentId": { "type": "string" },
+                        "labels": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "order": { "type": "number" },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "deletedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "creator": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "firstName": { "type": "string" },
+                            "lastName": { "type": "string" },
+                            "profilePic": { "type": "string" }
+                          }
+                        },
+                        "_count": {
+                          "type": "object",
+                          "properties": {
+                            "subtasks": { "type": "number" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - parent task is deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Cannot restore task because its parent task is deleted. Please restore the parent task first."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have permission to restore tasks in this project"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - organization, team, project or task not found or already active",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Task not found, already active, or does not belong to the specified project"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 

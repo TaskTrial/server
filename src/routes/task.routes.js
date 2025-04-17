@@ -4,6 +4,7 @@ import {
   createTask,
   updateTask,
   updateTaskPriority,
+  updateTaskStatus,
 } from '../controllers/task.controller.js';
 
 const router = Router();
@@ -24,6 +25,12 @@ router.patch(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/priority',
   verifyAccessToken,
   updateTaskPriority,
+);
+
+router.patch(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/status',
+  verifyAccessToken,
+  updateTaskStatus,
 );
 
 export default router;

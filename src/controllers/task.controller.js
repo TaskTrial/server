@@ -1,5 +1,8 @@
 import prisma from '../config/prismaClient.js';
-import { createTaskValidation } from '../validations/task.validation.js';
+import {
+  createTaskValidation,
+  updateTaskValidation,
+} from '../validations/task.validation.js';
 
 /**
  * Helper function to validate required params
@@ -380,6 +383,11 @@ export const updateTask = async (req, res, next) => {
     } = req.body;
 
     const user = req.user;
+
+    const { error } = updateTaskValidation(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
     // Check if organization exists
     const orgCheck = await checkOrganization(organizationId);

@@ -4669,6 +4669,220 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/task/{taskId}": {
+      "put": {
+        "tags": ["Task"],
+        "summary": "Update a task",
+        "description": "Updates an existing task within a specific project, team, and organization. Requires appropriate permissions.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the project",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the task to update",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Updated title of the task",
+                    "example": "Updated: Implement user authentication"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Updated description of the task",
+                    "example": "Updated: Implement JWT based authentication for the API"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                    "description": "Updated priority level of the task",
+                    "example": "MEDIUM"
+                  },
+                  "sprintId": {
+                    "type": "string",
+                    "description": "Updated ID of the sprint this task belongs to",
+                    "example": "cln3k7vxp0000v2k0q2q3k4k5"
+                  },
+                  "assignedTo": {
+                    "type": "string",
+                    "description": "Updated ID of the user this task is assigned to",
+                    "example": "cln3k7vxp0000v2k0q2q3k4k5"
+                  },
+                  "dueDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Updated due date for the task",
+                    "example": "2024-01-15T23:59:59Z"
+                  },
+                  "estimatedTime": {
+                    "type": "number",
+                    "description": "Updated estimated time to complete the task in hours",
+                    "example": 12
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "description": "Updated ID of the parent task if this is a subtask",
+                    "example": "cln3k7vxp0000v2k0q2q3k4k5"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Updated array of labels for the task",
+                    "example": ["backend", "authentication", "security"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": {
+                      "type": "string",
+                      "example": "Task updated successfully"
+                    },
+                    "task": { "$ref": "#/components/schemas/Task" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or circular dependency detected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "example": "\"priority\" must be one of [LOW, MEDIUM, HIGH, CRITICAL]"
+                        },
+                        {
+                          "type": "string",
+                          "example": "A task cannot be its own parent"
+                        },
+                        {
+                          "type": "string",
+                          "example": "Circular dependency detected in task hierarchy"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have permission to update tasks in this project"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - organization, team, project, task, sprint or parent task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "example": "Organization not found"
+                        },
+                        {
+                          "type": "string",
+                          "example": "Task not found or does not belong to the specified project"
+                        },
+                        {
+                          "type": "string",
+                          "example": "Sprint not found or does not belong to the specified project"
+                        },
+                        {
+                          "type": "string",
+                          "example": "Parent task not found or does not belong to the specified project"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 

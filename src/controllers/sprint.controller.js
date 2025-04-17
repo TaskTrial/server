@@ -401,7 +401,9 @@ export const updateSprint = async (req, res, next) => {
       req.body;
 
     // Prepare update data
-    const updateData = {};
+    const updateData = {
+      lastModifiedAt: new Date(), // Track the last modification timestamp
+    };
 
     if (name !== undefined) {
       // Check for name uniqueness if name is being updated

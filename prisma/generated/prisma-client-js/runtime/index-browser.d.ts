@@ -1,3 +1,4 @@
+/* eslint-disable */
 declare class AnyNull extends NullTypesEnumValue {
     private readonly _brand_AnyNull;
 }

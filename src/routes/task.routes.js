@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   createTask,
+  deleteTask,
   getAllTasks,
   getSpecificTask,
   updateTask,
@@ -45,6 +46,12 @@ router.get(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId',
   verifyAccessToken,
   getSpecificTask,
+);
+
+router.delete(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/delete',
+  verifyAccessToken,
+  deleteTask,
 );
 
 export default router;

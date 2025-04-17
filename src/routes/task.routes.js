@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   createTask,
+  getAllTasks,
   updateTask,
   updateTaskPriority,
   updateTaskStatus,
@@ -31,6 +32,12 @@ router.patch(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/status',
   verifyAccessToken,
   updateTaskStatus,
+);
+
+router.get(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/task/all',
+  verifyAccessToken,
+  getAllTasks,
 );
 
 export default router;

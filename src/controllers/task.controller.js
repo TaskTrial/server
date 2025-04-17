@@ -1166,14 +1166,12 @@ export const deleteTask = async (req, res, next) => {
     // Start a transaction to ensure all operations succeed or fail together
     await prisma.$transaction(async (prisma) => {
       if (permanent) {
-        // Only allow permanent deletion for admins/owners
         if (!permissionsCheck.isAdmin && !permissionsCheck.isOwner) {
           throw new Error(
             'Only administrators or organization owners can permanently delete tasks',
           );
         }
 
-        // Permanently delete the task and related data
         await prisma.taskAttachment.deleteMany({ where: { taskId } });
         await prisma.comment.deleteMany({ where: { taskId } });
         await prisma.taskDependency.deleteMany({
@@ -1184,13 +1182,8 @@ export const deleteTask = async (req, res, next) => {
         await prisma.timelog.deleteMany({ where: { taskId } });
         await prisma.activityLog.deleteMany({ where: { taskId } });
 
-        // Recursively delete subtasks
-        if (task.subtasks && task.subtasks.length > 0) {
-          for (const subtask of task.subtasks) {
-            // Recursively delete each subtask (could be improved with a more efficient query)
-            await prisma.task.delete({ where: { id: subtask.id } });
-          }
-        }
+        // Bulk delete all subtasks
+        await prisma.task.deleteMany({ where: { parentId: taskId } });
 
         // Finally delete the task itself
         await prisma.task.delete({ where: { id: taskId } });

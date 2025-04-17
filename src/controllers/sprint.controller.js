@@ -1,6 +1,7 @@
 import prisma from '../config/prismaClient.js';
 import {
   sprintvalidation,
+  updateSprintStatusValidation,
   updateSprintValidation,
 } from '../validations/sprint.validation.js';
 
@@ -386,7 +387,6 @@ export const updateSprint = async (req, res, next) => {
       where: {
         id: sprintId,
         projectId,
-        deletedAt: null,
       },
     });
 
@@ -402,7 +402,7 @@ export const updateSprint = async (req, res, next) => {
 
     // Prepare update data
     const updateData = {
-      lastModifiedAt: new Date(),
+      lastModifiedAt: new Date(), // Track the last modification timestamp
     };
 
     if (name !== undefined) {
@@ -413,7 +413,6 @@ export const updateSprint = async (req, res, next) => {
             projectId,
             name,
             id: { not: sprintId },
-            deletedAt: null,
           },
         });
 
@@ -482,7 +481,6 @@ export const updateSprint = async (req, res, next) => {
               endDate: { lte: newEndDate },
             },
           ],
-          deletedAt: null,
         },
       });
 
@@ -518,6 +516,159 @@ export const updateSprint = async (req, res, next) => {
         message: 'A sprint with this name already exists in this project',
       });
     }
+    next(error);
+  }
+};
+
+/**
+ * @desc   Update sprint status
+ * @route  PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId/status
+ * @method PATCH
+ * @access private
+ */
+export const updateSprintStatus = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, sprintId } = req.params;
+    const { status } = req.body;
+    const user = req.user;
+
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, teamId, projectId, sprintId, status },
+      ['organizationId', 'teamId', 'projectId', 'sprintId', 'status'],
+    );
+
+    if (!paramsValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: paramsValidation.message,
+      });
+    }
+
+    // Check project access and permissions
+    const accessCheck = await checkProjectAccess(
+      projectId,
+      organizationId,
+      teamId,
+      user,
+    );
+    if (!accessCheck.success) {
+      return res
+        .status(accessCheck.message === 'Project not found' ? 404 : 403)
+        .json({
+          success: false,
+          message: accessCheck.message,
+        });
+    }
+
+    // Validate input
+    const { error } = updateSprintStatusValidation(req.body);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: error.details.map((e) => e.message),
+      });
+    }
+
+    // Check if sprint exists and get current status
+    const existingSprint = await prisma.sprint.findFirst({
+      where: {
+        id: sprintId,
+        projectId,
+      },
+      select: {
+        status: true,
+        startDate: true,
+        endDate: true,
+      },
+    });
+
+    if (!existingSprint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sprint not found',
+      });
+    }
+
+    // Define valid status transitions
+    const validTransitions = {
+      PLANNING: ['ACTIVE', 'COMPLETED'],
+      ACTIVE: ['COMPLETED'],
+      COMPLETED: [], // No transitions allowed from COMPLETED
+    };
+
+    // Check if transition is valid
+    if (!validTransitions[existingSprint.status].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status transition from ${existingSprint.status} to ${status}`,
+        validTransitions: validTransitions[existingSprint.status],
+      });
+    }
+
+    // Additional validation for ACTIVE status
+    if (status === 'ACTIVE') {
+      const now = new Date();
+      if (now < new Date(existingSprint.startDate)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot activate sprint before its start date',
+        });
+      }
+    }
+
+    // Additional validation for COMPLETED status
+    if (status === 'COMPLETED') {
+      const incompleteTasks = await prisma.task.count({
+        where: {
+          sprintId,
+          status: { not: 'DONE' },
+          deletedAt: null,
+        },
+      });
+
+      if (incompleteTasks > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot complete sprint with unfinished tasks',
+          incompleteTasks,
+        });
+      }
+    }
+
+    // Update the sprint status
+    const updatedSprint = await prisma.sprint.update({
+      where: { id: sprintId },
+      data: {
+        status,
+        // Auto-update dates if transitioning to ACTIVE/COMPLETED
+        ...(status === 'ACTIVE' && { startDate: new Date() }),
+        ...(status === 'COMPLETED' && { endDate: new Date() }),
+      },
+      include: {
+        project: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Sprint status updated successfully',
+      data: {
+        ...updatedSprint,
+        // Include relevant metadata
+        updatedBy: {
+          id: user.id,
+          name: user.name,
+          role: user.role,
+        },
+      },
+    });
+  } catch (error) {
     next(error);
   }
 };

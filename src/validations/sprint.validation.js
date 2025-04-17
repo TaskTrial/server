@@ -107,7 +107,7 @@ export const updateSprintStatusValidation = (obj) => {
       .valid('PLANNING', 'ACTIVE', 'COMPLETED')
       .required()
       .messages({
-        'string.base': 'Status must be a string',
+        'string.base': 'Status must be string',
         'any.only': 'Status must be one of: PLANNING, ACTIVE, COMPLETED',
         'any.required': 'Status is required',
       }),

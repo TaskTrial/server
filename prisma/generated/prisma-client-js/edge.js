@@ -1,4 +1,4 @@
-
+/* eslint-disable */
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
@@ -466,7 +466,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/dawoud27/alx/GradProject/server/prisma/generated/prisma-client-js",
+      "value": "D:\\!KareemLearn\\GP101\\server\\prisma\\generated\\prisma-client-js",
       "fromEnvVar": null
     },
     "config": {
@@ -475,14 +475,14 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-3.0.x",
+        "value": "windows",
         "native": true
       }
     ],
     "previewFeatures": [
       "prismaSchemaFolder"
     ],
-    "sourceFilePath": "/home/dawoud27/alx/GradProject/server/prisma/schema.prisma",
+    "sourceFilePath": "D:\\!KareemLearn\\GP101\\server\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

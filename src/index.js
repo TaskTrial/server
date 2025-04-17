@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
+// import bodyParser from 'body-parser';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
@@ -17,7 +17,7 @@ import userRoutes from './routes/user.routes.js';
 import orgRouter from './routes/organization.routes.js';
 import teamRoutes from './routes/team.routes.js';
 import projectRoutes from './routes/project.routes.js';
-// import taskRoutes from './routes/task.routes.js';
+import taskRoutes from './routes/task.routes.js';
 import {
   errorHandler,
   notFound,
@@ -29,7 +29,7 @@ import { configureGoogleStrategy } from './strategies/google-strategy.js';
 const PORT = process.env.PORT;
 
 const app = express();
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
 const swaggerDocument = JSON.parse(
   fs.readFileSync(path.resolve('./src/docs/swagger.json'), 'utf8'),
@@ -80,7 +80,7 @@ app.use(userRoutes);
 app.use(departmentRoutes);
 app.use(teamRoutes);
 app.use(projectRoutes);
-// app.use(taskRoutes);
+app.use(taskRoutes);
 
 // Error handling middleware
 app.use(notFound);

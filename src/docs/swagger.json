@@ -41,6 +41,14 @@
     {
       "name": "Project",
       "description": "Project management"
+    },
+    {
+      "name": "Sprint",
+      "description": "Sprint management"
+    },
+    {
+      "name": "Task",
+      "description": "Task management"
     }
   ],
   "paths": {
@@ -4526,6 +4534,141 @@
           }
         ]
       }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/task/create": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "Create a new task",
+        "description": "Create a new task in a specific project within a team and organization.",
+        "operationId": "createTask",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "priority", "dueDate"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Design login page"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Create a modern and user-friendly login page UI"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "example": "HIGH"
+                  },
+                  "sprintId": {
+                    "type": "string",
+                    "example": "sprint_456"
+                  },
+                  "assignedTo": {
+                    "type": "string",
+                    "example": "user_123"
+                  },
+                  "dueDate": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2025-04-30"
+                  },
+                  "estimatedTime": {
+                    "type": "integer",
+                    "example": 8
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "example": "parent_task_789"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["frontend", "urgent"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Task created successfully"
+                    },
+                    "task": {
+                      "$ref": "#/components/schemas/Task"
+                    },
+                    "project_members": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProjectMember"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
     }
   },
 
@@ -6018,6 +6161,29 @@
             "format": "date-time",
             "nullable": true
           }
+        }
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "task_123" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "priority": { "type": "string" },
+          "status": { "type": "string", "example": "TODO" },
+          "projectId": { "type": "string" },
+          "sprintId": { "type": "string" },
+          "createdBy": { "type": "string" },
+          "assignedTo": { "type": "string" },
+          "dueDate": { "type": "string", "format": "date" },
+          "estimatedTime": { "type": "integer" },
+          "parentId": { "type": "string" },
+          "order": { "type": "integer" },
+          "labels": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "lastModifiedBy": { "type": "string" }
         }
       }
     },

@@ -1,4 +1,5 @@
-import prisma from '../config/prismaClient';
+import prisma from '../config/prismaClient.js';
+import { createTaskValidation } from '../validations/task.validation.js';
 
 /**
  * Helper function to validate required params
@@ -163,152 +164,165 @@ const checkTaskPermissions = (user, organization, team, project, action) => {
  */
 export const createTask = async (req, res, next) => {
   try {
+    const { organizationId, teamId, projectId } = req.params;
     const {
       title,
       description,
       priority,
-      status,
-      projectId,
       sprintId,
       assignedTo,
       dueDate,
       estimatedTime,
       parentId,
       labels,
-      rate,
     } = req.body;
 
-    const { organizationId, teamId } = req.params;
-    const userId = req.user.id;
+    const user = req.user;
+
+    const { error } = createTaskValidation(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
     // Validate required parameters
-    const paramsValidation = validateParams(
-      { organizationId, teamId, projectId, title, priority, status, dueDate },
-      [
-        'organizationId',
-        'teamId',
-        'projectId',
-        'title',
-        'priority',
-        'status',
-        'dueDate',
-      ],
+    const validation = validateParams(
+      { title, projectId, organizationId, teamId, dueDate, priority },
+      ['title', 'dueDate', 'priority'],
     );
 
-    if (!paramsValidation.success) {
-      return res.status(400).json({ message: paramsValidation.message });
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        message: validation.message,
+      });
     }
 
     // Check if organization exists
     const orgCheck = await checkOrganization(organizationId);
     if (!orgCheck.success) {
-      return res.status(404).json({ message: orgCheck.message });
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
     }
 
     // Check if team exists
     const teamCheck = await checkTeam(teamId, organizationId);
     if (!teamCheck.success) {
-      return res.status(404).json({ message: teamCheck.message });
+      return res.status(404).json({
+        success: false,
+        message: teamCheck.message,
+      });
     }
 
     // Check if project exists
     const projectCheck = await checkProject(projectId, teamId, organizationId);
     if (!projectCheck.success) {
-      return res.status(404).json({ message: projectCheck.message });
+      return res.status(404).json({
+        success: false,
+        message: projectCheck.message,
+      });
     }
 
-    // Check permissions
-    const permissionCheck = checkTaskPermissions(
-      req.user,
+    // If sprintId is provided, verify the sprint exists and belongs to the project
+    if (sprintId) {
+      const sprint = await prisma.sprint.findFirst({
+        where: {
+          id: sprintId,
+          projectId: projectId,
+        },
+      });
+
+      if (!sprint) {
+        return res.status(404).json({
+          success: false,
+          message:
+            'Sprint not found or does not belong to the specified project',
+        });
+      }
+    }
+
+    // If parentId is provided, verify the parent task exists and belongs to the project
+    if (parentId) {
+      const parentTask = await prisma.task.findFirst({
+        where: {
+          id: parentId,
+          projectId: projectId,
+          deletedAt: null,
+        },
+      });
+
+      if (!parentTask) {
+        return res.status(404).json({
+          success: false,
+          message:
+            'Parent task not found or does not belong to the specified project',
+        });
+      }
+    }
+
+    // Check task permissions
+    const permissionsCheck = checkTaskPermissions(
+      user,
       orgCheck.organization,
       teamCheck.team,
       projectCheck.project,
       'create',
     );
 
-    if (!permissionCheck.success) {
-      return res.status(403).json({ message: permissionCheck.message });
-    }
-
-    // Check if parent task exists (if provided)
-    if (parentId) {
-      const parentTask = await prisma.task.findFirst({
-        where: {
-          id: parentId,
-          projectId,
-          deletedAt: null,
-        },
+    if (!permissionsCheck.success) {
+      return res.status(403).json({
+        success: false,
+        message: permissionsCheck.message,
       });
-
-      if (!parentTask) {
-        return res.status(404).json({ message: 'Parent task not found' });
-      }
     }
 
-    // Check if assignee exists (if provided)
-    if (assignedTo) {
-      const assignee = await prisma.user.findUnique({
-        where: { id: assignedTo },
-      });
+    // Calculate task order (place at the end)
+    const lastTask = await prisma.task.findFirst({
+      where: {
+        projectId: projectId,
+        sprintId: sprintId || null, // Consider sprint context if provided
+        parentId: parentId || null, // Consider hierarchy if it's a subtask
+        deletedAt: null,
+      },
+      orderBy: {
+        order: 'desc',
+      },
+    });
 
-      if (!assignee) {
-        return res.status(404).json({ message: 'Assigned user not found' });
-      }
-    }
+    const order = lastTask ? lastTask.order + 1 : 0;
 
-    // Create task
+    // Create the task
     const task = await prisma.task.create({
       data: {
         title,
-        description,
+        description: description || null,
         priority,
-        status,
-        rate,
+        status: 'TODO', // Default status
         projectId,
-        sprintId,
-        createdBy: userId,
-        assignedTo,
+        sprintId: sprintId || null,
+        createdBy: user.id,
+        assignedTo: assignedTo || null,
         dueDate: new Date(dueDate),
-        estimatedTime,
-        parentId,
+        estimatedTime: estimatedTime || null,
+        parentId: parentId || null,
+        order,
         labels: labels || [],
-        lastModifiedBy: userId,
-      },
-      include: {
-        project: {
-          select: { name: true },
-        },
-        sprint: {
-          select: { name: true },
-        },
-        creator: {
-          select: { name: true, email: true },
-        },
-        assignee: {
-          select: { name: true, email: true },
-        },
-        parent: {
-          select: { title: true, id: true },
-        },
+        lastModifiedBy: user.id,
       },
     });
 
-    // Create activity log
-    await prisma.activityLog.create({
-      data: {
-        action: 'CREATE',
-        entityType: 'TASK',
-        entityId: task.id,
-        description: `Task "${task.title}" created`,
-        performedBy: userId,
-        projectId,
-        organizationId,
-      },
+    // Fetch project members
+    const projectMembers = await prisma.projectMember.findMany({
+      where: { projectId },
+      select: { id: true, projectId: true, userId: true, role: true },
     });
 
     return res.status(201).json({
+      success: true,
       message: 'Task created successfully',
-      data: task,
+      task,
+      project_members: projectMembers,
     });
   } catch (error) {
     next(error);

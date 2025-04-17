@@ -50,9 +50,6 @@ export const createOrganization = async (req, res, next) => {
       });
     }
 
-    // Determine if this is an admin creation (for status and verification)
-    const isAdminCreation = req.user.role === 'ADMIN';
-
     // generate OTP
     const verificationOTP = generateOTP();
     const hashedOTP = await hashOTP(verificationOTP);
@@ -72,8 +69,8 @@ export const createOrganization = async (req, res, next) => {
           address,
           contactEmail,
           contactPhone,
-          status: isAdminCreation ? 'APPROVED' : 'PENDING',
-          isVerified: isAdminCreation,
+          status: 'APPROVED',
+          isVerified: true,
           createdBy: req.user.id,
           emailVerificationOTP: hashedOTP,
           emailVerificationExpires: otpExpiry,

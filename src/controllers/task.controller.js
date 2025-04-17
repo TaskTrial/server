@@ -357,3 +357,176 @@ export const createTask = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Update a task
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId
+ * @method PUT
+ * @access private
+ */
+export const updateTask = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, taskId } = req.params;
+    const {
+      title,
+      description,
+      priority,
+      sprintId,
+      assignedTo,
+      dueDate,
+      estimatedTime,
+      parentId,
+      labels,
+    } = req.body;
+
+    const user = req.user;
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Check if team exists
+    const teamCheck = await checkTeam(teamId, organizationId);
+    if (!teamCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamCheck.message,
+      });
+    }
+
+    // Check if project exists
+    const projectCheck = await checkProject(projectId, teamId, organizationId);
+    if (!projectCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: projectCheck.message,
+      });
+    }
+
+    // Check if task exists and belongs to the project
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found or does not belong to the specified project',
+      });
+    }
+
+    // Check task permissions
+    const permissionsCheck = checkTaskPermissions(
+      user,
+      orgCheck.organization,
+      teamCheck.team,
+      projectCheck.project,
+      'update',
+    );
+
+    if (!permissionsCheck.success) {
+      return res.status(403).json({
+        success: false,
+        message: permissionsCheck.message,
+      });
+    }
+
+    // If sprintId is provided, verify the sprint exists and belongs to the project
+    if (sprintId && sprintId !== task.sprintId) {
+      const sprint = await prisma.sprint.findFirst({
+        where: {
+          id: sprintId,
+          projectId,
+        },
+      });
+
+      if (!sprint) {
+        return res.status(404).json({
+          success: false,
+          message:
+            'Sprint not found or does not belong to the specified project',
+        });
+      }
+    }
+
+    // If parentId is provided, verify the parent task exists, belongs to the project, and is not the task itself
+    if (parentId && parentId !== task.parentId) {
+      if (parentId === taskId) {
+        return res.status(400).json({
+          success: false,
+          message: 'A task cannot be its own parent',
+        });
+      }
+
+      const parentTask = await prisma.task.findFirst({
+        where: {
+          id: parentId,
+          projectId,
+          deletedAt: null,
+        },
+      });
+
+      if (!parentTask) {
+        return res.status(404).json({
+          success: false,
+          message:
+            'Parent task not found or does not belong to the specified project',
+        });
+      }
+
+      // Check for circular dependencies
+      let currentParent = parentId;
+      while (currentParent) {
+        const parent = await prisma.task.findUnique({
+          where: { id: currentParent },
+          select: { parentId: true },
+        });
+
+        if (parent.parentId === taskId) {
+          return res.status(400).json({
+            success: false,
+            message: 'Circular dependency detected in task hierarchy',
+          });
+        }
+
+        currentParent = parent.parentId;
+      }
+    }
+
+    // Update the task
+    const updatedTask = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        title: title !== undefined ? title : task.title,
+        description: description !== undefined ? description : task.description,
+        priority: priority !== undefined ? priority : task.priority,
+        sprintId: sprintId !== undefined ? sprintId : task.sprintId,
+        assignedTo: assignedTo !== undefined ? assignedTo : task.assignedTo,
+        dueDate: dueDate !== undefined ? new Date(dueDate) : task.dueDate,
+        estimatedTime:
+          estimatedTime !== undefined ? estimatedTime : task.estimatedTime,
+        parentId: parentId !== undefined ? parentId : task.parentId,
+        labels: labels !== undefined ? labels : task.labels,
+        updatedAt: new Date(),
+        lastModifiedBy: user.id,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Task updated successfully',
+      task: updatedTask,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

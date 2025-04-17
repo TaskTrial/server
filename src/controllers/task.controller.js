@@ -744,3 +744,170 @@ export const updateTaskStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get all tasks
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/task/all
+ * @method GET
+ * @access private
+ */
+export const getAllTasks = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId } = req.params;
+    const {
+      sprintId,
+      priority,
+      status,
+      assignedTo,
+      parentId,
+      search,
+      page = 1,
+      limit = 20,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Check if team exists
+    const teamCheck = await checkTeam(teamId, organizationId);
+    if (!teamCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamCheck.message,
+      });
+    }
+
+    // Check if project exists
+    const projectCheck = await checkProject(projectId, teamId, organizationId);
+    if (!projectCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: projectCheck.message,
+      });
+    }
+
+    // Build filter conditions
+    const whereClause = {
+      projectId,
+      deletedAt: null,
+    };
+
+    // Apply optional filters
+    if (sprintId) {
+      whereClause.sprintId = sprintId === 'null' ? null : sprintId;
+    }
+
+    if (priority) {
+      whereClause.priority = priority;
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    if (assignedTo) {
+      whereClause.assignedTo = assignedTo === 'null' ? null : assignedTo;
+    }
+
+    if (parentId) {
+      whereClause.parentId = parentId === 'null' ? null : parentId;
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Determine sort order
+    const orderBy = {};
+    orderBy[sortBy] = sortOrder.toLowerCase();
+
+    // Get total count for pagination
+    const totalCount = await prisma.task.count({ where: whereClause });
+
+    // Get tasks with related data
+    const tasks = await prisma.task.findMany({
+      where: whereClause,
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        assignee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        sprint: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+          },
+        },
+        subtasks: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+          },
+        },
+        parent: parentId
+          ? {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+              },
+            }
+          : false,
+        _count: {
+          select: {
+            comments: true,
+            attachments: true,
+          },
+        },
+      },
+      orderBy,
+      skip,
+      take: parseInt(limit),
+    });
+
+    return res.status(200).json({
+      success: true,
+      tasks,
+      pagination: {
+        total: totalCount,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(totalCount / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -215,7 +215,7 @@ export const signin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const { error } = signinValidation();
+    const { error } = signinValidation(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
@@ -281,7 +281,7 @@ export const signin = async (req, res, next) => {
  */
 export const forgotPassword = async (req, res, next) => {
   try {
-    const { error } = forgotPasswordValidation();
+    const { error } = forgotPasswordValidation(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
@@ -335,7 +335,7 @@ export const forgotPassword = async (req, res, next) => {
  */
 export const resetPassword = async (req, res, next) => {
   try {
-    const { error } = resetPasswordValidation();
+    const { error } = resetPasswordValidation(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
@@ -446,7 +446,7 @@ export const forgotPasswordWithoutEmail = async (req, res, next) => {
  */
 export const resetPasswordWithoutEmail = async (req, res, next) => {
   try {
-    const { error } = resetPasswordValidation();
+    const { error } = resetPasswordValidation(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }

@@ -99,3 +99,4 @@ base url: `http://localhost:3000`
 ### Task
 
 - Create a new task: `POST /api/organization/:organizationId/team/:teamId/project/:projectId/task/create`
+- Update a task: `PUT /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId`

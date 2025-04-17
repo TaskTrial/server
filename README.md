@@ -103,3 +103,4 @@ base url: `http://localhost:3000`
 - Update the task priority: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/priority`
 - Update a task status: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/status`
 - Get all tasks: `GET /api/organization/:organizationId/team/:teamId/project/:projectId/task/all`
+- Get a specific task: `GET /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId`

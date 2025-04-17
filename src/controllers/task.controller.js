@@ -911,3 +911,177 @@ export const getAllTasks = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get a task by id
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId
+ * @method GET
+ * @access private
+ */
+export const getSpecificTask = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, taskId } = req.params;
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Check if team exists
+    const teamCheck = await checkTeam(teamId, organizationId);
+    if (!teamCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamCheck.message,
+      });
+    }
+
+    // Check if project exists
+    const projectCheck = await checkProject(projectId, teamId, organizationId);
+    if (!projectCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: projectCheck.message,
+      });
+    }
+
+    // Get detailed task information
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        projectId,
+        deletedAt: null,
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        modifier: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        assignee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        sprint: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
+        subtasks: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            assignedTo: true,
+            dueDate: true,
+            assignee: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        },
+        parent: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+          },
+        },
+        dependentOn: {
+          include: {
+            task: {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+              },
+            },
+          },
+        },
+        dependencies: {
+          include: {
+            dependentTask: {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+              },
+            },
+          },
+        },
+        comments: {
+          take: 5,
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+        attachments: {
+          include: {
+            uploader: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profilePic: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found or does not belong to the specified project',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      task,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

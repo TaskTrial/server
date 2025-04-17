@@ -182,7 +182,7 @@ export const updateUserAccount = async (req, res, next) => {
     if (value.timezone) {
       updateData.timezone = value.timezone;
     }
-    if (value.bio) {
+    if (value.bio !== undefined) {
       updateData.bio = value.bio;
     }
 

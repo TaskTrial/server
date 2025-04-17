@@ -1085,3 +1085,139 @@ export const getSpecificTask = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Delete a task
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/delete
+ * @method DELETE
+ * @access private
+ */
+export const deleteTask = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, taskId } = req.params;
+    const { permanent = false } = req.query;
+    const user = req.user;
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Check if team exists
+    const teamCheck = await checkTeam(teamId, organizationId);
+    if (!teamCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamCheck.message,
+      });
+    }
+
+    // Check if project exists
+    const projectCheck = await checkProject(projectId, teamId, organizationId);
+    if (!projectCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: projectCheck.message,
+      });
+    }
+
+    // Check if task exists and belongs to the project
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        projectId,
+        deletedAt: null,
+      },
+      include: {
+        subtasks: {
+          where: { deletedAt: null },
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found or does not belong to the specified project',
+      });
+    }
+
+    // Check task permissions
+    const permissionsCheck = checkTaskPermissions(
+      user,
+      orgCheck.organization,
+      teamCheck.team,
+      projectCheck.project,
+      'delete',
+    );
+
+    if (!permissionsCheck.success) {
+      return res.status(403).json({
+        success: false,
+        message: permissionsCheck.message,
+      });
+    }
+
+    // Start a transaction to ensure all operations succeed or fail together
+    await prisma.$transaction(async (prisma) => {
+      if (permanent) {
+        if (!permissionsCheck.isAdmin && !permissionsCheck.isOwner) {
+          throw new Error(
+            'Only administrators or organization owners can permanently delete tasks',
+          );
+        }
+
+        await prisma.taskAttachment.deleteMany({ where: { taskId } });
+        await prisma.comment.deleteMany({ where: { taskId } });
+        await prisma.taskDependency.deleteMany({
+          where: {
+            OR: [{ taskId }, { dependentTaskId: taskId }],
+          },
+        });
+        await prisma.timelog.deleteMany({ where: { taskId } });
+        await prisma.activityLog.deleteMany({ where: { taskId } });
+
+        // Bulk delete all subtasks
+        await prisma.task.deleteMany({ where: { parentId: taskId } });
+
+        // Finally delete the task itself
+        await prisma.task.delete({ where: { id: taskId } });
+      } else {
+        // Soft delete - mark as deleted but keep in database
+        const now = new Date();
+
+        // Soft delete all subtasks first
+        if (task.subtasks && task.subtasks.length > 0) {
+          await prisma.task.updateMany({
+            where: { parentId: taskId, deletedAt: null },
+            data: {
+              deletedAt: now,
+              lastModifiedBy: user.id,
+            },
+          });
+        }
+
+        // Soft delete the task itself
+        await prisma.task.update({
+          where: { id: taskId },
+          data: {
+            deletedAt: now,
+            lastModifiedBy: user.id,
+          },
+        });
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Task ${permanent ? 'permanently ' : ''}deleted successfully`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

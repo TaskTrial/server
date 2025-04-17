@@ -5446,7 +5446,7 @@
     },
     "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/task/{taskId}/": {
       "get": {
-        "tags": ["Tasks"],
+        "tags": ["Task"],
         "summary": "Get a specific task",
         "description": "Retrieves detailed information about a specific task including related entities like creator, assignee, subtasks, dependencies, comments, and attachments.",
         "security": [{ "BearerAuth": [] }],
@@ -5680,6 +5680,141 @@
                           }
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - organization, team, project or task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "example": "Organization not found"
+                        },
+                        { "type": "string", "example": "Team not found" },
+                        { "type": "string", "example": "Project not found" },
+                        {
+                          "type": "string",
+                          "example": "Task not found or does not belong to the specified project"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/task/{taskId}/delete": {
+      "delete": {
+        "tags": ["Task"],
+        "summary": "Delete a task",
+        "description": "Deletes a task either permanently (for admins) or via soft delete. Handles subtasks recursively.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the project",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the task to delete",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "permanent",
+            "in": "query",
+            "description": "Whether to permanently delete (true) or soft delete (false). Requires admin privileges.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": {
+                      "type": "string",
+                      "example": "Task permanently deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "example": "You don't have permission to delete tasks in this project"
+                        },
+                        {
+                          "type": "string",
+                          "example": "Only administrators or organization owners can permanently delete tasks"
+                        }
+                      ]
                     }
                   }
                 }

@@ -9,5 +9,10 @@ router.post(
   verifyAccessToken,
   createSprint,
 );
+router.put(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId',
+  verifyAccessToken,
+  createSprint,
+);
 
 export default router;

@@ -499,6 +499,13 @@ export const updateTask = async (req, res, next) => {
           select: { parentId: true },
         });
 
+        if (!parent) {
+          return res.status(404).json({
+            success: false,
+            message: 'Parent task not found during circular dependency check',
+          });
+        }
+
         if (parent.parentId === taskId) {
           return res.status(400).json({
             success: false,

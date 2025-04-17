@@ -41,6 +41,14 @@
     {
       "name": "Project",
       "description": "Project management"
+    },
+    {
+      "name": "Sprint",
+      "description": "Sprint management"
+    },
+    {
+      "name": "Task",
+      "description": "Task management"
     }
   ],
   "paths": {
@@ -524,6 +532,111 @@
           },
           "403": {
             "description": "Invalid refresh token"
+          }
+        }
+      }
+    },
+    "/api/auth/firebase": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Authenticate with Firebase ID token",
+        "description": "Authenticates a user using Firebase ID token, creates or updates user in database",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase ID token from client",
+                    "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "email": { "type": "string", "format": "email" },
+                        "username": { "type": "string" },
+                        "firstName": { "type": "string" },
+                        "lastName": { "type": "string" },
+                        "role": {
+                          "type": "string",
+                          "enum": ["MEMBER", "ADMIN"]
+                        },
+                        "profilePic": { "type": "string", "format": "uri" }
+                      }
+                    },
+                    "message": { "type": "string" }
+                  },
+                  "example": {
+                    "user": {
+                      "id": "123e4567-e89b-12d3-a456-426614174000",
+                      "email": "user@example.com",
+                      "username": "user123",
+                      "firstName": "John",
+                      "lastName": "Doe",
+                      "role": "MEMBER",
+                      "profilePic": "https://example.com/profile.jpg"
+                    },
+                    "message": "Authentication successful"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid ID token"
+          },
+          "401": {
+            "description": "Invalid or expired Firebase token"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get current user profile",
+        "description": "Returns the profile of the currently authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid token"
+          },
+          "404": {
+            "description": "User not found in database"
           }
         }
       }
@@ -4421,6 +4534,141 @@
           }
         ]
       }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/task/create": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "Create a new task",
+        "description": "Create a new task in a specific project within a team and organization.",
+        "operationId": "createTask",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "priority", "dueDate"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Design login page"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Create a modern and user-friendly login page UI"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "example": "HIGH"
+                  },
+                  "sprintId": {
+                    "type": "string",
+                    "example": "sprint_456"
+                  },
+                  "assignedTo": {
+                    "type": "string",
+                    "example": "user_123"
+                  },
+                  "dueDate": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2025-04-30"
+                  },
+                  "estimatedTime": {
+                    "type": "integer",
+                    "example": 8
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "example": "parent_task_789"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["frontend", "urgent"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Task created successfully"
+                    },
+                    "task": {
+                      "$ref": "#/components/schemas/Task"
+                    },
+                    "project_members": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProjectMember"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
     }
   },
 
@@ -5913,6 +6161,29 @@
             "format": "date-time",
             "nullable": true
           }
+        }
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "task_123" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "priority": { "type": "string" },
+          "status": { "type": "string", "example": "TODO" },
+          "projectId": { "type": "string" },
+          "sprintId": { "type": "string" },
+          "createdBy": { "type": "string" },
+          "assignedTo": { "type": "string" },
+          "dueDate": { "type": "string", "format": "date" },
+          "estimatedTime": { "type": "integer" },
+          "parentId": { "type": "string" },
+          "order": { "type": "integer" },
+          "labels": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "lastModifiedBy": { "type": "string" }
         }
       }
     },

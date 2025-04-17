@@ -36,6 +36,7 @@ base url: `http://localhost:3000`
 - Refresh Access Token: `POST /api/auth/refreshAccessToken`
 - Login with google: `POST /api/auth/google`
 - Logout: `POST /api/auth/logout`
+- Login using firebase: `POST /api/auth/firebase`
 
 ### User
 
@@ -94,3 +95,7 @@ base url: `http://localhost:3000`
 - Remove member from a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/removeMember`
 - Get all projects: `GET /api/organization/:organizationId/team/:teamId/project/all`
 - Get a specific project: `GET /api/organization/:organizationId/team/:teamId/project/:projectId`
+
+### Task
+
+- Create a new task: `POST /api/organization/:organizationId/team/:teamId/project/:projectId/task/create`

@@ -13,8 +13,10 @@ import {
   resendOTP,
   forgotPasswordWithoutEmail,
   resetPasswordWithoutEmail,
+  firebaseLogin,
 } from '../controllers/auth.controller.js';
 import { apiLimiter } from '../utils/apiLimiter.utils.js';
+import { verifyFirebaseToken } from '../middlewares/firebaseAuth.middleware.js';
 
 const router = Router();
 
@@ -56,9 +58,21 @@ router.get(
   googleOAuthCallback,
 );
 
-router.post('/auth/google', googleOAuthLogin);
+router.post('/api/auth/google', googleOAuthLogin);
 
 // Logout
 router.post('/api/auth/logout', logout);
+
+// Firebase sign-in endpoint
+router.post('/api/auth/firebase', firebaseLogin);
+
+// Get current user profile
+router.get('/me', verifyFirebaseToken, async (req, res) => {
+  if (!req.user) {
+    return res.status(404).json({ message: 'User not found in database' });
+  }
+
+  res.status(200).json({ user: req.user });
+});
 
 export default router;

@@ -29,7 +29,7 @@ export const signup = async (req, res, next) => {
   try {
     const { error } = signupValidation(req.body);
     if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+      return res.status(400).json({ message: error.details[0].message });
     }
 
     const { email, password, firstName, lastName, username } = req.body;
@@ -37,8 +37,7 @@ export const signup = async (req, res, next) => {
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        email,
-        username,
+        OR: [{ email }, { username }],
       },
     });
 
@@ -216,7 +215,7 @@ export const signin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const { error } = signinValidation();
+    const { error } = signinValidation(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
@@ -282,7 +281,7 @@ export const signin = async (req, res, next) => {
  */
 export const forgotPassword = async (req, res, next) => {
   try {
-    const { error } = forgotPasswordValidation();
+    const { error } = forgotPasswordValidation(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
@@ -336,7 +335,7 @@ export const forgotPassword = async (req, res, next) => {
  */
 export const resetPassword = async (req, res, next) => {
   try {
-    const { error } = resetPasswordValidation();
+    const { error } = resetPasswordValidation(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
@@ -447,7 +446,7 @@ export const forgotPasswordWithoutEmail = async (req, res, next) => {
  */
 export const resetPasswordWithoutEmail = async (req, res, next) => {
   try {
-    const { error } = resetPasswordValidation();
+    const { error } = resetPasswordValidation(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
@@ -548,7 +547,7 @@ export const refreshAccessToken = async (req, res, next) => {
  * @access public
  */
 export const googleOAuthCallback = (req, res) => {
-  res.status(200).json({ message: 'user signup successfully' });
+  res.status(200).json({ message: 'user login successfully' });
 };
 
 /**
@@ -662,5 +661,97 @@ export const logout = async (req, res, next) => {
     res.status(200).json({ message: 'Logged out successfully' });
   } catch (err) {
     next(err);
+  }
+};
+
+/**
+ * Login with firebase
+ */
+export const firebaseLogin = async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+
+    // Verify the Firebase ID token
+    const decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
+    const { uid, email, name, picture } = decodedToken;
+
+    // Check if user exists in database
+    let user = await prisma.user.findUnique({
+      where: { firebaseUid: uid },
+    });
+
+    if (!user) {
+      // If not found by Firebase UID, try finding by email
+      user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (user) {
+        // Link existing user with Firebase
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            firebaseUid: uid,
+            lastLogin: new Date(),
+          },
+        });
+      } else {
+        // Create new user
+        // Extract first and last name from full name
+        const nameParts = name ? name.split(' ') : ['User', ''];
+        const firstName = nameParts[0];
+        const lastName =
+          nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+        // Generate a unique username based on email
+        const baseUsername = email.split('@')[0];
+        let username = baseUsername;
+        let counter = 1;
+
+        // Check if username exists and add number if needed
+        while (await prisma.user.findUnique({ where: { username } })) {
+          username = `${baseUsername}${counter}`;
+          counter++;
+        }
+
+        user = await prisma.user.create({
+          data: {
+            email,
+            firebaseUid: uid,
+            username,
+            firstName,
+            lastName,
+            role: 'MEMBER',
+            profilePic: picture || null,
+            lastLogin: new Date(),
+            password: null, // No password for Firebase users
+          },
+        });
+      }
+    } else {
+      // Update last login time
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() },
+      });
+    }
+
+    // Generate a custom token for this user if needed
+    // const customToken = await firebaseAdmin.auth().createCustomToken(uid);
+
+    return res.status(200).json({
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        profilePic: user.profilePic,
+      },
+      message: 'Authentication successful',
+    });
+  } catch (error) {
+    next(error);
   }
 };

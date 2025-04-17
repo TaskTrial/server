@@ -1221,3 +1221,158 @@ export const deleteTask = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Restore a task
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/restore
+ * @method PATCH
+ * @access private
+ */
+export const restoreTask = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, taskId } = req.params;
+    const { restoreSubtasks = true } = req.body;
+    const user = req.user;
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Check if team exists
+    const teamCheck = await checkTeam(teamId, organizationId);
+    if (!teamCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamCheck.message,
+      });
+    }
+
+    // Check if project exists
+    const projectCheck = await checkProject(projectId, teamId, organizationId);
+    if (!projectCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: projectCheck.message,
+      });
+    }
+
+    // Check if task exists, is deleted, and belongs to the project
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        projectId,
+        deletedAt: { not: null }, // Must be deleted to restore
+      },
+      include: {
+        subtasks: {
+          where: { deletedAt: { not: null } }, // Only include deleted subtasks
+          select: { id: true },
+        },
+        parent: {
+          select: {
+            id: true,
+            deletedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message:
+          'Task not found, already active, or does not belong to the specified project',
+      });
+    }
+
+    // Check task permissions
+    const permissionsCheck = checkTaskPermissions(
+      user,
+      orgCheck.organization,
+      teamCheck.team,
+      projectCheck.project,
+      'restore',
+    );
+
+    if (!permissionsCheck.success) {
+      return res.status(403).json({
+        success: false,
+        message: permissionsCheck.message,
+      });
+    }
+
+    // Check if parent task exists and is not deleted (if applicable)
+    if (task.parent && task.parent.deletedAt) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Cannot restore task because its parent task is deleted. Please restore the parent task first.',
+      });
+    }
+
+    // Start a transaction to ensure all operations succeed or fail together
+    await prisma.$transaction(async (prisma) => {
+      // Restore the task
+      await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          deletedAt: null,
+          lastModifiedBy: user.id,
+          updatedAt: new Date(),
+        },
+      });
+
+      // Restore subtasks if requested
+      if (restoreSubtasks && task.subtasks && task.subtasks.length > 0) {
+        const subtaskIds = task.subtasks.map((subtask) => subtask.id);
+
+        await prisma.task.updateMany({
+          where: {
+            id: { in: subtaskIds },
+            deletedAt: { not: null },
+          },
+          data: {
+            deletedAt: null,
+            lastModifiedBy: user.id,
+            updatedAt: new Date(),
+          },
+        });
+      }
+    });
+
+    // Fetch the updated task to return in the response
+    const restoredTask = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePic: true,
+          },
+        },
+        _count: {
+          select: {
+            subtasks: {
+              where: { deletedAt: null },
+            },
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Task restored successfully${restoreSubtasks ? ' with its subtasks' : ''}`,
+      task: restoredTask,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

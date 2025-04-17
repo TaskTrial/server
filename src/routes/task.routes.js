@@ -3,6 +3,7 @@ import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
   createTask,
   getAllTasks,
+  getSpecificTask,
   updateTask,
   updateTaskPriority,
   updateTaskStatus,
@@ -38,6 +39,12 @@ router.get(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/task/all',
   verifyAccessToken,
   getAllTasks,
+);
+
+router.get(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId',
+  verifyAccessToken,
+  getSpecificTask,
 );
 
 export default router;

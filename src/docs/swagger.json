@@ -5193,6 +5193,256 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/team/{teamId}/project/{projectId}/task/all": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Get all tasks",
+        "description": "Retrieves all tasks for a specific project with filtering, sorting, and pagination capabilities.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the team",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the project",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "sprintId",
+            "in": "query",
+            "description": "Filter by sprint ID (use 'null' for tasks not in any sprint)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "description": "Filter by priority (HIGH, MEDIUM, LOW, CRITICAL)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status (TODO, IN_PROGRESS, IN_REVIEW, DONE)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "assignedTo",
+            "in": "query",
+            "description": "Filter by assignee ID (use 'null' for unassigned tasks)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "parentId",
+            "in": "query",
+            "description": "Filter by parent task ID (use 'null' for root tasks)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search term to filter by task title or description",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination (default: 1)",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items per page (default: 20)",
+            "schema": { "type": "integer", "default": 20 }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Field to sort by (default: createdAt)",
+            "schema": { "type": "string", "default": "createdAt" }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "Sort order (asc or desc, default: desc)",
+            "schema": {
+              "type": "string",
+              "default": "desc",
+              "enum": ["asc", "desc"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tasks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "title": { "type": "string" },
+                          "description": { "type": "string" },
+                          "priority": { "type": "string" },
+                          "status": { "type": "string" },
+                          "projectId": { "type": "string" },
+                          "sprintId": { "type": "string" },
+                          "createdBy": { "type": "string" },
+                          "assignedTo": { "type": "string" },
+                          "dueDate": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "estimatedTime": { "type": "number" },
+                          "parentId": { "type": "string" },
+                          "labels": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                          },
+                          "order": { "type": "number" },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "creator": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "firstName": { "type": "string" },
+                              "lastName": { "type": "string" },
+                              "email": { "type": "string" },
+                              "profilePic": { "type": "string" }
+                            }
+                          },
+                          "assignee": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "firstName": { "type": "string" },
+                              "lastName": { "type": "string" },
+                              "email": { "type": "string" },
+                              "profilePic": { "type": "string" }
+                            }
+                          },
+                          "sprint": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" },
+                              "status": { "type": "string" }
+                            }
+                          },
+                          "subtasks": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": { "type": "string" },
+                                "title": { "type": "string" },
+                                "status": { "type": "string" },
+                                "priority": { "type": "string" }
+                              }
+                            }
+                          },
+                          "parent": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "title": { "type": "string" },
+                              "status": { "type": "string" }
+                            }
+                          },
+                          "_count": {
+                            "type": "object",
+                            "properties": {
+                              "comments": { "type": "integer" },
+                              "attachments": { "type": "integer" }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": { "type": "integer", "example": 100 },
+                        "page": { "type": "integer", "example": 1 },
+                        "limit": { "type": "integer", "example": 20 },
+                        "pages": { "type": "integer", "example": 5 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - organization, team or project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "example": "Organization not found"
+                        },
+                        { "type": "string", "example": "Team not found" },
+                        { "type": "string", "example": "Project not found" }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 

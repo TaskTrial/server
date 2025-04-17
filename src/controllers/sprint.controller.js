@@ -1,8 +1,5 @@
 import prisma from '../config/prismaClient.js';
-import {
-  sprintvalidation,
-  updateSprintValidation,
-} from '../validations/sprint.validation.js';
+import { sprintvalidation } from '../validations/sprint.validation.js';
 
 /**
  * Validate required parameters

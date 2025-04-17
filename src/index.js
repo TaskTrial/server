@@ -16,6 +16,7 @@ import userRoutes from './routes/user.routes.js';
 import orgRouter from './routes/organization.routes.js';
 import teamRoutes from './routes/team.routes.js';
 import projectRoutes from './routes/project.routes.js';
+import sprintRoutes from './routes/sprint.routes.js';
 import {
   errorHandler,
   notFound,
@@ -52,7 +53,8 @@ app.use(passport.session());
 // Cors Policy
 app.use(
   cors({
-    credentials: true, // allow cookies
+    origin: '*', // Allow all origins or specify allowed origins
+    credentials: true, // Allow cookies
   }),
 );
 
@@ -77,6 +79,7 @@ app.use(userRoutes);
 app.use(departmentRoutes);
 app.use(teamRoutes);
 app.use(projectRoutes);
+app.use(sprintRoutes);
 
 // Error handling middleware
 app.use(notFound);

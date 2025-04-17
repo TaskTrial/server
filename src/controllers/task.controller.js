@@ -545,3 +545,102 @@ export const updateTask = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Update the task priority
+ * @route  /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/priority
+ * @method PATCH
+ * @access private
+ */
+export const updateTaskPriority = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, taskId } = req.params;
+    const { priority } = req.body;
+    const user = req.user;
+
+    // Validate priority
+    if (!priority || !['HIGH', 'MEDIUM', 'LOW'].includes(priority)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid priority (HIGH, MEDIUM, LOW) is required',
+      });
+    }
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Check if team exists
+    const teamCheck = await checkTeam(teamId, organizationId);
+    if (!teamCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: teamCheck.message,
+      });
+    }
+
+    // Check if project exists
+    const projectCheck = await checkProject(projectId, teamId, organizationId);
+    if (!projectCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: projectCheck.message,
+      });
+    }
+
+    // Check if task exists and belongs to the project
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found or does not belong to the specified project',
+      });
+    }
+
+    // Check task permissions
+    const permissionsCheck = checkTaskPermissions(
+      user,
+      orgCheck.organization,
+      teamCheck.team,
+      projectCheck.project,
+      'update priority',
+    );
+
+    if (!permissionsCheck.success) {
+      return res.status(403).json({
+        success: false,
+        message: permissionsCheck.message,
+      });
+    }
+
+    // Update task priority
+    const updatedTask = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        priority,
+        updatedAt: new Date(),
+        lastModifiedBy: user.id,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Task priority updated successfully',
+      task: updatedTask,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

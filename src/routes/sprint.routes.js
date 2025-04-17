@@ -12,7 +12,7 @@ router.post(
 router.put(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId',
   verifyAccessToken,
-  createSprint,
+  updateSprint,
 );
 
 export default router;

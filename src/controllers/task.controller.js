@@ -1387,6 +1387,19 @@ export const deleteTask = async (req, res, next) => {
       }
     });
 
+    // Log the delete activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'DELETED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: task.sprintId || null,
+      taskId: task.id,
+      details: generateActivityDetails('DELETED', task, null),
+    });
+
     return res.status(200).json({
       success: true,
       message: `Task ${permanent ? 'permanently ' : ''}deleted successfully`,

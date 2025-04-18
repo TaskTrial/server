@@ -822,6 +822,18 @@ export const deleteOrganization = async (req, res, next) => {
       data: { deletedAt: new Date(), status: 'DELETED' },
     });
 
+    // Log organization deletion
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'DELETED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: generateActivityDetails('DELETED', existingOrg, {
+        deletedAt: new Date(),
+        organizationName: existingOrg.name,
+      }),
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Organization deleted successfully',

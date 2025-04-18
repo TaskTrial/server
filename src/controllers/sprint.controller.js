@@ -672,3 +672,122 @@ export const updateSprintStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get all sprints for a project
+ * @route  GET /api/organization/:organizationId/team/:teamId/project/:projectId/sprints
+ * @method GET
+ * @access private
+ */
+export const getAllSprints = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId } = req.params;
+    const { page = 1, pageSize = 10, status } = req.query;
+    const user = req.user;
+
+    // Validate parameters
+    const paramsValidation = validateParams(
+      { organizationId, teamId, projectId },
+      ['organizationId', 'teamId', 'projectId'],
+    );
+
+    if (!paramsValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: paramsValidation.message,
+      });
+    }
+
+    // Validate pagination parameters
+    const pageInt = parseInt(page);
+    const pageSizeInt = parseInt(pageSize);
+
+    if (
+      isNaN(pageInt) ||
+      isNaN(pageSizeInt) ||
+      pageInt < 1 ||
+      pageSizeInt < 1
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid pagination parameters',
+      });
+    }
+
+    // Check if user has access to the project (all members can view sprints)
+    const projectMember = await prisma.projectMember.findFirst({
+      where: {
+        projectId,
+        userId: user.id,
+        leftAt: null,
+      },
+    });
+
+    if (!projectMember && user.role !== 'ADMIN') {
+      const orgAccess = await prisma.organizationMember.findFirst({
+        where: {
+          organizationId,
+          userId: user.id,
+          role: 'OWNER',
+        },
+      });
+
+      if (!orgAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have access to this project',
+        });
+      }
+    }
+
+    // Build where clause
+    const where = {
+      projectId,
+      ...(status && { status }),
+    };
+
+    // Get total count of sprints (for pagination)
+    const totalCount = await prisma.sprint.count({ where });
+
+    // Get sprints with pagination and sorting
+    const sprints = await prisma.sprint.findMany({
+      where,
+      skip: (pageInt - 1) * pageSizeInt,
+      take: pageSizeInt,
+      orderBy: {
+        startDate: 'desc', // Sorting by start date (newest first)
+      },
+      include: {
+        _count: {
+          select: { tasks: true }, // Include task count
+        },
+      },
+    });
+
+    // Format response
+    const formattedSprints = sprints.map((sprint) => ({
+      id: sprint.id,
+      name: sprint.name,
+      description: sprint.description,
+      startDate: sprint.startDate,
+      endDate: sprint.endDate,
+      status: sprint.status,
+      goal: sprint.goal,
+      taskCount: sprint._count.tasks,
+      createdAt: sprint.createdAt,
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedSprints,
+      pagination: {
+        currentPage: pageInt,
+        pageSize: pageSizeInt,
+        totalItems: totalCount,
+        totalPages: Math.ceil(totalCount / pageSizeInt),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

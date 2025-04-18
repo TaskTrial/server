@@ -718,6 +718,23 @@ export const updateOrganization = async (req, res, next) => {
       }
     }
 
+    const updatedOrganization = await prisma.organization.update({
+      where: { id: organizationId },
+    });
+
+    // Log organization update
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: generateActivityDetails(
+        'UPDATED',
+        existingOrg,
+        updatedOrganization,
+      ),
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Organization updated successfully',

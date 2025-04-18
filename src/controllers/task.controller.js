@@ -3,6 +3,10 @@ import {
   createTaskValidation,
   updateTaskValidation,
 } from '../validations/task.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Helper function to validate required params
@@ -344,6 +348,37 @@ export const createTask = async (req, res, next) => {
       },
     });
 
+    // Log the activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'CREATED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: sprintId || null,
+      taskId: task.id,
+      details: generateActivityDetails('CREATED', null, task),
+    });
+
+    // If task is assigned to someone, log that action too
+    if (assignedTo) {
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'ASSIGNED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: sprintId || null,
+        taskId: task.id,
+        details: generateActivityDetails('ASSIGNED', null, {
+          assignedTo,
+          taskId: task.id,
+        }),
+      });
+    }
+
     // Fetch project members
     const projectMembers = await prisma.projectMember.findMany({
       where: { projectId },
@@ -517,6 +552,9 @@ export const updateTask = async (req, res, next) => {
       }
     }
 
+    // Save old task data for activity logging
+    const oldTaskData = { ...task };
+
     // Update the task
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
@@ -535,6 +573,100 @@ export const updateTask = async (req, res, next) => {
         lastModifiedBy: user.id,
       },
     });
+
+    // Log the general update activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'UPDATED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: updatedTask.sprintId || null,
+      taskId: updatedTask.id,
+      details: generateActivityDetails('UPDATED', oldTaskData, updatedTask),
+    });
+
+    // Assignment change
+    if (assignedTo !== undefined && assignedTo !== oldTaskData.assignedTo) {
+      if (assignedTo === null) {
+        // Task was unassigned
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'UNASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('UNASSIGNED', oldTaskData, null),
+        });
+      } else if (oldTaskData.assignedTo === null) {
+        // Task was assigned
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'ASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('ASSIGNED', null, {
+            assignedTo,
+            taskId: updatedTask.id,
+          }),
+        });
+      } else {
+        // Assignment was changed
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'UNASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('UNASSIGNED', oldTaskData, null),
+        });
+
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'ASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('ASSIGNED', null, {
+            assignedTo,
+            taskId: updatedTask.id,
+          }),
+        });
+      }
+    }
+
+    // Sprint change
+    if (sprintId !== undefined && sprintId !== oldTaskData.sprintId) {
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'TASK_MOVED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: updatedTask.sprintId || null,
+        taskId: updatedTask.id,
+        details: generateActivityDetails(
+          'TASK_MOVED',
+          oldTaskData,
+          updatedTask,
+        ),
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -625,6 +757,8 @@ export const updateTaskPriority = async (req, res, next) => {
       });
     }
 
+    const oldTaskData = { ...task };
+
     // Update task priority
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
@@ -634,6 +768,25 @@ export const updateTaskPriority = async (req, res, next) => {
         lastModifiedBy: user.id,
       },
     });
+
+    // Status change
+    if (priority && priority !== oldTaskData.priority) {
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'STATUS_CHANGED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: updatedTask.sprintId || null,
+        taskId: updatedTask.id,
+        details: generateActivityDetails(
+          'STATUS_CHANGED',
+          oldTaskData,
+          updatedTask,
+        ),
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -725,6 +878,8 @@ export const updateTaskStatus = async (req, res, next) => {
       });
     }
 
+    const oldTaskData = { ...task };
+
     // Update task status
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
@@ -734,6 +889,25 @@ export const updateTaskStatus = async (req, res, next) => {
         lastModifiedBy: user.id,
       },
     });
+
+    // Status change
+    if (status && status !== oldTaskData.status) {
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'STATUS_CHANGED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: updatedTask.sprintId || null,
+        taskId: updatedTask.id,
+        details: generateActivityDetails(
+          'STATUS_CHANGED',
+          oldTaskData,
+          updatedTask,
+        ),
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -1213,6 +1387,19 @@ export const deleteTask = async (req, res, next) => {
       }
     });
 
+    // Log the delete activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'DELETED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: task.sprintId || null,
+      taskId: task.id,
+      details: generateActivityDetails('DELETED', task, null),
+    });
+
     return res.status(200).json({
       success: true,
       message: `Task ${permanent ? 'permanently ' : ''}deleted successfully`,
@@ -1364,6 +1551,22 @@ export const restoreTask = async (req, res, next) => {
             },
           },
         },
+      },
+    });
+
+    // Log the restore activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'UPDATED', // Using UPDATED with specific details
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: restoredTask.sprintId || null,
+      taskId: restoredTask.id,
+      details: {
+        action: 'RESTORE',
+        restoredAt: new Date(),
       },
     });
 

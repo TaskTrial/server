@@ -976,6 +976,18 @@ export const addOwners = async (req, res, next) => {
     });
     // Send email notifications to new owners
 
+    // Log addition of owners
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'MEMBER_ADDED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: {
+        newOwnerRecords,
+        addedAt: new Date(),
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: `Successfully added ${newOwnerRecords.count} owner(s) to the organization`,

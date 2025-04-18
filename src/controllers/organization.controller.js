@@ -11,6 +11,10 @@ import {
   updateOrganizationValidation,
   verifyOrganizationValidation,
 } from '../validations/organization.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * @desc   Create a new organization with the current user as owner
@@ -116,6 +120,19 @@ export const createOrganization = async (req, res, next) => {
     //   }
     // }
 
+    // Log organization creation
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'CREATED',
+      userId: req.user.id,
+      organizationId: result.org.id,
+      details: generateActivityDetails('CREATED', null, {
+        organizationName: result.org.name,
+        organizationId: result.org.id,
+        createdAt: result.org.createdAt,
+      }),
+    });
+
     return res.status(201).json({
       success: true,
       message: `Organization created successfully.`,
@@ -192,6 +209,18 @@ export const resendOTP = async (req, res, next) => {
       });
     }
 
+    // Log OTP resend
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: orgId,
+      details: {
+        action: 'OTP_RESENT',
+        timestamp: new Date(),
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Code send successfully. Please check your email',
@@ -247,6 +276,18 @@ export const verifyOrganization = async (req, res, next) => {
         status: 'APPROVAL',
         emailVerificationOTP: null,
         emailVerificationExpires: null,
+      },
+    });
+
+    // Log organization verification
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: org.id,
+      details: {
+        action: 'VERIFIED',
+        verifiedAt: new Date(),
       },
     });
 
@@ -677,6 +718,23 @@ export const updateOrganization = async (req, res, next) => {
       }
     }
 
+    const updatedOrganization = await prisma.organization.update({
+      where: { id: organizationId },
+    });
+
+    // Log organization update
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: generateActivityDetails(
+        'UPDATED',
+        existingOrg,
+        updatedOrganization,
+      ),
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Organization updated successfully',
@@ -762,6 +820,18 @@ export const deleteOrganization = async (req, res, next) => {
     await prisma.organization.update({
       where: { id: organizationId },
       data: { deletedAt: new Date(), status: 'DELETED' },
+    });
+
+    // Log organization deletion
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'DELETED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: generateActivityDetails('DELETED', existingOrg, {
+        deletedAt: new Date(),
+        organizationName: existingOrg.name,
+      }),
     });
 
     return res.status(200).json({
@@ -906,6 +976,18 @@ export const addOwners = async (req, res, next) => {
     });
     // Send email notifications to new owners
 
+    // Log addition of owners
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'MEMBER_ADDED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: {
+        newOwnerRecords,
+        addedAt: new Date(),
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: `Successfully added ${newOwnerRecords.count} owner(s) to the organization`,
@@ -978,6 +1060,21 @@ export const uploadOrganizationLogo = async (req, res, next) => {
       data: { logoUrl },
     });
 
+    // Log logo upload
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: {
+        action: 'LOGO_UPLOADED',
+        logoUrl: updatedOrganization.logoUrl,
+        fileSize: req.file.size,
+        fileName: req.file.originalname,
+        uploadedAt: updatedOrganization.updatedAt,
+      },
+    });
+
     res.status(200).json({
       message: 'Organization logo uploaded successfully',
       logoUrl,
@@ -1019,6 +1116,19 @@ export const deleteOrganizationLogo = async (req, res, next) => {
     const updatedOrganization = await prisma.organization.update({
       where: { id: organizationId },
       data: { logoUrl: null },
+    });
+
+    // Log logo deletion
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: {
+        action: 'LOGO_DELETED',
+        previousLogoUrl: organization.logoUrl,
+        deletedAt: updatedOrganization.updatedAt,
+      },
     });
 
     res.status(200).json({

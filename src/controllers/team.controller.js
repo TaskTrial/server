@@ -742,6 +742,15 @@ export const updateTeam = async (req, res, next) => {
         data: { name, description, avatar },
       });
 
+      await createActivityLog({
+        entityType: 'TEAM',
+        action: 'UPDATED',
+        userId: req.user.id,
+        organizationId,
+        teamId,
+        details: generateActivityDetails('UPDATED', existingOrg, updatedTeam),
+      });
+
       res.status(200).json({
         success: true,
         team: updatedTeam,

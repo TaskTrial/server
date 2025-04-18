@@ -552,6 +552,9 @@ export const updateTask = async (req, res, next) => {
       }
     }
 
+    // Save old task data for activity logging
+    const oldTaskData = { ...task };
+
     // Update the task
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
@@ -570,6 +573,100 @@ export const updateTask = async (req, res, next) => {
         lastModifiedBy: user.id,
       },
     });
+
+    // Log the general update activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'UPDATED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: updatedTask.sprintId || null,
+      taskId: updatedTask.id,
+      details: generateActivityDetails('UPDATED', oldTaskData, updatedTask),
+    });
+
+    // Assignment change
+    if (assignedTo !== undefined && assignedTo !== oldTaskData.assignedTo) {
+      if (assignedTo === null) {
+        // Task was unassigned
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'UNASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('UNASSIGNED', oldTaskData, null),
+        });
+      } else if (oldTaskData.assignedTo === null) {
+        // Task was assigned
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'ASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('ASSIGNED', null, {
+            assignedTo,
+            taskId: updatedTask.id,
+          }),
+        });
+      } else {
+        // Assignment was changed
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'UNASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('UNASSIGNED', oldTaskData, null),
+        });
+
+        await createActivityLog({
+          entityType: 'TASK',
+          action: 'ASSIGNED',
+          userId: user.id,
+          organizationId,
+          teamId,
+          projectId,
+          sprintId: updatedTask.sprintId || null,
+          taskId: updatedTask.id,
+          details: generateActivityDetails('ASSIGNED', null, {
+            assignedTo,
+            taskId: updatedTask.id,
+          }),
+        });
+      }
+    }
+
+    // Sprint change
+    if (sprintId !== undefined && sprintId !== oldTaskData.sprintId) {
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'TASK_MOVED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: updatedTask.sprintId || null,
+        taskId: updatedTask.id,
+        details: generateActivityDetails(
+          'TASK_MOVED',
+          oldTaskData,
+          updatedTask,
+        ),
+      });
+    }
 
     return res.status(200).json({
       success: true,

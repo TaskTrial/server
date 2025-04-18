@@ -8,6 +8,10 @@ import {
   createTeamValidation,
   updateTeamValidation,
 } from '../validations/team.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Helper function to validate required params
@@ -268,6 +272,19 @@ export const createTeam = async (req, res, next) => {
       return { team, leaderMember, allTeamMembers };
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'CREATED',
+      userId: req.user.id,
+      organizationId,
+      teamId: result.team.id,
+      details: generateActivityDetails('CREATED', null, {
+        teamName: result.team.name,
+        teamDescription: result.team.description,
+        createdBy: req.user.id,
+      }),
+    });
+
     return res.status(201).json({
       success: true,
       message: `Team created successfully.`,
@@ -436,6 +453,18 @@ export const addTeamMember = async (req, res, next) => {
       return { newMembers, allTeamMembers };
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'MEMBER_ADDED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: generateActivityDetails('MEMBER_ADDED', null, {
+        newMembers: result.newMembers,
+        addedBy: req.user.id,
+      }),
+    });
+
     return res.status(200).json({
       success: true,
       message: `Members added successfully.`,
@@ -577,6 +606,19 @@ export const removeTeamMember = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'MEMBER_REMOVED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: generateActivityDetails('MEMBER_REMOVED', null, {
+        removedMember,
+        removedBy: req.user.id,
+        removedAt: new Date(),
+      }),
+    });
+
     return res.status(200).json({
       success: true,
       message: `Team member ${removedMember.user.firstName} ${removedMember.user.lastName} removed successfully`,
@@ -700,6 +742,15 @@ export const updateTeam = async (req, res, next) => {
         data: { name, description, avatar },
       });
 
+      await createActivityLog({
+        entityType: 'TEAM',
+        action: 'UPDATED',
+        userId: req.user.id,
+        organizationId,
+        teamId,
+        details: generateActivityDetails('UPDATED', existingOrg, updatedTeam),
+      });
+
       res.status(200).json({
         success: true,
         team: updatedTeam,
@@ -789,6 +840,18 @@ export const uploadTeamAvatar = async (req, res, next) => {
       data: { avatar },
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: {
+        action: 'AVATAR_UPLOADED',
+        uploadedAt: new Date(),
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Team avatar uploaded successfully',
@@ -868,6 +931,19 @@ export const deleteTeamAvatar = async (req, res, next) => {
       data: { avatar: null },
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: {
+        action: 'AVATAR_REMOVED',
+        removedAt: new Date(),
+        removedBy: req.user.id,
+      },
+    });
+
     res.status(200).json({
       message: 'Team avatar deleted successfully',
       team: updatedTeam,
@@ -941,6 +1017,19 @@ export const deleteTeam = async (req, res, next) => {
     await prisma.team.update({
       where: { id: teamId },
       data: { deletedAt: new Date() },
+    });
+
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'DELETED',
+      userId: req.user.id,
+      organizationId,
+      teamId: team.id,
+      details: generateActivityDetails('DELETED', team, {
+        deletedAt: new Date(),
+        deletedBy: req.user.id,
+        teamName: team.name,
+      }),
     });
 
     return res.status(200).json({

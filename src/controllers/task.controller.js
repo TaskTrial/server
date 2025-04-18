@@ -3,6 +3,10 @@ import {
   createTaskValidation,
   updateTaskValidation,
 } from '../validations/task.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Helper function to validate required params
@@ -343,6 +347,37 @@ export const createTask = async (req, res, next) => {
         lastModifiedBy: user.id,
       },
     });
+
+    // Log the activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'CREATED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: sprintId || null,
+      taskId: task.id,
+      details: generateActivityDetails('CREATED', null, task),
+    });
+
+    // If task is assigned to someone, log that action too
+    if (assignedTo) {
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'ASSIGNED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: sprintId || null,
+        taskId: task.id,
+        details: generateActivityDetails('ASSIGNED', null, {
+          assignedTo,
+          taskId: task.id,
+        }),
+      });
+    }
 
     // Fetch project members
     const projectMembers = await prisma.projectMember.findMany({

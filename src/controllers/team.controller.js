@@ -1019,6 +1019,19 @@ export const deleteTeam = async (req, res, next) => {
       data: { deletedAt: new Date() },
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'DELETED',
+      userId: req.user.id,
+      organizationId,
+      teamId: team.id,
+      details: generateActivityDetails('DELETED', team, {
+        deletedAt: new Date(),
+        deletedBy: req.user.id,
+        teamName: team.name,
+      }),
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Team deleted successfully',

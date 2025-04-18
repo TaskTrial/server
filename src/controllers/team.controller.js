@@ -8,6 +8,10 @@ import {
   createTeamValidation,
   updateTeamValidation,
 } from '../validations/team.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Helper function to validate required params
@@ -266,6 +270,19 @@ export const createTeam = async (req, res, next) => {
       });
 
       return { team, leaderMember, allTeamMembers };
+    });
+
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'CREATED',
+      userId: req.user.id,
+      organizationId,
+      teamId: result.team.id,
+      details: generateActivityDetails('CREATED', null, {
+        teamName: result.team.name,
+        teamDescription: result.team.description,
+        createdBy: req.user.id,
+      }),
     });
 
     return res.status(201).json({

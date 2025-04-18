@@ -840,6 +840,18 @@ export const uploadTeamAvatar = async (req, res, next) => {
       data: { avatar },
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: {
+        action: 'AVATAR_UPLOADED',
+        uploadedAt: new Date(),
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Team avatar uploaded successfully',

@@ -699,8 +699,8 @@ export const getAllSprints = async (req, res, next) => {
     }
 
     // Validate pagination parameters
-    const pageInt = parseInt(page);
-    const pageSizeInt = parseInt(pageSize);
+    const pageInt = parseInt(page, 10);
+    const pageSizeInt = parseInt(pageSize, 10);
 
     if (
       isNaN(pageInt) ||

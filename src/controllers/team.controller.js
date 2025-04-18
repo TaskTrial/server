@@ -606,6 +606,19 @@ export const removeTeamMember = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'MEMBER_REMOVED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: generateActivityDetails('MEMBER_REMOVED', null, {
+        removedMember,
+        removedBy: req.user.id,
+        removedAt: new Date(),
+      }),
+    });
+
     return res.status(200).json({
       success: true,
       message: `Team member ${removedMember.user.firstName} ${removedMember.user.lastName} removed successfully`,

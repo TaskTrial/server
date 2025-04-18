@@ -1,4 +1,4 @@
-/* eslint-disable */
+
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
@@ -333,9 +333,14 @@ exports.Prisma.CommentScalarFieldEnum = {
 exports.Prisma.ActivityLogScalarFieldEnum = {
   id: 'id',
   entityType: 'entityType',
-  entityId: 'entityId',
-  userId: 'userId',
   action: 'action',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  departmentId: 'departmentId',
+  projectId: 'projectId',
+  teamId: 'teamId',
+  sprintId: 'sprintId',
+  taskId: 'taskId',
   details: 'details',
   createdAt: 'createdAt'
 };
@@ -443,6 +448,41 @@ exports.DependencyType = exports.$Enums.DependencyType = {
   REQUIRES: 'REQUIRES',
   RELATES_TO: 'RELATES_TO',
   DUPLICATES: 'DUPLICATES'
+};
+
+exports.EntityType = exports.$Enums.EntityType = {
+  ORGANIZATION: 'ORGANIZATION',
+  DEPARTMENT: 'DEPARTMENT',
+  TEAM: 'TEAM',
+  PROJECT: 'PROJECT',
+  SPRINT: 'SPRINT',
+  TASK: 'TASK',
+  USER: 'USER',
+  TASK_ATTACHMENT: 'TASK_ATTACHMENT',
+  TASK_DEPENDENCY: 'TASK_DEPENDENCY',
+  TASK_TEMPLATE: 'TASK_TEMPLATE',
+  COMMENT: 'COMMENT'
+};
+
+exports.ActionType = exports.$Enums.ActionType = {
+  CREATED: 'CREATED',
+  UPDATED: 'UPDATED',
+  DELETED: 'DELETED',
+  COMMENTED: 'COMMENTED',
+  STATUS_CHANGED: 'STATUS_CHANGED',
+  ASSIGNED: 'ASSIGNED',
+  UNASSIGNED: 'UNASSIGNED',
+  ATTACHMENT_ADDED: 'ATTACHMENT_ADDED',
+  ATTACHMENT_REMOVED: 'ATTACHMENT_REMOVED',
+  DEPENDENCY_ADDED: 'DEPENDENCY_ADDED',
+  DEPENDENCY_REMOVED: 'DEPENDENCY_REMOVED',
+  MEMBER_ADDED: 'MEMBER_ADDED',
+  MEMBER_REMOVED: 'MEMBER_REMOVED',
+  MEMBER_ROLE_CHANGED: 'MEMBER_ROLE_CHANGED',
+  SPRINT_STARTED: 'SPRINT_STARTED',
+  SPRINT_COMPLETED: 'SPRINT_COMPLETED',
+  TASK_MOVED: 'TASK_MOVED',
+  LOGGED_TIME: 'LOGGED_TIME'
 };
 
 exports.ReportType = exports.$Enums.ReportType = {

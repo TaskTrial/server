@@ -1,4 +1,4 @@
-/* eslint-disable */
+
 /**
  * Client
 **/
@@ -127,13 +127,43 @@ export type ReportType = (typeof ReportType)[keyof typeof ReportType]
 
 export const EntityType: {
   ORGANIZATION: 'ORGANIZATION',
+  DEPARTMENT: 'DEPARTMENT',
   TEAM: 'TEAM',
   PROJECT: 'PROJECT',
+  SPRINT: 'SPRINT',
   TASK: 'TASK',
-  USER: 'USER'
+  USER: 'USER',
+  TASK_ATTACHMENT: 'TASK_ATTACHMENT',
+  TASK_DEPENDENCY: 'TASK_DEPENDENCY',
+  TASK_TEMPLATE: 'TASK_TEMPLATE',
+  COMMENT: 'COMMENT'
 };
 
 export type EntityType = (typeof EntityType)[keyof typeof EntityType]
+
+
+export const ActionType: {
+  CREATED: 'CREATED',
+  UPDATED: 'UPDATED',
+  DELETED: 'DELETED',
+  COMMENTED: 'COMMENTED',
+  STATUS_CHANGED: 'STATUS_CHANGED',
+  ASSIGNED: 'ASSIGNED',
+  UNASSIGNED: 'UNASSIGNED',
+  ATTACHMENT_ADDED: 'ATTACHMENT_ADDED',
+  ATTACHMENT_REMOVED: 'ATTACHMENT_REMOVED',
+  DEPENDENCY_ADDED: 'DEPENDENCY_ADDED',
+  DEPENDENCY_REMOVED: 'DEPENDENCY_REMOVED',
+  MEMBER_ADDED: 'MEMBER_ADDED',
+  MEMBER_REMOVED: 'MEMBER_REMOVED',
+  MEMBER_ROLE_CHANGED: 'MEMBER_ROLE_CHANGED',
+  SPRINT_STARTED: 'SPRINT_STARTED',
+  SPRINT_COMPLETED: 'SPRINT_COMPLETED',
+  TASK_MOVED: 'TASK_MOVED',
+  LOGGED_TIME: 'LOGGED_TIME'
+};
+
+export type ActionType = (typeof ActionType)[keyof typeof ActionType]
 
 
 export const TaskPriority: {
@@ -193,6 +223,10 @@ export const ReportType: typeof $Enums.ReportType
 export type EntityType = $Enums.EntityType
 
 export const EntityType: typeof $Enums.EntityType
+
+export type ActionType = $Enums.ActionType
+
+export const ActionType: typeof $Enums.ActionType
 
 export type TaskPriority = $Enums.TaskPriority
 
@@ -2901,12 +2935,14 @@ export namespace Prisma {
   export type DepartmentCountOutputType = {
     teams: number
     users: number
+    activityLogs: number
     Report: number
   }
 
   export type DepartmentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     teams?: boolean | DepartmentCountOutputTypeCountTeamsArgs
     users?: boolean | DepartmentCountOutputTypeCountUsersArgs
+    activityLogs?: boolean | DepartmentCountOutputTypeCountActivityLogsArgs
     Report?: boolean | DepartmentCountOutputTypeCountReportArgs
   }
 
@@ -2933,6 +2969,13 @@ export namespace Prisma {
    */
   export type DepartmentCountOutputTypeCountUsersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserWhereInput
+  }
+
+  /**
+   * DepartmentCountOutputType without action
+   */
+  export type DepartmentCountOutputTypeCountActivityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ActivityLogWhereInput
   }
 
   /**
@@ -3074,10 +3117,12 @@ export namespace Prisma {
 
   export type SprintCountOutputType = {
     tasks: number
+    activityLogs: number
   }
 
   export type SprintCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tasks?: boolean | SprintCountOutputTypeCountTasksArgs
+    activityLogs?: boolean | SprintCountOutputTypeCountActivityLogsArgs
   }
 
   // Custom InputTypes
@@ -3096,6 +3141,13 @@ export namespace Prisma {
    */
   export type SprintCountOutputTypeCountTasksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TaskWhereInput
+  }
+
+  /**
+   * SprintCountOutputType without action
+   */
+  export type SprintCountOutputTypeCountActivityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ActivityLogWhereInput
   }
 
 
@@ -7832,6 +7884,7 @@ export namespace Prisma {
     manager?: boolean | UserDefaultArgs<ExtArgs>
     teams?: boolean | Department$teamsArgs<ExtArgs>
     users?: boolean | Department$usersArgs<ExtArgs>
+    activityLogs?: boolean | Department$activityLogsArgs<ExtArgs>
     Report?: boolean | Department$ReportArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["department"]>
@@ -7879,6 +7932,7 @@ export namespace Prisma {
     manager?: boolean | UserDefaultArgs<ExtArgs>
     teams?: boolean | Department$teamsArgs<ExtArgs>
     users?: boolean | Department$usersArgs<ExtArgs>
+    activityLogs?: boolean | Department$activityLogsArgs<ExtArgs>
     Report?: boolean | Department$ReportArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -7898,6 +7952,7 @@ export namespace Prisma {
       manager: Prisma.$UserPayload<ExtArgs>
       teams: Prisma.$TeamPayload<ExtArgs>[]
       users: Prisma.$UserPayload<ExtArgs>[]
+      activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
       Report: Prisma.$ReportPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -8307,6 +8362,7 @@ export namespace Prisma {
     manager<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     teams<T extends Department$teamsArgs<ExtArgs> = {}>(args?: Subset<T, Department$teamsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     users<T extends Department$usersArgs<ExtArgs> = {}>(args?: Subset<T, Department$usersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    activityLogs<T extends Department$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, Department$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     Report<T extends Department$ReportArgs<ExtArgs> = {}>(args?: Subset<T, Department$ReportArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -8786,6 +8842,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+  }
+
+  /**
+   * Department.activityLogs
+   */
+  export type Department$activityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ActivityLog
+     */
+    omit?: ActivityLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ActivityLogInclude<ExtArgs> | null
+    where?: ActivityLogWhereInput
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    cursor?: ActivityLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
   }
 
   /**
@@ -13956,6 +14036,7 @@ export namespace Prisma {
     order?: boolean
     project?: boolean | ProjectDefaultArgs<ExtArgs>
     tasks?: boolean | Sprint$tasksArgs<ExtArgs>
+    activityLogs?: boolean | Sprint$activityLogsArgs<ExtArgs>
     _count?: boolean | SprintCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["sprint"]>
 
@@ -14001,6 +14082,7 @@ export namespace Prisma {
   export type SprintInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
     tasks?: boolean | Sprint$tasksArgs<ExtArgs>
+    activityLogs?: boolean | Sprint$activityLogsArgs<ExtArgs>
     _count?: boolean | SprintCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type SprintIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14015,6 +14097,7 @@ export namespace Prisma {
     objects: {
       project: Prisma.$ProjectPayload<ExtArgs>
       tasks: Prisma.$TaskPayload<ExtArgs>[]
+      activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -14422,6 +14505,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     tasks<T extends Sprint$tasksArgs<ExtArgs> = {}>(args?: Subset<T, Sprint$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    activityLogs<T extends Sprint$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, Sprint$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14877,6 +14961,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TaskScalarFieldEnum | TaskScalarFieldEnum[]
+  }
+
+  /**
+   * Sprint.activityLogs
+   */
+  export type Sprint$activityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ActivityLog
+     */
+    omit?: ActivityLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ActivityLogInclude<ExtArgs> | null
+    where?: ActivityLogWhereInput
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    cursor?: ActivityLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
   }
 
   /**
@@ -22083,28 +22191,43 @@ export namespace Prisma {
 
   export type ActivityLogMinAggregateOutputType = {
     id: string | null
-    entityType: string | null
-    entityId: string | null
+    entityType: $Enums.EntityType | null
+    action: $Enums.ActionType | null
     userId: string | null
-    action: string | null
+    organizationId: string | null
+    departmentId: string | null
+    projectId: string | null
+    teamId: string | null
+    sprintId: string | null
+    taskId: string | null
     createdAt: Date | null
   }
 
   export type ActivityLogMaxAggregateOutputType = {
     id: string | null
-    entityType: string | null
-    entityId: string | null
+    entityType: $Enums.EntityType | null
+    action: $Enums.ActionType | null
     userId: string | null
-    action: string | null
+    organizationId: string | null
+    departmentId: string | null
+    projectId: string | null
+    teamId: string | null
+    sprintId: string | null
+    taskId: string | null
     createdAt: Date | null
   }
 
   export type ActivityLogCountAggregateOutputType = {
     id: number
     entityType: number
-    entityId: number
-    userId: number
     action: number
+    userId: number
+    organizationId: number
+    departmentId: number
+    projectId: number
+    teamId: number
+    sprintId: number
+    taskId: number
     details: number
     createdAt: number
     _all: number
@@ -22114,27 +22237,42 @@ export namespace Prisma {
   export type ActivityLogMinAggregateInputType = {
     id?: true
     entityType?: true
-    entityId?: true
-    userId?: true
     action?: true
+    userId?: true
+    organizationId?: true
+    departmentId?: true
+    projectId?: true
+    teamId?: true
+    sprintId?: true
+    taskId?: true
     createdAt?: true
   }
 
   export type ActivityLogMaxAggregateInputType = {
     id?: true
     entityType?: true
-    entityId?: true
-    userId?: true
     action?: true
+    userId?: true
+    organizationId?: true
+    departmentId?: true
+    projectId?: true
+    teamId?: true
+    sprintId?: true
+    taskId?: true
     createdAt?: true
   }
 
   export type ActivityLogCountAggregateInputType = {
     id?: true
     entityType?: true
-    entityId?: true
-    userId?: true
     action?: true
+    userId?: true
+    organizationId?: true
+    departmentId?: true
+    projectId?: true
+    teamId?: true
+    sprintId?: true
+    taskId?: true
     details?: true
     createdAt?: true
     _all?: true
@@ -22214,10 +22352,15 @@ export namespace Prisma {
 
   export type ActivityLogGroupByOutputType = {
     id: string
-    entityType: string
-    entityId: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId: string | null
+    departmentId: string | null
+    projectId: string | null
+    teamId: string | null
+    sprintId: string | null
+    taskId: string
     details: JsonValue | null
     createdAt: Date
     _count: ActivityLogCountAggregateOutputType | null
@@ -22242,78 +22385,110 @@ export namespace Prisma {
   export type ActivityLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     entityType?: boolean
-    entityId?: boolean
-    userId?: boolean
     action?: boolean
+    userId?: boolean
+    organizationId?: boolean
+    departmentId?: boolean
+    projectId?: boolean
+    teamId?: boolean
+    sprintId?: boolean
+    taskId?: boolean
     details?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | ActivityLog$organizationArgs<ExtArgs>
+    department?: boolean | ActivityLog$departmentArgs<ExtArgs>
     project?: boolean | ActivityLog$projectArgs<ExtArgs>
     team?: boolean | ActivityLog$teamArgs<ExtArgs>
+    sprint?: boolean | ActivityLog$sprintArgs<ExtArgs>
     task?: boolean | ActivityLog$taskArgs<ExtArgs>
   }, ExtArgs["result"]["activityLog"]>
 
   export type ActivityLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     entityType?: boolean
-    entityId?: boolean
-    userId?: boolean
     action?: boolean
+    userId?: boolean
+    organizationId?: boolean
+    departmentId?: boolean
+    projectId?: boolean
+    teamId?: boolean
+    sprintId?: boolean
+    taskId?: boolean
     details?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | ActivityLog$organizationArgs<ExtArgs>
+    department?: boolean | ActivityLog$departmentArgs<ExtArgs>
     project?: boolean | ActivityLog$projectArgs<ExtArgs>
     team?: boolean | ActivityLog$teamArgs<ExtArgs>
+    sprint?: boolean | ActivityLog$sprintArgs<ExtArgs>
     task?: boolean | ActivityLog$taskArgs<ExtArgs>
   }, ExtArgs["result"]["activityLog"]>
 
   export type ActivityLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     entityType?: boolean
-    entityId?: boolean
-    userId?: boolean
     action?: boolean
+    userId?: boolean
+    organizationId?: boolean
+    departmentId?: boolean
+    projectId?: boolean
+    teamId?: boolean
+    sprintId?: boolean
+    taskId?: boolean
     details?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | ActivityLog$organizationArgs<ExtArgs>
+    department?: boolean | ActivityLog$departmentArgs<ExtArgs>
     project?: boolean | ActivityLog$projectArgs<ExtArgs>
     team?: boolean | ActivityLog$teamArgs<ExtArgs>
+    sprint?: boolean | ActivityLog$sprintArgs<ExtArgs>
     task?: boolean | ActivityLog$taskArgs<ExtArgs>
   }, ExtArgs["result"]["activityLog"]>
 
   export type ActivityLogSelectScalar = {
     id?: boolean
     entityType?: boolean
-    entityId?: boolean
-    userId?: boolean
     action?: boolean
+    userId?: boolean
+    organizationId?: boolean
+    departmentId?: boolean
+    projectId?: boolean
+    teamId?: boolean
+    sprintId?: boolean
+    taskId?: boolean
     details?: boolean
     createdAt?: boolean
   }
 
-  export type ActivityLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "entityType" | "entityId" | "userId" | "action" | "details" | "createdAt", ExtArgs["result"]["activityLog"]>
+  export type ActivityLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "entityType" | "action" | "userId" | "organizationId" | "departmentId" | "projectId" | "teamId" | "sprintId" | "taskId" | "details" | "createdAt", ExtArgs["result"]["activityLog"]>
   export type ActivityLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | ActivityLog$organizationArgs<ExtArgs>
+    department?: boolean | ActivityLog$departmentArgs<ExtArgs>
     project?: boolean | ActivityLog$projectArgs<ExtArgs>
     team?: boolean | ActivityLog$teamArgs<ExtArgs>
+    sprint?: boolean | ActivityLog$sprintArgs<ExtArgs>
     task?: boolean | ActivityLog$taskArgs<ExtArgs>
   }
   export type ActivityLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | ActivityLog$organizationArgs<ExtArgs>
+    department?: boolean | ActivityLog$departmentArgs<ExtArgs>
     project?: boolean | ActivityLog$projectArgs<ExtArgs>
     team?: boolean | ActivityLog$teamArgs<ExtArgs>
+    sprint?: boolean | ActivityLog$sprintArgs<ExtArgs>
     task?: boolean | ActivityLog$taskArgs<ExtArgs>
   }
   export type ActivityLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | ActivityLog$organizationArgs<ExtArgs>
+    department?: boolean | ActivityLog$departmentArgs<ExtArgs>
     project?: boolean | ActivityLog$projectArgs<ExtArgs>
     team?: boolean | ActivityLog$teamArgs<ExtArgs>
+    sprint?: boolean | ActivityLog$sprintArgs<ExtArgs>
     task?: boolean | ActivityLog$taskArgs<ExtArgs>
   }
 
@@ -22322,16 +22497,23 @@ export namespace Prisma {
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
       organization: Prisma.$OrganizationPayload<ExtArgs> | null
+      department: Prisma.$DepartmentPayload<ExtArgs> | null
       project: Prisma.$ProjectPayload<ExtArgs> | null
       team: Prisma.$TeamPayload<ExtArgs> | null
+      sprint: Prisma.$SprintPayload<ExtArgs> | null
       task: Prisma.$TaskPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      entityType: string
-      entityId: string
+      entityType: $Enums.EntityType
+      action: $Enums.ActionType
       userId: string
-      action: string
+      organizationId: string | null
+      departmentId: string | null
+      projectId: string | null
+      teamId: string | null
+      sprintId: string | null
+      taskId: string
       details: Prisma.JsonValue | null
       createdAt: Date
     }, ExtArgs["result"]["activityLog"]>
@@ -22730,8 +22912,10 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     organization<T extends ActivityLog$organizationArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$organizationArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    department<T extends ActivityLog$departmentArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$departmentArgs<ExtArgs>>): Prisma__DepartmentClient<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     project<T extends ActivityLog$projectArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$projectArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     team<T extends ActivityLog$teamArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$teamArgs<ExtArgs>>): Prisma__TeamClient<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    sprint<T extends ActivityLog$sprintArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$sprintArgs<ExtArgs>>): Prisma__SprintClient<$Result.GetResult<Prisma.$SprintPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     task<T extends ActivityLog$taskArgs<ExtArgs> = {}>(args?: Subset<T, ActivityLog$taskArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -22763,10 +22947,15 @@ export namespace Prisma {
    */
   interface ActivityLogFieldRefs {
     readonly id: FieldRef<"ActivityLog", 'String'>
-    readonly entityType: FieldRef<"ActivityLog", 'String'>
-    readonly entityId: FieldRef<"ActivityLog", 'String'>
+    readonly entityType: FieldRef<"ActivityLog", 'EntityType'>
+    readonly action: FieldRef<"ActivityLog", 'ActionType'>
     readonly userId: FieldRef<"ActivityLog", 'String'>
-    readonly action: FieldRef<"ActivityLog", 'String'>
+    readonly organizationId: FieldRef<"ActivityLog", 'String'>
+    readonly departmentId: FieldRef<"ActivityLog", 'String'>
+    readonly projectId: FieldRef<"ActivityLog", 'String'>
+    readonly teamId: FieldRef<"ActivityLog", 'String'>
+    readonly sprintId: FieldRef<"ActivityLog", 'String'>
+    readonly taskId: FieldRef<"ActivityLog", 'String'>
     readonly details: FieldRef<"ActivityLog", 'Json'>
     readonly createdAt: FieldRef<"ActivityLog", 'DateTime'>
   }
@@ -23184,6 +23373,25 @@ export namespace Prisma {
   }
 
   /**
+   * ActivityLog.department
+   */
+  export type ActivityLog$departmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Department
+     */
+    select?: DepartmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Department
+     */
+    omit?: DepartmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DepartmentInclude<ExtArgs> | null
+    where?: DepartmentWhereInput
+  }
+
+  /**
    * ActivityLog.project
    */
   export type ActivityLog$projectArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -23219,6 +23427,25 @@ export namespace Prisma {
      */
     include?: TeamInclude<ExtArgs> | null
     where?: TeamWhereInput
+  }
+
+  /**
+   * ActivityLog.sprint
+   */
+  export type ActivityLog$sprintArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sprint
+     */
+    select?: SprintSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sprint
+     */
+    omit?: SprintOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SprintInclude<ExtArgs> | null
+    where?: SprintWhereInput
   }
 
   /**
@@ -27065,9 +27292,14 @@ export namespace Prisma {
   export const ActivityLogScalarFieldEnum: {
     id: 'id',
     entityType: 'entityType',
-    entityId: 'entityId',
-    userId: 'userId',
     action: 'action',
+    userId: 'userId',
+    organizationId: 'organizationId',
+    departmentId: 'departmentId',
+    projectId: 'projectId',
+    teamId: 'teamId',
+    sprintId: 'sprintId',
+    taskId: 'taskId',
     details: 'details',
     createdAt: 'createdAt'
   };
@@ -27323,6 +27555,34 @@ export namespace Prisma {
    * Reference to a field of type 'DependencyType[]'
    */
   export type ListEnumDependencyTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DependencyType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'EntityType'
+   */
+  export type EnumEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EntityType'>
+    
+
+
+  /**
+   * Reference to a field of type 'EntityType[]'
+   */
+  export type ListEnumEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EntityType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ActionType'
+   */
+  export type EnumActionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ActionType'>
+    
+
+
+  /**
+   * Reference to a field of type 'ActionType[]'
+   */
+  export type ListEnumActionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ActionType[]'>
     
 
 
@@ -27792,6 +28052,7 @@ export namespace Prisma {
     manager?: XOR<UserScalarRelationFilter, UserWhereInput>
     teams?: TeamListRelationFilter
     users?: UserListRelationFilter
+    activityLogs?: ActivityLogListRelationFilter
     Report?: ReportListRelationFilter
   }
 
@@ -27808,6 +28069,7 @@ export namespace Prisma {
     manager?: UserOrderByWithRelationInput
     teams?: TeamOrderByRelationAggregateInput
     users?: UserOrderByRelationAggregateInput
+    activityLogs?: ActivityLogOrderByRelationAggregateInput
     Report?: ReportOrderByRelationAggregateInput
   }
 
@@ -27828,6 +28090,7 @@ export namespace Prisma {
     manager?: XOR<UserScalarRelationFilter, UserWhereInput>
     teams?: TeamListRelationFilter
     users?: UserListRelationFilter
+    activityLogs?: ActivityLogListRelationFilter
     Report?: ReportListRelationFilter
   }, "id" | "organizationId_name">
 
@@ -28253,6 +28516,7 @@ export namespace Prisma {
     order?: IntFilter<"Sprint"> | number
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
     tasks?: TaskListRelationFilter
+    activityLogs?: ActivityLogListRelationFilter
   }
 
   export type SprintOrderByWithRelationInput = {
@@ -28267,6 +28531,7 @@ export namespace Prisma {
     order?: SortOrder
     project?: ProjectOrderByWithRelationInput
     tasks?: TaskOrderByRelationAggregateInput
+    activityLogs?: ActivityLogOrderByRelationAggregateInput
   }
 
   export type SprintWhereUniqueInput = Prisma.AtLeast<{
@@ -28285,6 +28550,7 @@ export namespace Prisma {
     order?: IntFilter<"Sprint"> | number
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
     tasks?: TaskListRelationFilter
+    activityLogs?: ActivityLogListRelationFilter
   }, "id" | "projectId_name">
 
   export type SprintOrderByWithAggregationInput = {
@@ -28855,31 +29121,45 @@ export namespace Prisma {
     OR?: ActivityLogWhereInput[]
     NOT?: ActivityLogWhereInput | ActivityLogWhereInput[]
     id?: UuidFilter<"ActivityLog"> | string
-    entityType?: StringFilter<"ActivityLog"> | string
-    entityId?: UuidFilter<"ActivityLog"> | string
+    entityType?: EnumEntityTypeFilter<"ActivityLog"> | $Enums.EntityType
+    action?: EnumActionTypeFilter<"ActivityLog"> | $Enums.ActionType
     userId?: UuidFilter<"ActivityLog"> | string
-    action?: StringFilter<"ActivityLog"> | string
+    organizationId?: UuidNullableFilter<"ActivityLog"> | string | null
+    departmentId?: UuidNullableFilter<"ActivityLog"> | string | null
+    projectId?: UuidNullableFilter<"ActivityLog"> | string | null
+    teamId?: UuidNullableFilter<"ActivityLog"> | string | null
+    sprintId?: UuidNullableFilter<"ActivityLog"> | string | null
+    taskId?: UuidFilter<"ActivityLog"> | string
     details?: JsonNullableFilter<"ActivityLog">
     createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
+    department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     project?: XOR<ProjectNullableScalarRelationFilter, ProjectWhereInput> | null
     team?: XOR<TeamNullableScalarRelationFilter, TeamWhereInput> | null
+    sprint?: XOR<SprintNullableScalarRelationFilter, SprintWhereInput> | null
     task?: XOR<TaskNullableScalarRelationFilter, TaskWhereInput> | null
   }
 
   export type ActivityLogOrderByWithRelationInput = {
     id?: SortOrder
     entityType?: SortOrder
-    entityId?: SortOrder
-    userId?: SortOrder
     action?: SortOrder
+    userId?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    departmentId?: SortOrderInput | SortOrder
+    projectId?: SortOrderInput | SortOrder
+    teamId?: SortOrderInput | SortOrder
+    sprintId?: SortOrderInput | SortOrder
+    taskId?: SortOrder
     details?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
     organization?: OrganizationOrderByWithRelationInput
+    department?: DepartmentOrderByWithRelationInput
     project?: ProjectOrderByWithRelationInput
     team?: TeamOrderByWithRelationInput
+    sprint?: SprintOrderByWithRelationInput
     task?: TaskOrderByWithRelationInput
   }
 
@@ -28888,25 +29168,37 @@ export namespace Prisma {
     AND?: ActivityLogWhereInput | ActivityLogWhereInput[]
     OR?: ActivityLogWhereInput[]
     NOT?: ActivityLogWhereInput | ActivityLogWhereInput[]
-    entityType?: StringFilter<"ActivityLog"> | string
-    entityId?: UuidFilter<"ActivityLog"> | string
+    entityType?: EnumEntityTypeFilter<"ActivityLog"> | $Enums.EntityType
+    action?: EnumActionTypeFilter<"ActivityLog"> | $Enums.ActionType
     userId?: UuidFilter<"ActivityLog"> | string
-    action?: StringFilter<"ActivityLog"> | string
+    organizationId?: UuidNullableFilter<"ActivityLog"> | string | null
+    departmentId?: UuidNullableFilter<"ActivityLog"> | string | null
+    projectId?: UuidNullableFilter<"ActivityLog"> | string | null
+    teamId?: UuidNullableFilter<"ActivityLog"> | string | null
+    sprintId?: UuidNullableFilter<"ActivityLog"> | string | null
+    taskId?: UuidFilter<"ActivityLog"> | string
     details?: JsonNullableFilter<"ActivityLog">
     createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
+    department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     project?: XOR<ProjectNullableScalarRelationFilter, ProjectWhereInput> | null
     team?: XOR<TeamNullableScalarRelationFilter, TeamWhereInput> | null
+    sprint?: XOR<SprintNullableScalarRelationFilter, SprintWhereInput> | null
     task?: XOR<TaskNullableScalarRelationFilter, TaskWhereInput> | null
   }, "id">
 
   export type ActivityLogOrderByWithAggregationInput = {
     id?: SortOrder
     entityType?: SortOrder
-    entityId?: SortOrder
-    userId?: SortOrder
     action?: SortOrder
+    userId?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    departmentId?: SortOrderInput | SortOrder
+    projectId?: SortOrderInput | SortOrder
+    teamId?: SortOrderInput | SortOrder
+    sprintId?: SortOrderInput | SortOrder
+    taskId?: SortOrder
     details?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: ActivityLogCountOrderByAggregateInput
@@ -28919,10 +29211,15 @@ export namespace Prisma {
     OR?: ActivityLogScalarWhereWithAggregatesInput[]
     NOT?: ActivityLogScalarWhereWithAggregatesInput | ActivityLogScalarWhereWithAggregatesInput[]
     id?: UuidWithAggregatesFilter<"ActivityLog"> | string
-    entityType?: StringWithAggregatesFilter<"ActivityLog"> | string
-    entityId?: UuidWithAggregatesFilter<"ActivityLog"> | string
+    entityType?: EnumEntityTypeWithAggregatesFilter<"ActivityLog"> | $Enums.EntityType
+    action?: EnumActionTypeWithAggregatesFilter<"ActivityLog"> | $Enums.ActionType
     userId?: UuidWithAggregatesFilter<"ActivityLog"> | string
-    action?: StringWithAggregatesFilter<"ActivityLog"> | string
+    organizationId?: UuidNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    departmentId?: UuidNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    projectId?: UuidNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    teamId?: UuidNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    sprintId?: UuidNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    taskId?: UuidWithAggregatesFilter<"ActivityLog"> | string
     details?: JsonNullableWithAggregatesFilter<"ActivityLog">
     createdAt?: DateTimeWithAggregatesFilter<"ActivityLog"> | Date | string
   }
@@ -29732,6 +30029,7 @@ export namespace Prisma {
     manager: UserCreateNestedOneWithoutManagedDepartmentsInput
     teams?: TeamCreateNestedManyWithoutDepartmentInput
     users?: UserCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutDepartmentInput
     Report?: ReportCreateNestedManyWithoutDepartmentInput
   }
 
@@ -29746,6 +30044,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     teams?: TeamUncheckedCreateNestedManyWithoutDepartmentInput
     users?: UserUncheckedCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutDepartmentInput
     Report?: ReportUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
@@ -29760,6 +30059,7 @@ export namespace Prisma {
     manager?: UserUpdateOneRequiredWithoutManagedDepartmentsNestedInput
     teams?: TeamUpdateManyWithoutDepartmentNestedInput
     users?: UserUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -29774,6 +30074,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teams?: TeamUncheckedUpdateManyWithoutDepartmentNestedInput
     users?: UserUncheckedUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -30215,6 +30516,7 @@ export namespace Prisma {
     order?: number
     project: ProjectCreateNestedOneWithoutSprintsInput
     tasks?: TaskCreateNestedManyWithoutSprintInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutSprintInput
   }
 
   export type SprintUncheckedCreateInput = {
@@ -30228,6 +30530,7 @@ export namespace Prisma {
     goal?: string | null
     order?: number
     tasks?: TaskUncheckedCreateNestedManyWithoutSprintInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutSprintInput
   }
 
   export type SprintUpdateInput = {
@@ -30241,6 +30544,7 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     project?: ProjectUpdateOneRequiredWithoutSprintsNestedInput
     tasks?: TaskUpdateManyWithoutSprintNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutSprintNestedInput
   }
 
   export type SprintUncheckedUpdateInput = {
@@ -30254,6 +30558,7 @@ export namespace Prisma {
     goal?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     tasks?: TaskUncheckedUpdateManyWithoutSprintNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutSprintNestedInput
   }
 
   export type SprintCreateManyInput = {
@@ -30845,74 +31150,98 @@ export namespace Prisma {
 
   export type ActivityLogCreateInput = {
     id?: string
-    entityType: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutActivityLogsInput
     organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+    department?: DepartmentCreateNestedOneWithoutActivityLogsInput
     project?: ProjectCreateNestedOneWithoutActivityLogsInput
     team?: TeamCreateNestedOneWithoutActivityLogsInput
+    sprint?: SprintCreateNestedOneWithoutActivityLogsInput
     task?: TaskCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateInput = {
     id?: string
-    entityType: string
-    entityId: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
   export type ActivityLogUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
     organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+    department?: DepartmentUpdateOneWithoutActivityLogsNestedInput
     project?: ProjectUpdateOneWithoutActivityLogsNestedInput
     team?: TeamUpdateOneWithoutActivityLogsNestedInput
+    sprint?: SprintUpdateOneWithoutActivityLogsNestedInput
     task?: TaskUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ActivityLogCreateManyInput = {
     id?: string
-    entityType: string
-    entityId: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
   export type ActivityLogUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ActivityLogUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -32551,6 +32880,20 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type EnumEntityTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEntityTypeFilter<$PrismaModel> | $Enums.EntityType
+  }
+
+  export type EnumActionTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.ActionType | EnumActionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumActionTypeFilter<$PrismaModel> | $Enums.ActionType
+  }
+
   export type ProjectNullableScalarRelationFilter = {
     is?: ProjectWhereInput | null
     isNot?: ProjectWhereInput | null
@@ -32564,9 +32907,14 @@ export namespace Prisma {
   export type ActivityLogCountOrderByAggregateInput = {
     id?: SortOrder
     entityType?: SortOrder
-    entityId?: SortOrder
-    userId?: SortOrder
     action?: SortOrder
+    userId?: SortOrder
+    organizationId?: SortOrder
+    departmentId?: SortOrder
+    projectId?: SortOrder
+    teamId?: SortOrder
+    sprintId?: SortOrder
+    taskId?: SortOrder
     details?: SortOrder
     createdAt?: SortOrder
   }
@@ -32574,19 +32922,49 @@ export namespace Prisma {
   export type ActivityLogMaxOrderByAggregateInput = {
     id?: SortOrder
     entityType?: SortOrder
-    entityId?: SortOrder
-    userId?: SortOrder
     action?: SortOrder
+    userId?: SortOrder
+    organizationId?: SortOrder
+    departmentId?: SortOrder
+    projectId?: SortOrder
+    teamId?: SortOrder
+    sprintId?: SortOrder
+    taskId?: SortOrder
     createdAt?: SortOrder
   }
 
   export type ActivityLogMinOrderByAggregateInput = {
     id?: SortOrder
     entityType?: SortOrder
-    entityId?: SortOrder
-    userId?: SortOrder
     action?: SortOrder
+    userId?: SortOrder
+    organizationId?: SortOrder
+    departmentId?: SortOrder
+    projectId?: SortOrder
+    teamId?: SortOrder
+    sprintId?: SortOrder
+    taskId?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type EnumEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.EntityType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEntityTypeFilter<$PrismaModel>
+    _max?: NestedEnumEntityTypeFilter<$PrismaModel>
+  }
+
+  export type EnumActionTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ActionType | EnumActionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumActionTypeWithAggregatesFilter<$PrismaModel> | $Enums.ActionType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumActionTypeFilter<$PrismaModel>
+    _max?: NestedEnumActionTypeFilter<$PrismaModel>
   }
 
   export type NotificationCountOrderByAggregateInput = {
@@ -34039,6 +34417,13 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
   }
 
+  export type ActivityLogCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<ActivityLogCreateWithoutDepartmentInput, ActivityLogUncheckedCreateWithoutDepartmentInput> | ActivityLogCreateWithoutDepartmentInput[] | ActivityLogUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutDepartmentInput | ActivityLogCreateOrConnectWithoutDepartmentInput[]
+    createMany?: ActivityLogCreateManyDepartmentInputEnvelope
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+  }
+
   export type ReportCreateNestedManyWithoutDepartmentInput = {
     create?: XOR<ReportCreateWithoutDepartmentInput, ReportUncheckedCreateWithoutDepartmentInput> | ReportCreateWithoutDepartmentInput[] | ReportUncheckedCreateWithoutDepartmentInput[]
     connectOrCreate?: ReportCreateOrConnectWithoutDepartmentInput | ReportCreateOrConnectWithoutDepartmentInput[]
@@ -34058,6 +34443,13 @@ export namespace Prisma {
     connectOrCreate?: UserCreateOrConnectWithoutDepartmentInput | UserCreateOrConnectWithoutDepartmentInput[]
     createMany?: UserCreateManyDepartmentInputEnvelope
     connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+  }
+
+  export type ActivityLogUncheckedCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<ActivityLogCreateWithoutDepartmentInput, ActivityLogUncheckedCreateWithoutDepartmentInput> | ActivityLogCreateWithoutDepartmentInput[] | ActivityLogUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutDepartmentInput | ActivityLogCreateOrConnectWithoutDepartmentInput[]
+    createMany?: ActivityLogCreateManyDepartmentInputEnvelope
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
   }
 
   export type ReportUncheckedCreateNestedManyWithoutDepartmentInput = {
@@ -34111,6 +34503,20 @@ export namespace Prisma {
     deleteMany?: UserScalarWhereInput | UserScalarWhereInput[]
   }
 
+  export type ActivityLogUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<ActivityLogCreateWithoutDepartmentInput, ActivityLogUncheckedCreateWithoutDepartmentInput> | ActivityLogCreateWithoutDepartmentInput[] | ActivityLogUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutDepartmentInput | ActivityLogCreateOrConnectWithoutDepartmentInput[]
+    upsert?: ActivityLogUpsertWithWhereUniqueWithoutDepartmentInput | ActivityLogUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: ActivityLogCreateManyDepartmentInputEnvelope
+    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    update?: ActivityLogUpdateWithWhereUniqueWithoutDepartmentInput | ActivityLogUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: ActivityLogUpdateManyWithWhereWithoutDepartmentInput | ActivityLogUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
+  }
+
   export type ReportUpdateManyWithoutDepartmentNestedInput = {
     create?: XOR<ReportCreateWithoutDepartmentInput, ReportUncheckedCreateWithoutDepartmentInput> | ReportCreateWithoutDepartmentInput[] | ReportUncheckedCreateWithoutDepartmentInput[]
     connectOrCreate?: ReportCreateOrConnectWithoutDepartmentInput | ReportCreateOrConnectWithoutDepartmentInput[]
@@ -34151,6 +34557,20 @@ export namespace Prisma {
     update?: UserUpdateWithWhereUniqueWithoutDepartmentInput | UserUpdateWithWhereUniqueWithoutDepartmentInput[]
     updateMany?: UserUpdateManyWithWhereWithoutDepartmentInput | UserUpdateManyWithWhereWithoutDepartmentInput[]
     deleteMany?: UserScalarWhereInput | UserScalarWhereInput[]
+  }
+
+  export type ActivityLogUncheckedUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<ActivityLogCreateWithoutDepartmentInput, ActivityLogUncheckedCreateWithoutDepartmentInput> | ActivityLogCreateWithoutDepartmentInput[] | ActivityLogUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutDepartmentInput | ActivityLogCreateOrConnectWithoutDepartmentInput[]
+    upsert?: ActivityLogUpsertWithWhereUniqueWithoutDepartmentInput | ActivityLogUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: ActivityLogCreateManyDepartmentInputEnvelope
+    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    update?: ActivityLogUpdateWithWhereUniqueWithoutDepartmentInput | ActivityLogUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: ActivityLogUpdateManyWithWhereWithoutDepartmentInput | ActivityLogUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
   }
 
   export type ReportUncheckedUpdateManyWithoutDepartmentNestedInput = {
@@ -34732,11 +35152,25 @@ export namespace Prisma {
     connect?: TaskWhereUniqueInput | TaskWhereUniqueInput[]
   }
 
+  export type ActivityLogCreateNestedManyWithoutSprintInput = {
+    create?: XOR<ActivityLogCreateWithoutSprintInput, ActivityLogUncheckedCreateWithoutSprintInput> | ActivityLogCreateWithoutSprintInput[] | ActivityLogUncheckedCreateWithoutSprintInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutSprintInput | ActivityLogCreateOrConnectWithoutSprintInput[]
+    createMany?: ActivityLogCreateManySprintInputEnvelope
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+  }
+
   export type TaskUncheckedCreateNestedManyWithoutSprintInput = {
     create?: XOR<TaskCreateWithoutSprintInput, TaskUncheckedCreateWithoutSprintInput> | TaskCreateWithoutSprintInput[] | TaskUncheckedCreateWithoutSprintInput[]
     connectOrCreate?: TaskCreateOrConnectWithoutSprintInput | TaskCreateOrConnectWithoutSprintInput[]
     createMany?: TaskCreateManySprintInputEnvelope
     connect?: TaskWhereUniqueInput | TaskWhereUniqueInput[]
+  }
+
+  export type ActivityLogUncheckedCreateNestedManyWithoutSprintInput = {
+    create?: XOR<ActivityLogCreateWithoutSprintInput, ActivityLogUncheckedCreateWithoutSprintInput> | ActivityLogCreateWithoutSprintInput[] | ActivityLogUncheckedCreateWithoutSprintInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutSprintInput | ActivityLogCreateOrConnectWithoutSprintInput[]
+    createMany?: ActivityLogCreateManySprintInputEnvelope
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -34769,6 +35203,20 @@ export namespace Prisma {
     deleteMany?: TaskScalarWhereInput | TaskScalarWhereInput[]
   }
 
+  export type ActivityLogUpdateManyWithoutSprintNestedInput = {
+    create?: XOR<ActivityLogCreateWithoutSprintInput, ActivityLogUncheckedCreateWithoutSprintInput> | ActivityLogCreateWithoutSprintInput[] | ActivityLogUncheckedCreateWithoutSprintInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutSprintInput | ActivityLogCreateOrConnectWithoutSprintInput[]
+    upsert?: ActivityLogUpsertWithWhereUniqueWithoutSprintInput | ActivityLogUpsertWithWhereUniqueWithoutSprintInput[]
+    createMany?: ActivityLogCreateManySprintInputEnvelope
+    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    update?: ActivityLogUpdateWithWhereUniqueWithoutSprintInput | ActivityLogUpdateWithWhereUniqueWithoutSprintInput[]
+    updateMany?: ActivityLogUpdateManyWithWhereWithoutSprintInput | ActivityLogUpdateManyWithWhereWithoutSprintInput[]
+    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
+  }
+
   export type TaskUncheckedUpdateManyWithoutSprintNestedInput = {
     create?: XOR<TaskCreateWithoutSprintInput, TaskUncheckedCreateWithoutSprintInput> | TaskCreateWithoutSprintInput[] | TaskUncheckedCreateWithoutSprintInput[]
     connectOrCreate?: TaskCreateOrConnectWithoutSprintInput | TaskCreateOrConnectWithoutSprintInput[]
@@ -34781,6 +35229,20 @@ export namespace Prisma {
     update?: TaskUpdateWithWhereUniqueWithoutSprintInput | TaskUpdateWithWhereUniqueWithoutSprintInput[]
     updateMany?: TaskUpdateManyWithWhereWithoutSprintInput | TaskUpdateManyWithWhereWithoutSprintInput[]
     deleteMany?: TaskScalarWhereInput | TaskScalarWhereInput[]
+  }
+
+  export type ActivityLogUncheckedUpdateManyWithoutSprintNestedInput = {
+    create?: XOR<ActivityLogCreateWithoutSprintInput, ActivityLogUncheckedCreateWithoutSprintInput> | ActivityLogCreateWithoutSprintInput[] | ActivityLogUncheckedCreateWithoutSprintInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutSprintInput | ActivityLogCreateOrConnectWithoutSprintInput[]
+    upsert?: ActivityLogUpsertWithWhereUniqueWithoutSprintInput | ActivityLogUpsertWithWhereUniqueWithoutSprintInput[]
+    createMany?: ActivityLogCreateManySprintInputEnvelope
+    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    update?: ActivityLogUpdateWithWhereUniqueWithoutSprintInput | ActivityLogUpdateWithWhereUniqueWithoutSprintInput[]
+    updateMany?: ActivityLogUpdateManyWithWhereWithoutSprintInput | ActivityLogUpdateManyWithWhereWithoutSprintInput[]
+    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
   }
 
   export type TaskCreatelabelsInput = {
@@ -35333,6 +35795,12 @@ export namespace Prisma {
     connect?: OrganizationWhereUniqueInput
   }
 
+  export type DepartmentCreateNestedOneWithoutActivityLogsInput = {
+    create?: XOR<DepartmentCreateWithoutActivityLogsInput, DepartmentUncheckedCreateWithoutActivityLogsInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutActivityLogsInput
+    connect?: DepartmentWhereUniqueInput
+  }
+
   export type ProjectCreateNestedOneWithoutActivityLogsInput = {
     create?: XOR<ProjectCreateWithoutActivityLogsInput, ProjectUncheckedCreateWithoutActivityLogsInput>
     connectOrCreate?: ProjectCreateOrConnectWithoutActivityLogsInput
@@ -35345,10 +35813,24 @@ export namespace Prisma {
     connect?: TeamWhereUniqueInput
   }
 
+  export type SprintCreateNestedOneWithoutActivityLogsInput = {
+    create?: XOR<SprintCreateWithoutActivityLogsInput, SprintUncheckedCreateWithoutActivityLogsInput>
+    connectOrCreate?: SprintCreateOrConnectWithoutActivityLogsInput
+    connect?: SprintWhereUniqueInput
+  }
+
   export type TaskCreateNestedOneWithoutActivityLogsInput = {
     create?: XOR<TaskCreateWithoutActivityLogsInput, TaskUncheckedCreateWithoutActivityLogsInput>
     connectOrCreate?: TaskCreateOrConnectWithoutActivityLogsInput
     connect?: TaskWhereUniqueInput
+  }
+
+  export type EnumEntityTypeFieldUpdateOperationsInput = {
+    set?: $Enums.EntityType
+  }
+
+  export type EnumActionTypeFieldUpdateOperationsInput = {
+    set?: $Enums.ActionType
   }
 
   export type UserUpdateOneRequiredWithoutActivityLogsNestedInput = {
@@ -35369,6 +35851,16 @@ export namespace Prisma {
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutActivityLogsInput, OrganizationUpdateWithoutActivityLogsInput>, OrganizationUncheckedUpdateWithoutActivityLogsInput>
   }
 
+  export type DepartmentUpdateOneWithoutActivityLogsNestedInput = {
+    create?: XOR<DepartmentCreateWithoutActivityLogsInput, DepartmentUncheckedCreateWithoutActivityLogsInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutActivityLogsInput
+    upsert?: DepartmentUpsertWithoutActivityLogsInput
+    disconnect?: DepartmentWhereInput | boolean
+    delete?: DepartmentWhereInput | boolean
+    connect?: DepartmentWhereUniqueInput
+    update?: XOR<XOR<DepartmentUpdateToOneWithWhereWithoutActivityLogsInput, DepartmentUpdateWithoutActivityLogsInput>, DepartmentUncheckedUpdateWithoutActivityLogsInput>
+  }
+
   export type ProjectUpdateOneWithoutActivityLogsNestedInput = {
     create?: XOR<ProjectCreateWithoutActivityLogsInput, ProjectUncheckedCreateWithoutActivityLogsInput>
     connectOrCreate?: ProjectCreateOrConnectWithoutActivityLogsInput
@@ -35387,6 +35879,16 @@ export namespace Prisma {
     delete?: TeamWhereInput | boolean
     connect?: TeamWhereUniqueInput
     update?: XOR<XOR<TeamUpdateToOneWithWhereWithoutActivityLogsInput, TeamUpdateWithoutActivityLogsInput>, TeamUncheckedUpdateWithoutActivityLogsInput>
+  }
+
+  export type SprintUpdateOneWithoutActivityLogsNestedInput = {
+    create?: XOR<SprintCreateWithoutActivityLogsInput, SprintUncheckedCreateWithoutActivityLogsInput>
+    connectOrCreate?: SprintCreateOrConnectWithoutActivityLogsInput
+    upsert?: SprintUpsertWithoutActivityLogsInput
+    disconnect?: SprintWhereInput | boolean
+    delete?: SprintWhereInput | boolean
+    connect?: SprintWhereUniqueInput
+    update?: XOR<XOR<SprintUpdateToOneWithWhereWithoutActivityLogsInput, SprintUpdateWithoutActivityLogsInput>, SprintUncheckedUpdateWithoutActivityLogsInput>
   }
 
   export type TaskUpdateOneWithoutActivityLogsNestedInput = {
@@ -35884,6 +36386,40 @@ export namespace Prisma {
     _max?: NestedEnumDependencyTypeFilter<$PrismaModel>
   }
 
+  export type NestedEnumEntityTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEntityTypeFilter<$PrismaModel> | $Enums.EntityType
+  }
+
+  export type NestedEnumActionTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.ActionType | EnumActionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumActionTypeFilter<$PrismaModel> | $Enums.ActionType
+  }
+
+  export type NestedEnumEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EntityType | EnumEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EntityType[] | ListEnumEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.EntityType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEntityTypeFilter<$PrismaModel>
+    _max?: NestedEnumEntityTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumActionTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ActionType | EnumActionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ActionType[] | ListEnumActionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumActionTypeWithAggregatesFilter<$PrismaModel> | $Enums.ActionType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumActionTypeFilter<$PrismaModel>
+    _max?: NestedEnumActionTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumReportTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.ReportType | EnumReportTypeFieldRefInput<$PrismaModel>
     in?: $Enums.ReportType[] | ListEnumReportTypeFieldRefInput<$PrismaModel>
@@ -35934,6 +36470,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutDepartmentsInput
     manager: UserCreateNestedOneWithoutManagedDepartmentsInput
     teams?: TeamCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutDepartmentInput
     Report?: ReportCreateNestedManyWithoutDepartmentInput
   }
 
@@ -35947,6 +36484,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     teams?: TeamUncheckedCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutDepartmentInput
     Report?: ReportUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
@@ -36116,6 +36654,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutDepartmentsInput
     teams?: TeamCreateNestedManyWithoutDepartmentInput
     users?: UserCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutDepartmentInput
     Report?: ReportCreateNestedManyWithoutDepartmentInput
   }
 
@@ -36129,6 +36668,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     teams?: TeamUncheckedCreateNestedManyWithoutDepartmentInput
     users?: UserUncheckedCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutDepartmentInput
     Report?: ReportUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
@@ -36800,21 +37340,28 @@ export namespace Prisma {
 
   export type ActivityLogCreateWithoutUserInput = {
     id?: string
-    entityType: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+    department?: DepartmentCreateNestedOneWithoutActivityLogsInput
     project?: ProjectCreateNestedOneWithoutActivityLogsInput
     team?: TeamCreateNestedOneWithoutActivityLogsInput
+    sprint?: SprintCreateNestedOneWithoutActivityLogsInput
     task?: TaskCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateWithoutUserInput = {
     id?: string
-    entityType: string
-    entityId: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -36850,6 +37397,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutDepartmentsNestedInput
     manager?: UserUpdateOneRequiredWithoutManagedDepartmentsNestedInput
     teams?: TeamUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -36863,6 +37411,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teams?: TeamUncheckedUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -37473,10 +38022,15 @@ export namespace Prisma {
     OR?: ActivityLogScalarWhereInput[]
     NOT?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
     id?: UuidFilter<"ActivityLog"> | string
-    entityType?: StringFilter<"ActivityLog"> | string
-    entityId?: UuidFilter<"ActivityLog"> | string
+    entityType?: EnumEntityTypeFilter<"ActivityLog"> | $Enums.EntityType
+    action?: EnumActionTypeFilter<"ActivityLog"> | $Enums.ActionType
     userId?: UuidFilter<"ActivityLog"> | string
-    action?: StringFilter<"ActivityLog"> | string
+    organizationId?: UuidNullableFilter<"ActivityLog"> | string | null
+    departmentId?: UuidNullableFilter<"ActivityLog"> | string | null
+    projectId?: UuidNullableFilter<"ActivityLog"> | string | null
+    teamId?: UuidNullableFilter<"ActivityLog"> | string | null
+    sprintId?: UuidNullableFilter<"ActivityLog"> | string | null
+    taskId?: UuidFilter<"ActivityLog"> | string
     details?: JsonNullableFilter<"ActivityLog">
     createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
   }
@@ -37594,6 +38148,7 @@ export namespace Prisma {
     manager: UserCreateNestedOneWithoutManagedDepartmentsInput
     teams?: TeamCreateNestedManyWithoutDepartmentInput
     users?: UserCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutDepartmentInput
     Report?: ReportCreateNestedManyWithoutDepartmentInput
   }
 
@@ -37607,6 +38162,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     teams?: TeamUncheckedCreateNestedManyWithoutDepartmentInput
     users?: UserUncheckedCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutDepartmentInput
     Report?: ReportUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
@@ -37936,21 +38492,28 @@ export namespace Prisma {
 
   export type ActivityLogCreateWithoutOrganizationInput = {
     id?: string
-    entityType: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutActivityLogsInput
+    department?: DepartmentCreateNestedOneWithoutActivityLogsInput
     project?: ProjectCreateNestedOneWithoutActivityLogsInput
     team?: TeamCreateNestedOneWithoutActivityLogsInput
+    sprint?: SprintCreateNestedOneWithoutActivityLogsInput
     task?: TaskCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateWithoutOrganizationInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -38908,6 +39471,44 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ActivityLogCreateWithoutDepartmentInput = {
+    id?: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutActivityLogsInput
+    organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+    project?: ProjectCreateNestedOneWithoutActivityLogsInput
+    team?: TeamCreateNestedOneWithoutActivityLogsInput
+    sprint?: SprintCreateNestedOneWithoutActivityLogsInput
+    task?: TaskCreateNestedOneWithoutActivityLogsInput
+  }
+
+  export type ActivityLogUncheckedCreateWithoutDepartmentInput = {
+    id?: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    userId: string
+    organizationId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ActivityLogCreateOrConnectWithoutDepartmentInput = {
+    where: ActivityLogWhereUniqueInput
+    create: XOR<ActivityLogCreateWithoutDepartmentInput, ActivityLogUncheckedCreateWithoutDepartmentInput>
+  }
+
+  export type ActivityLogCreateManyDepartmentInputEnvelope = {
+    data: ActivityLogCreateManyDepartmentInput | ActivityLogCreateManyDepartmentInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ReportCreateWithoutDepartmentInput = {
     id?: string
     name: string
@@ -39162,6 +39763,22 @@ export namespace Prisma {
     data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyWithoutDepartmentInput>
   }
 
+  export type ActivityLogUpsertWithWhereUniqueWithoutDepartmentInput = {
+    where: ActivityLogWhereUniqueInput
+    update: XOR<ActivityLogUpdateWithoutDepartmentInput, ActivityLogUncheckedUpdateWithoutDepartmentInput>
+    create: XOR<ActivityLogCreateWithoutDepartmentInput, ActivityLogUncheckedCreateWithoutDepartmentInput>
+  }
+
+  export type ActivityLogUpdateWithWhereUniqueWithoutDepartmentInput = {
+    where: ActivityLogWhereUniqueInput
+    data: XOR<ActivityLogUpdateWithoutDepartmentInput, ActivityLogUncheckedUpdateWithoutDepartmentInput>
+  }
+
+  export type ActivityLogUpdateManyWithWhereWithoutDepartmentInput = {
+    where: ActivityLogScalarWhereInput
+    data: XOR<ActivityLogUpdateManyMutationInput, ActivityLogUncheckedUpdateManyWithoutDepartmentInput>
+  }
+
   export type ReportUpsertWithWhereUniqueWithoutDepartmentInput = {
     where: ReportWhereUniqueInput
     update: XOR<ReportUpdateWithoutDepartmentInput, ReportUncheckedUpdateWithoutDepartmentInput>
@@ -39352,6 +39969,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutDepartmentsInput
     manager: UserCreateNestedOneWithoutManagedDepartmentsInput
     users?: UserCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutDepartmentInput
     Report?: ReportCreateNestedManyWithoutDepartmentInput
   }
 
@@ -39365,6 +39983,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     users?: UserUncheckedCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutDepartmentInput
     Report?: ReportUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
@@ -39505,21 +40124,28 @@ export namespace Prisma {
 
   export type ActivityLogCreateWithoutTeamInput = {
     id?: string
-    entityType: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutActivityLogsInput
     organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+    department?: DepartmentCreateNestedOneWithoutActivityLogsInput
     project?: ProjectCreateNestedOneWithoutActivityLogsInput
+    sprint?: SprintCreateNestedOneWithoutActivityLogsInput
     task?: TaskCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateWithoutTeamInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -39731,6 +40357,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutDepartmentsNestedInput
     manager?: UserUpdateOneRequiredWithoutManagedDepartmentsNestedInput
     users?: UserUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -39744,6 +40371,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     users?: UserUncheckedUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -40417,6 +41045,7 @@ export namespace Prisma {
     goal?: string | null
     order?: number
     tasks?: TaskCreateNestedManyWithoutSprintInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutSprintInput
   }
 
   export type SprintUncheckedCreateWithoutProjectInput = {
@@ -40429,6 +41058,7 @@ export namespace Prisma {
     goal?: string | null
     order?: number
     tasks?: TaskUncheckedCreateNestedManyWithoutSprintInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutSprintInput
   }
 
   export type SprintCreateOrConnectWithoutProjectInput = {
@@ -40557,21 +41187,28 @@ export namespace Prisma {
 
   export type ActivityLogCreateWithoutProjectInput = {
     id?: string
-    entityType: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutActivityLogsInput
     organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+    department?: DepartmentCreateNestedOneWithoutActivityLogsInput
     team?: TeamCreateNestedOneWithoutActivityLogsInput
+    sprint?: SprintCreateNestedOneWithoutActivityLogsInput
     task?: TaskCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateWithoutProjectInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -41478,6 +42115,44 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ActivityLogCreateWithoutSprintInput = {
+    id?: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutActivityLogsInput
+    organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+    department?: DepartmentCreateNestedOneWithoutActivityLogsInput
+    project?: ProjectCreateNestedOneWithoutActivityLogsInput
+    team?: TeamCreateNestedOneWithoutActivityLogsInput
+    task?: TaskCreateNestedOneWithoutActivityLogsInput
+  }
+
+  export type ActivityLogUncheckedCreateWithoutSprintInput = {
+    id?: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    userId: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    taskId: string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ActivityLogCreateOrConnectWithoutSprintInput = {
+    where: ActivityLogWhereUniqueInput
+    create: XOR<ActivityLogCreateWithoutSprintInput, ActivityLogUncheckedCreateWithoutSprintInput>
+  }
+
+  export type ActivityLogCreateManySprintInputEnvelope = {
+    data: ActivityLogCreateManySprintInput | ActivityLogCreateManySprintInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProjectUpsertWithoutSprintsInput = {
     update: XOR<ProjectUpdateWithoutSprintsInput, ProjectUncheckedUpdateWithoutSprintsInput>
     create: XOR<ProjectCreateWithoutSprintsInput, ProjectUncheckedCreateWithoutSprintsInput>
@@ -41551,6 +42226,22 @@ export namespace Prisma {
     data: XOR<TaskUpdateManyMutationInput, TaskUncheckedUpdateManyWithoutSprintInput>
   }
 
+  export type ActivityLogUpsertWithWhereUniqueWithoutSprintInput = {
+    where: ActivityLogWhereUniqueInput
+    update: XOR<ActivityLogUpdateWithoutSprintInput, ActivityLogUncheckedUpdateWithoutSprintInput>
+    create: XOR<ActivityLogCreateWithoutSprintInput, ActivityLogUncheckedCreateWithoutSprintInput>
+  }
+
+  export type ActivityLogUpdateWithWhereUniqueWithoutSprintInput = {
+    where: ActivityLogWhereUniqueInput
+    data: XOR<ActivityLogUpdateWithoutSprintInput, ActivityLogUncheckedUpdateWithoutSprintInput>
+  }
+
+  export type ActivityLogUpdateManyWithWhereWithoutSprintInput = {
+    where: ActivityLogScalarWhereInput
+    data: XOR<ActivityLogUpdateManyMutationInput, ActivityLogUncheckedUpdateManyWithoutSprintInput>
+  }
+
   export type ProjectCreateWithoutTasksInput = {
     id?: string
     name: string
@@ -41612,6 +42303,7 @@ export namespace Prisma {
     goal?: string | null
     order?: number
     project: ProjectCreateNestedOneWithoutSprintsInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutSprintInput
   }
 
   export type SprintUncheckedCreateWithoutTasksInput = {
@@ -41624,6 +42316,7 @@ export namespace Prisma {
     status: string
     goal?: string | null
     order?: number
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutSprintInput
   }
 
   export type SprintCreateOrConnectWithoutTasksInput = {
@@ -42207,21 +42900,28 @@ export namespace Prisma {
 
   export type ActivityLogCreateWithoutTaskInput = {
     id?: string
-    entityType: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutActivityLogsInput
     organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+    department?: DepartmentCreateNestedOneWithoutActivityLogsInput
     project?: ProjectCreateNestedOneWithoutActivityLogsInput
     team?: TeamCreateNestedOneWithoutActivityLogsInput
+    sprint?: SprintCreateNestedOneWithoutActivityLogsInput
   }
 
   export type ActivityLogUncheckedCreateWithoutTaskInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -42314,6 +43014,7 @@ export namespace Prisma {
     goal?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     project?: ProjectUpdateOneRequiredWithoutSprintsNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutSprintNestedInput
   }
 
   export type SprintUncheckedUpdateWithoutTasksInput = {
@@ -42326,6 +43027,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     goal?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutSprintNestedInput
   }
 
   export type UserUpsertWithoutCreatedTasksInput = {
@@ -44435,6 +45137,39 @@ export namespace Prisma {
     create: XOR<OrganizationCreateWithoutActivityLogsInput, OrganizationUncheckedCreateWithoutActivityLogsInput>
   }
 
+  export type DepartmentCreateWithoutActivityLogsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutDepartmentsInput
+    manager: UserCreateNestedOneWithoutManagedDepartmentsInput
+    teams?: TeamCreateNestedManyWithoutDepartmentInput
+    users?: UserCreateNestedManyWithoutDepartmentInput
+    Report?: ReportCreateNestedManyWithoutDepartmentInput
+  }
+
+  export type DepartmentUncheckedCreateWithoutActivityLogsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    organizationId: string
+    managerId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    teams?: TeamUncheckedCreateNestedManyWithoutDepartmentInput
+    users?: UserUncheckedCreateNestedManyWithoutDepartmentInput
+    Report?: ReportUncheckedCreateNestedManyWithoutDepartmentInput
+  }
+
+  export type DepartmentCreateOrConnectWithoutActivityLogsInput = {
+    where: DepartmentWhereUniqueInput
+    create: XOR<DepartmentCreateWithoutActivityLogsInput, DepartmentUncheckedCreateWithoutActivityLogsInput>
+  }
+
   export type ProjectCreateWithoutActivityLogsInput = {
     id?: string
     name: string
@@ -44521,6 +45256,37 @@ export namespace Prisma {
   export type TeamCreateOrConnectWithoutActivityLogsInput = {
     where: TeamWhereUniqueInput
     create: XOR<TeamCreateWithoutActivityLogsInput, TeamUncheckedCreateWithoutActivityLogsInput>
+  }
+
+  export type SprintCreateWithoutActivityLogsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    startDate: Date | string
+    endDate: Date | string
+    status: string
+    goal?: string | null
+    order?: number
+    project: ProjectCreateNestedOneWithoutSprintsInput
+    tasks?: TaskCreateNestedManyWithoutSprintInput
+  }
+
+  export type SprintUncheckedCreateWithoutActivityLogsInput = {
+    id?: string
+    projectId: string
+    name: string
+    description?: string | null
+    startDate: Date | string
+    endDate: Date | string
+    status: string
+    goal?: string | null
+    order?: number
+    tasks?: TaskUncheckedCreateNestedManyWithoutSprintInput
+  }
+
+  export type SprintCreateOrConnectWithoutActivityLogsInput = {
+    where: SprintWhereUniqueInput
+    create: XOR<SprintCreateWithoutActivityLogsInput, SprintUncheckedCreateWithoutActivityLogsInput>
   }
 
   export type TaskCreateWithoutActivityLogsInput = {
@@ -44762,6 +45528,45 @@ export namespace Prisma {
     templates?: TaskTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
+  export type DepartmentUpsertWithoutActivityLogsInput = {
+    update: XOR<DepartmentUpdateWithoutActivityLogsInput, DepartmentUncheckedUpdateWithoutActivityLogsInput>
+    create: XOR<DepartmentCreateWithoutActivityLogsInput, DepartmentUncheckedCreateWithoutActivityLogsInput>
+    where?: DepartmentWhereInput
+  }
+
+  export type DepartmentUpdateToOneWithWhereWithoutActivityLogsInput = {
+    where?: DepartmentWhereInput
+    data: XOR<DepartmentUpdateWithoutActivityLogsInput, DepartmentUncheckedUpdateWithoutActivityLogsInput>
+  }
+
+  export type DepartmentUpdateWithoutActivityLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutDepartmentsNestedInput
+    manager?: UserUpdateOneRequiredWithoutManagedDepartmentsNestedInput
+    teams?: TeamUpdateManyWithoutDepartmentNestedInput
+    users?: UserUpdateManyWithoutDepartmentNestedInput
+    Report?: ReportUpdateManyWithoutDepartmentNestedInput
+  }
+
+  export type DepartmentUncheckedUpdateWithoutActivityLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationId?: StringFieldUpdateOperationsInput | string
+    managerId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    teams?: TeamUncheckedUpdateManyWithoutDepartmentNestedInput
+    users?: UserUncheckedUpdateManyWithoutDepartmentNestedInput
+    Report?: ReportUncheckedUpdateManyWithoutDepartmentNestedInput
+  }
+
   export type ProjectUpsertWithoutActivityLogsInput = {
     update: XOR<ProjectUpdateWithoutActivityLogsInput, ProjectUncheckedUpdateWithoutActivityLogsInput>
     create: XOR<ProjectCreateWithoutActivityLogsInput, ProjectUncheckedCreateWithoutActivityLogsInput>
@@ -44860,6 +45665,43 @@ export namespace Prisma {
     members?: TeamMemberUncheckedUpdateManyWithoutTeamNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutTeamNestedInput
     reports?: ReportUncheckedUpdateManyWithoutTeamNestedInput
+  }
+
+  export type SprintUpsertWithoutActivityLogsInput = {
+    update: XOR<SprintUpdateWithoutActivityLogsInput, SprintUncheckedUpdateWithoutActivityLogsInput>
+    create: XOR<SprintCreateWithoutActivityLogsInput, SprintUncheckedCreateWithoutActivityLogsInput>
+    where?: SprintWhereInput
+  }
+
+  export type SprintUpdateToOneWithWhereWithoutActivityLogsInput = {
+    where?: SprintWhereInput
+    data: XOR<SprintUpdateWithoutActivityLogsInput, SprintUncheckedUpdateWithoutActivityLogsInput>
+  }
+
+  export type SprintUpdateWithoutActivityLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    goal?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    project?: ProjectUpdateOneRequiredWithoutSprintsNestedInput
+    tasks?: TaskUpdateManyWithoutSprintNestedInput
+  }
+
+  export type SprintUncheckedUpdateWithoutActivityLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    goal?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    tasks?: TaskUncheckedUpdateManyWithoutSprintNestedInput
   }
 
   export type TaskUpsertWithoutActivityLogsInput = {
@@ -45406,6 +46248,7 @@ export namespace Prisma {
     manager: UserCreateNestedOneWithoutManagedDepartmentsInput
     teams?: TeamCreateNestedManyWithoutDepartmentInput
     users?: UserCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentUncheckedCreateWithoutReportInput = {
@@ -45419,6 +46262,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     teams?: TeamUncheckedCreateNestedManyWithoutDepartmentInput
     users?: UserUncheckedCreateNestedManyWithoutDepartmentInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentCreateOrConnectWithoutReportInput = {
@@ -45827,6 +46671,7 @@ export namespace Prisma {
     manager?: UserUpdateOneRequiredWithoutManagedDepartmentsNestedInput
     teams?: TeamUpdateManyWithoutDepartmentNestedInput
     users?: UserUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutReportInput = {
@@ -45840,6 +46685,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teams?: TeamUncheckedUpdateManyWithoutDepartmentNestedInput
     users?: UserUncheckedUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
   export type UserUpsertWithoutUserReportsInput = {
@@ -46420,9 +47266,14 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyUserInput = {
     id?: string
-    entityType: string
-    entityId: string
-    action: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -46534,6 +47385,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutDepartmentsNestedInput
     teams?: TeamUpdateManyWithoutDepartmentNestedInput
     users?: UserUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -46547,6 +47399,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teams?: TeamUncheckedUpdateManyWithoutDepartmentNestedInput
     users?: UserUncheckedUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -47286,30 +48139,42 @@ export namespace Prisma {
 
   export type ActivityLogUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+    department?: DepartmentUpdateOneWithoutActivityLogsNestedInput
     project?: ProjectUpdateOneWithoutActivityLogsNestedInput
     team?: TeamUpdateOneWithoutActivityLogsNestedInput
+    sprint?: SprintUpdateOneWithoutActivityLogsNestedInput
     task?: TaskUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ActivityLogUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -47425,9 +48290,14 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyOrganizationInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -47442,6 +48312,7 @@ export namespace Prisma {
     manager?: UserUpdateOneRequiredWithoutManagedDepartmentsNestedInput
     teams?: TeamUpdateManyWithoutDepartmentNestedInput
     users?: UserUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -47455,6 +48326,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     teams?: TeamUncheckedUpdateManyWithoutDepartmentNestedInput
     users?: UserUncheckedUpdateManyWithoutDepartmentNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutDepartmentNestedInput
     Report?: ReportUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -47823,30 +48695,42 @@ export namespace Prisma {
 
   export type ActivityLogUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
+    department?: DepartmentUpdateOneWithoutActivityLogsNestedInput
     project?: ProjectUpdateOneWithoutActivityLogsNestedInput
     team?: TeamUpdateOneWithoutActivityLogsNestedInput
+    sprint?: SprintUpdateOneWithoutActivityLogsNestedInput
     task?: TaskUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ActivityLogUncheckedUpdateManyWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -47891,6 +48775,20 @@ export namespace Prisma {
     refreshToken?: string | null
     lastLogin?: Date | string | null
     lastLogout?: Date | string | null
+  }
+
+  export type ActivityLogCreateManyDepartmentInput = {
+    id?: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    userId: string
+    organizationId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
   }
 
   export type ReportCreateManyDepartmentInput = {
@@ -48083,6 +48981,48 @@ export namespace Prisma {
     lastLogout?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type ActivityLogUpdateWithoutDepartmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
+    organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+    project?: ProjectUpdateOneWithoutActivityLogsNestedInput
+    team?: TeamUpdateOneWithoutActivityLogsNestedInput
+    sprint?: SprintUpdateOneWithoutActivityLogsNestedInput
+    task?: TaskUpdateOneWithoutActivityLogsNestedInput
+  }
+
+  export type ActivityLogUncheckedUpdateWithoutDepartmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    userId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ActivityLogUncheckedUpdateManyWithoutDepartmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    userId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ReportUpdateWithoutDepartmentInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -48184,9 +49124,14 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyTeamInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -48338,30 +49283,42 @@ export namespace Prisma {
 
   export type ActivityLogUpdateWithoutTeamInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
     organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+    department?: DepartmentUpdateOneWithoutActivityLogsNestedInput
     project?: ProjectUpdateOneWithoutActivityLogsNestedInput
+    sprint?: SprintUpdateOneWithoutActivityLogsNestedInput
     task?: TaskUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateWithoutTeamInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ActivityLogUncheckedUpdateManyWithoutTeamInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48419,9 +49376,14 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyProjectInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
+    taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -48446,6 +49408,7 @@ export namespace Prisma {
     goal?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     tasks?: TaskUpdateManyWithoutSprintNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutSprintNestedInput
   }
 
   export type SprintUncheckedUpdateWithoutProjectInput = {
@@ -48458,6 +49421,7 @@ export namespace Prisma {
     goal?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     tasks?: TaskUncheckedUpdateManyWithoutSprintNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutSprintNestedInput
   }
 
   export type SprintUncheckedUpdateManyWithoutProjectInput = {
@@ -48607,30 +49571,42 @@ export namespace Prisma {
 
   export type ActivityLogUpdateWithoutProjectInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
     organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+    department?: DepartmentUpdateOneWithoutActivityLogsNestedInput
     team?: TeamUpdateOneWithoutActivityLogsNestedInput
+    sprint?: SprintUpdateOneWithoutActivityLogsNestedInput
     task?: TaskUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateWithoutProjectInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ActivityLogUncheckedUpdateManyWithoutProjectInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48685,6 +49661,20 @@ export namespace Prisma {
     order?: number
     labels?: TaskCreatelabelsInput | string[]
     lastModifiedBy?: string | null
+  }
+
+  export type ActivityLogCreateManySprintInput = {
+    id?: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
+    userId: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    taskId: string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
   }
 
   export type TaskUpdateWithoutSprintInput = {
@@ -48767,6 +49757,48 @@ export namespace Prisma {
     lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type ActivityLogUpdateWithoutSprintInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
+    organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+    department?: DepartmentUpdateOneWithoutActivityLogsNestedInput
+    project?: ProjectUpdateOneWithoutActivityLogsNestedInput
+    team?: TeamUpdateOneWithoutActivityLogsNestedInput
+    task?: TaskUpdateOneWithoutActivityLogsNestedInput
+  }
+
+  export type ActivityLogUncheckedUpdateWithoutSprintInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    userId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ActivityLogUncheckedUpdateManyWithoutSprintInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
+    userId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    taskId?: StringFieldUpdateOperationsInput | string
+    details?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type TaskAttachmentCreateManyTaskInput = {
     id?: string
     fileName: string
@@ -48833,9 +49865,14 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyTaskInput = {
     id?: string
-    entityType: string
+    entityType: $Enums.EntityType
+    action: $Enums.ActionType
     userId: string
-    action: string
+    organizationId?: string | null
+    departmentId?: string | null
+    projectId?: string | null
+    teamId?: string | null
+    sprintId?: string | null
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
@@ -49048,30 +50085,42 @@ export namespace Prisma {
 
   export type ActivityLogUpdateWithoutTaskInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutActivityLogsNestedInput
     organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+    department?: DepartmentUpdateOneWithoutActivityLogsNestedInput
     project?: ProjectUpdateOneWithoutActivityLogsNestedInput
     team?: TeamUpdateOneWithoutActivityLogsNestedInput
+    sprint?: SprintUpdateOneWithoutActivityLogsNestedInput
   }
 
   export type ActivityLogUncheckedUpdateWithoutTaskInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ActivityLogUncheckedUpdateManyWithoutTaskInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
+    entityType?: EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+    action?: EnumActionTypeFieldUpdateOperationsInput | $Enums.ActionType
     userId?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    sprintId?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

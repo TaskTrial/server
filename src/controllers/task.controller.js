@@ -878,6 +878,8 @@ export const updateTaskStatus = async (req, res, next) => {
       });
     }
 
+    const oldTaskData = { ...task };
+
     // Update task status
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
@@ -887,6 +889,25 @@ export const updateTaskStatus = async (req, res, next) => {
         lastModifiedBy: user.id,
       },
     });
+
+    // Status change
+    if (status && status !== oldTaskData.status) {
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'STATUS_CHANGED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: updatedTask.sprintId || null,
+        taskId: updatedTask.id,
+        details: generateActivityDetails(
+          'STATUS_CHANGED',
+          oldTaskData,
+          updatedTask,
+        ),
+      });
+    }
 
     return res.status(200).json({
       success: true,

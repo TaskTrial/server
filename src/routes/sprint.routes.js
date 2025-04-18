@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createSprint,
+  getAllSprints,
   updateSprint,
   updateSprintStatus,
 } from '../controllers/sprint.controller.js';
@@ -22,6 +23,12 @@ router.patch(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId/status',
   verifyAccessToken,
   updateSprintStatus,
+);
+
+router.get(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/sprints',
+  verifyAccessToken,
+  getAllSprints,
 );
 
 export default router;

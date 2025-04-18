@@ -453,6 +453,18 @@ export const addTeamMember = async (req, res, next) => {
       return { newMembers, allTeamMembers };
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'MEMBER_ADDED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: generateActivityDetails('MEMBER_ADDED', null, {
+        newMembers: result.newMembers,
+        addedBy: req.user.id,
+      }),
+    });
+
     return res.status(200).json({
       success: true,
       message: `Members added successfully.`,

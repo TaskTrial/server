@@ -1554,6 +1554,22 @@ export const restoreTask = async (req, res, next) => {
       },
     });
 
+    // Log the restore activity
+    await createActivityLog({
+      entityType: 'TASK',
+      action: 'UPDATED', // Using UPDATED with specific details
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: restoredTask.sprintId || null,
+      taskId: restoredTask.id,
+      details: {
+        action: 'RESTORE',
+        restoredAt: new Date(),
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: `Task restored successfully${restoreSubtasks ? ' with its subtasks' : ''}`,

@@ -11,6 +11,10 @@ import {
   updateOrganizationValidation,
   verifyOrganizationValidation,
 } from '../validations/organization.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * @desc   Create a new organization with the current user as owner
@@ -115,6 +119,19 @@ export const createOrganization = async (req, res, next) => {
     //     });
     //   }
     // }
+
+    // Log organization creation
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'CREATED',
+      userId: req.user.id,
+      organizationId: result.org.id,
+      details: generateActivityDetails('CREATED', null, {
+        organizationName: result.org.name,
+        organizationId: result.org.id,
+        createdAt: result.org.createdAt,
+      }),
+    });
 
     return res.status(201).json({
       success: true,

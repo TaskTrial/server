@@ -279,6 +279,18 @@ export const verifyOrganization = async (req, res, next) => {
       },
     });
 
+    // Log organization verification
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: org.id,
+      details: {
+        action: 'VERIFIED',
+        verifiedAt: org.isVerified,
+      },
+    });
+
     return res
       .status(200)
       .json({ message: 'Organization verified successfully' });

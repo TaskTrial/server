@@ -1118,6 +1118,19 @@ export const deleteOrganizationLogo = async (req, res, next) => {
       data: { logoUrl: null },
     });
 
+    // Log logo deletion
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: {
+        action: 'LOGO_DELETED',
+        previousLogoUrl: organization.logoUrl,
+        deletedAt: updatedOrganization.updatedAt,
+      },
+    });
+
     res.status(200).json({
       message: 'Organization logo deleted successfully',
       organization: updatedOrganization,

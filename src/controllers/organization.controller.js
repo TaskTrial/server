@@ -287,7 +287,7 @@ export const verifyOrganization = async (req, res, next) => {
       organizationId: org.id,
       details: {
         action: 'VERIFIED',
-        verifiedAt: org.isVerified,
+        verifiedAt: new Date(),
       },
     });
 
@@ -1116,6 +1116,19 @@ export const deleteOrganizationLogo = async (req, res, next) => {
     const updatedOrganization = await prisma.organization.update({
       where: { id: organizationId },
       data: { logoUrl: null },
+    });
+
+    // Log logo deletion
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: {
+        action: 'LOGO_DELETED',
+        previousLogoUrl: organization.logoUrl,
+        deletedAt: updatedOrganization.updatedAt,
+      },
     });
 
     res.status(200).json({

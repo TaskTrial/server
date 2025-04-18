@@ -1060,6 +1060,21 @@ export const uploadOrganizationLogo = async (req, res, next) => {
       data: { logoUrl },
     });
 
+    // Log logo upload
+    await createActivityLog({
+      entityType: 'ORGANIZATION',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: organizationId,
+      details: {
+        action: 'LOGO_UPLOADED',
+        logoUrl: updatedOrganization.logoUrl,
+        fileSize: req.file.size,
+        fileName: req.file.originalname,
+        uploadedAt: updatedOrganization.updatedAt,
+      },
+    });
+
     res.status(200).json({
       message: 'Organization logo uploaded successfully',
       logoUrl,

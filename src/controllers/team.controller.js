@@ -931,6 +931,19 @@ export const deleteTeamAvatar = async (req, res, next) => {
       data: { avatar: null },
     });
 
+    await createActivityLog({
+      entityType: 'TEAM',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      details: {
+        action: 'AVATAR_REMOVED',
+        removedAt: new Date(),
+        removedBy: req.user.id,
+      },
+    });
+
     res.status(200).json({
       message: 'Team avatar deleted successfully',
       team: updatedTeam,

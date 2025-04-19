@@ -999,6 +999,20 @@ export const restoreProject = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'RESTORED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId: project.id,
+      details: {
+        projectName: project.name,
+        restoredAt: new Date(),
+        previouslyDeletedAt: project.deletedAt,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project restored successfully',

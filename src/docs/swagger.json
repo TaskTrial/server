@@ -49,6 +49,10 @@
     {
       "name": "Task",
       "description": "Task management"
+    },
+    {
+      "name": "Activity Logs",
+      "description": "Activity Logs management"
     }
   ],
   "paths": {
@@ -6033,6 +6037,262 @@
                     "message": {
                       "type": "string",
                       "example": "Task not found, already active, or does not belong to the specified project"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/activity-logs": {
+      "get": {
+        "tags": ["Activity Logs"],
+        "summary": "Get activity logs with filtering",
+        "description": "Retrieves activity logs with various filtering, sorting, and pagination options. Requires 'view activity logs' permission.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "entityType",
+            "in": "query",
+            "description": "Filter by entity type (ORGANIZATION, DEPARTMENT, TEAM, PROJECT, SPRINT, TASK)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Filter by action type (CREATE, UPDATE, DELETE, etc.)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "Filter by user ID who performed the action",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "description": "Filter by department ID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "teamId",
+            "in": "query",
+            "description": "Filter by team ID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Filter by project ID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "sprintId",
+            "in": "query",
+            "description": "Filter by sprint ID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "Filter by task ID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Filter logs after this date (YYYY-MM-DD or ISO format)",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "Filter logs before this date (YYYY-MM-DD or ISO format)",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination (default: 1)",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items per page (default: 50)",
+            "schema": { "type": "integer", "default": 50 }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Field to sort by (createdAt, entityType, action) (default: createdAt)",
+            "schema": { "type": "string", "default": "createdAt" }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "Sort order (asc or desc) (default: desc)",
+            "schema": {
+              "type": "string",
+              "default": "desc",
+              "enum": ["asc", "desc"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activity logs retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "count": { "type": "integer", "example": 25 },
+                    "total": { "type": "integer", "example": 125 },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "currentPage": { "type": "integer", "example": 1 },
+                        "totalPages": { "type": "integer", "example": 5 },
+                        "hasNextPage": { "type": "boolean", "example": true },
+                        "hasPreviousPage": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "limit": { "type": "integer", "example": 25 }
+                      }
+                    },
+                    "activityLogs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "entityType": { "type": "string" },
+                          "entityId": { "type": "string" },
+                          "action": { "type": "string" },
+                          "oldValue": { "type": "object" },
+                          "newValue": { "type": "object" },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "firstName": { "type": "string" },
+                              "lastName": { "type": "string" },
+                              "email": { "type": "string" },
+                              "profilePic": { "type": "string" }
+                            }
+                          },
+                          "organization": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" }
+                            }
+                          },
+                          "department": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" }
+                            }
+                          },
+                          "team": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" }
+                            }
+                          },
+                          "project": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" }
+                            }
+                          },
+                          "sprint": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "name": { "type": "string" }
+                            }
+                          },
+                          "task": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "title": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to view activity logs"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization not found"
                     }
                   }
                 }

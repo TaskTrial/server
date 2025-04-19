@@ -368,13 +368,35 @@ exports.Prisma.ReportScalarFieldEnum = {
   filePath: 'filePath',
   generatedBy: 'generatedBy',
   createdAt: 'createdAt',
+  status: 'status',
+  updatedAt: 'updatedAt',
+  lastAccessedAt: 'lastAccessedAt',
+  expiresAt: 'expiresAt',
+  tags: 'tags',
   organizationId: 'organizationId',
   teamId: 'teamId',
   projectId: 'projectId',
   departmentId: 'departmentId',
   userId: 'userId',
+  scheduleId: 'scheduleId',
   storageProvider: 'storageProvider',
   storageKey: 'storageKey'
+};
+
+exports.Prisma.ReportScheduleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  cronExpression: 'cronExpression',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.ReportNotificationScalarFieldEnum = {
+  id: 'id',
+  reportId: 'reportId',
+  userId: 'userId',
+  notified: 'notified'
 };
 
 exports.Prisma.PermissionScalarFieldEnum = {
@@ -497,12 +519,25 @@ exports.ActionType = exports.$Enums.ActionType = {
 };
 
 exports.ReportType = exports.$Enums.ReportType = {
-  ORGANIZATION: 'ORGANIZATION',
-  DEPARTMENT: 'DEPARTMENT',
-  TEAM: 'TEAM',
-  PROJECT: 'PROJECT',
-  TASK: 'TASK',
-  USER_PERFORMANCE: 'USER_PERFORMANCE'
+  ORGANIZATION_SUMMARY: 'ORGANIZATION_SUMMARY',
+  ORGANIZATION_ACTIVITY: 'ORGANIZATION_ACTIVITY',
+  DEPARTMENT_PERFORMANCE: 'DEPARTMENT_PERFORMANCE',
+  TEAM_PRODUCTIVITY: 'TEAM_PRODUCTIVITY',
+  PROJECT_STATUS: 'PROJECT_STATUS',
+  PROJECT_TIMELINE: 'PROJECT_TIMELINE',
+  TASK_COMPLETION: 'TASK_COMPLETION',
+  USER_PERFORMANCE: 'USER_PERFORMANCE',
+  USER_ACTIVITY: 'USER_ACTIVITY',
+  SPRINT_BURNDOWN: 'SPRINT_BURNDOWN',
+  CUSTOM: 'CUSTOM'
+};
+
+exports.ReportStatus = exports.$Enums.ReportStatus = {
+  PENDING: 'PENDING',
+  GENERATING: 'GENERATING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
 };
 
 exports.Prisma.ModelName = {
@@ -524,6 +559,8 @@ exports.Prisma.ModelName = {
   ActivityLog: 'ActivityLog',
   Notification: 'Notification',
   Report: 'Report',
+  ReportSchedule: 'ReportSchedule',
+  ReportNotification: 'ReportNotification',
   Permission: 'Permission'
 };
 

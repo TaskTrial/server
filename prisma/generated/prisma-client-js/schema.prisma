@@ -46,27 +46,28 @@ model User {
   lastLogout               DateTime?
 
   // Relations
-  department           Department?         @relation(fields: [departmentId], references: [id])
-  organization         Organization?       @relation("OrganizationEmployees", fields: [organizationId], references: [id])
-  createdOrganizations Organization[]      @relation("OrganizationCreator")
+  department           Department?          @relation(fields: [departmentId], references: [id])
+  organization         Organization?        @relation("OrganizationEmployees", fields: [organizationId], references: [id])
+  createdOrganizations Organization[]       @relation("OrganizationCreator")
   ownedOrganizations   OrganizationOwner[]
-  managedDepartments   Department[]        @relation("DepartmentManager")
-  createdTeams         Team[]              @relation("TeamCreator")
+  managedDepartments   Department[]         @relation("DepartmentManager")
+  createdTeams         Team[]               @relation("TeamCreator")
   teamMemberships      TeamMember[]
   projectMemberships   ProjectMember[]
-  createdProjects      Project[]           @relation("ProjectCreator")
-  modifiedProjects     Project[]           @relation("ProjectModifier")
-  createdTasks         Task[]              @relation("TaskCreator")
-  assignedTasks        Task[]              @relation("TaskAssignee")
-  modifiedTasks        Task[]              @relation("TaskModifier")
+  createdProjects      Project[]            @relation("ProjectCreator")
+  modifiedProjects     Project[]            @relation("ProjectModifier")
+  createdTasks         Task[]               @relation("TaskCreator")
+  assignedTasks        Task[]               @relation("TaskAssignee")
+  modifiedTasks        Task[]               @relation("TaskModifier")
   notifications        Notification[]
   timelogs             Timelog[]
   comments             Comment[]
   taskAttachments      TaskAttachment[]
   generatedReports     Report[]
-  userReports          Report[]            @relation("UserReports")
+  userReports          Report[]             @relation("UserReports")
   permissions          Permission[] // relation to permissions
   activityLogs         ActivityLog[] // relation to activity logs as performer
+  ReportNotification   ReportNotification[]
 
   @@index([departmentId])
   @@index([organizationId])
@@ -479,40 +480,75 @@ model Notification {
 }
 
 model Report {
-  id          String     @id @default(uuid()) @db.Uuid
-  name        String     @db.VarChar(100)
-  description String?    @db.Text
-  reportType  ReportType
-  format      String     @db.VarChar(20)
-  parameters  Json?
-  filePath    String
-  generatedBy String     @db.Uuid
-  createdAt   DateTime   @default(now())
+  id             String       @id @default(uuid()) @db.Uuid
+  name           String       @db.VarChar(100)
+  description    String?      @db.Text
+  reportType     ReportType
+  format         String       @db.VarChar(20) // PDF, XLSX, CSV, etc.
+  parameters     Json?
+  filePath       String
+  generatedBy    String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  status         ReportStatus @default(PENDING)
+  updatedAt      DateTime     @updatedAt
+  lastAccessedAt DateTime?
+  expiresAt      DateTime?
+  tags           String?      @db.Text // Comma-separated tags or use a JSON array
 
   organizationId String? @db.Uuid
   teamId         String? @db.Uuid
   projectId      String? @db.Uuid
   departmentId   String? @db.Uuid
   userId         String? @db.Uuid
+  scheduleId     String? @db.Uuid
 
   // Storage information
   storageProvider String? @db.VarChar(50) // e.g., "s3", "azure", "local"
   storageKey      String // Cloud storage reference
 
   // Relations
-  generator    User          @relation(fields: [generatedBy], references: [id])
-  organization Organization? @relation(fields: [organizationId], references: [id])
-  team         Team?         @relation(fields: [teamId], references: [id])
-  project      Project?      @relation(fields: [projectId], references: [id])
-  department   Department?   @relation(fields: [departmentId], references: [id])
-  user         User?         @relation("UserReports", fields: [userId], references: [id])
+  generator      User                 @relation(fields: [generatedBy], references: [id])
+  organization   Organization?        @relation(fields: [organizationId], references: [id])
+  team           Team?                @relation(fields: [teamId], references: [id])
+  project        Project?             @relation(fields: [projectId], references: [id])
+  department     Department?          @relation(fields: [departmentId], references: [id])
+  user           User?                @relation("UserReports", fields: [userId], references: [id])
+  reportSchedule ReportSchedule?      @relation(fields: [scheduleId], references: [id])
+  notifiedUsers  ReportNotification[]
 
   @@index([generatedBy])
   @@index([organizationId])
   @@index([teamId])
   @@index([projectId])
   @@index([createdAt])
+  @@index([status])
   @@map("reports")
+}
+
+model ReportSchedule {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String   @db.VarChar(100)
+  cronExpression String   @db.VarChar(100)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  createdBy      String   @db.Uuid
+
+  reports Report[]
+
+  @@map("report_schedules")
+}
+
+model ReportNotification {
+  id       String  @id @default(uuid()) @db.Uuid
+  reportId String  @db.Uuid
+  userId   String  @db.Uuid
+  notified Boolean @default(false)
+
+  report Report @relation(fields: [reportId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([reportId, userId])
+  @@map("report_notifications")
 }
 
 model Permission {
@@ -533,12 +569,25 @@ model Permission {
 }
 
 enum ReportType {
-  ORGANIZATION
-  DEPARTMENT
-  TEAM
-  PROJECT
-  TASK
+  ORGANIZATION_SUMMARY
+  ORGANIZATION_ACTIVITY
+  DEPARTMENT_PERFORMANCE
+  TEAM_PRODUCTIVITY
+  PROJECT_STATUS
+  PROJECT_TIMELINE
+  TASK_COMPLETION
   USER_PERFORMANCE
+  USER_ACTIVITY
+  SPRINT_BURNDOWN
+  CUSTOM
+}
+
+enum ReportStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+  EXPIRED
 }
 
 enum EntityType {

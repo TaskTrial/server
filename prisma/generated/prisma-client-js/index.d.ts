@@ -104,6 +104,16 @@ export type Notification = $Result.DefaultSelection<Prisma.$NotificationPayload>
  */
 export type Report = $Result.DefaultSelection<Prisma.$ReportPayload>
 /**
+ * Model ReportSchedule
+ * 
+ */
+export type ReportSchedule = $Result.DefaultSelection<Prisma.$ReportSchedulePayload>
+/**
+ * Model ReportNotification
+ * 
+ */
+export type ReportNotification = $Result.DefaultSelection<Prisma.$ReportNotificationPayload>
+/**
  * Model Permission
  * 
  */
@@ -114,15 +124,31 @@ export type Permission = $Result.DefaultSelection<Prisma.$PermissionPayload>
  */
 export namespace $Enums {
   export const ReportType: {
-  ORGANIZATION: 'ORGANIZATION',
-  DEPARTMENT: 'DEPARTMENT',
-  TEAM: 'TEAM',
-  PROJECT: 'PROJECT',
-  TASK: 'TASK',
-  USER_PERFORMANCE: 'USER_PERFORMANCE'
+  ORGANIZATION_SUMMARY: 'ORGANIZATION_SUMMARY',
+  ORGANIZATION_ACTIVITY: 'ORGANIZATION_ACTIVITY',
+  DEPARTMENT_PERFORMANCE: 'DEPARTMENT_PERFORMANCE',
+  TEAM_PRODUCTIVITY: 'TEAM_PRODUCTIVITY',
+  PROJECT_STATUS: 'PROJECT_STATUS',
+  PROJECT_TIMELINE: 'PROJECT_TIMELINE',
+  TASK_COMPLETION: 'TASK_COMPLETION',
+  USER_PERFORMANCE: 'USER_PERFORMANCE',
+  USER_ACTIVITY: 'USER_ACTIVITY',
+  SPRINT_BURNDOWN: 'SPRINT_BURNDOWN',
+  CUSTOM: 'CUSTOM'
 };
 
 export type ReportType = (typeof ReportType)[keyof typeof ReportType]
+
+
+export const ReportStatus: {
+  PENDING: 'PENDING',
+  GENERATING: 'GENERATING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
+};
+
+export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus]
 
 
 export const EntityType: {
@@ -230,6 +256,10 @@ export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 export type ReportType = $Enums.ReportType
 
 export const ReportType: typeof $Enums.ReportType
+
+export type ReportStatus = $Enums.ReportStatus
+
+export const ReportStatus: typeof $Enums.ReportStatus
 
 export type EntityType = $Enums.EntityType
 
@@ -563,6 +593,26 @@ export class PrismaClient<
     * ```
     */
   get report(): Prisma.ReportDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.reportSchedule`: Exposes CRUD operations for the **ReportSchedule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReportSchedules
+    * const reportSchedules = await prisma.reportSchedule.findMany()
+    * ```
+    */
+  get reportSchedule(): Prisma.ReportScheduleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.reportNotification`: Exposes CRUD operations for the **ReportNotification** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReportNotifications
+    * const reportNotifications = await prisma.reportNotification.findMany()
+    * ```
+    */
+  get reportNotification(): Prisma.ReportNotificationDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.permission`: Exposes CRUD operations for the **Permission** model.
@@ -1031,6 +1081,8 @@ export namespace Prisma {
     ActivityLog: 'ActivityLog',
     Notification: 'Notification',
     Report: 'Report',
+    ReportSchedule: 'ReportSchedule',
+    ReportNotification: 'ReportNotification',
     Permission: 'Permission'
   };
 
@@ -1050,7 +1102,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "organization" | "organizationOwner" | "department" | "team" | "teamMember" | "project" | "projectMember" | "sprint" | "task" | "taskAttachment" | "taskDependency" | "taskTemplate" | "timelog" | "comment" | "activityLog" | "notification" | "report" | "permission"
+      modelProps: "user" | "organization" | "organizationOwner" | "department" | "team" | "teamMember" | "project" | "projectMember" | "sprint" | "task" | "taskAttachment" | "taskDependency" | "taskTemplate" | "timelog" | "comment" | "activityLog" | "notification" | "report" | "reportSchedule" | "reportNotification" | "permission"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2386,6 +2438,154 @@ export namespace Prisma {
           }
         }
       }
+      ReportSchedule: {
+        payload: Prisma.$ReportSchedulePayload<ExtArgs>
+        fields: Prisma.ReportScheduleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReportScheduleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReportScheduleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>
+          }
+          findFirst: {
+            args: Prisma.ReportScheduleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReportScheduleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>
+          }
+          findMany: {
+            args: Prisma.ReportScheduleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>[]
+          }
+          create: {
+            args: Prisma.ReportScheduleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>
+          }
+          createMany: {
+            args: Prisma.ReportScheduleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReportScheduleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>[]
+          }
+          delete: {
+            args: Prisma.ReportScheduleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>
+          }
+          update: {
+            args: Prisma.ReportScheduleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>
+          }
+          deleteMany: {
+            args: Prisma.ReportScheduleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReportScheduleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ReportScheduleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>[]
+          }
+          upsert: {
+            args: Prisma.ReportScheduleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportSchedulePayload>
+          }
+          aggregate: {
+            args: Prisma.ReportScheduleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReportSchedule>
+          }
+          groupBy: {
+            args: Prisma.ReportScheduleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReportScheduleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReportScheduleCountArgs<ExtArgs>
+            result: $Utils.Optional<ReportScheduleCountAggregateOutputType> | number
+          }
+        }
+      }
+      ReportNotification: {
+        payload: Prisma.$ReportNotificationPayload<ExtArgs>
+        fields: Prisma.ReportNotificationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReportNotificationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReportNotificationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>
+          }
+          findFirst: {
+            args: Prisma.ReportNotificationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReportNotificationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>
+          }
+          findMany: {
+            args: Prisma.ReportNotificationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>[]
+          }
+          create: {
+            args: Prisma.ReportNotificationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>
+          }
+          createMany: {
+            args: Prisma.ReportNotificationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReportNotificationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>[]
+          }
+          delete: {
+            args: Prisma.ReportNotificationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>
+          }
+          update: {
+            args: Prisma.ReportNotificationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>
+          }
+          deleteMany: {
+            args: Prisma.ReportNotificationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReportNotificationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ReportNotificationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>[]
+          }
+          upsert: {
+            args: Prisma.ReportNotificationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReportNotificationPayload>
+          }
+          aggregate: {
+            args: Prisma.ReportNotificationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReportNotification>
+          }
+          groupBy: {
+            args: Prisma.ReportNotificationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReportNotificationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReportNotificationCountArgs<ExtArgs>
+            result: $Utils.Optional<ReportNotificationCountAggregateOutputType> | number
+          }
+        }
+      }
       Permission: {
         payload: Prisma.$PermissionPayload<ExtArgs>
         fields: Prisma.PermissionFieldRefs
@@ -2562,6 +2762,8 @@ export namespace Prisma {
     activityLog?: ActivityLogOmit
     notification?: NotificationOmit
     report?: ReportOmit
+    reportSchedule?: ReportScheduleOmit
+    reportNotification?: ReportNotificationOmit
     permission?: PermissionOmit
   }
 
@@ -2676,6 +2878,7 @@ export namespace Prisma {
     userReports: number
     permissions: number
     activityLogs: number
+    ReportNotification: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2698,6 +2901,7 @@ export namespace Prisma {
     userReports?: boolean | UserCountOutputTypeCountUserReportsArgs
     permissions?: boolean | UserCountOutputTypeCountPermissionsArgs
     activityLogs?: boolean | UserCountOutputTypeCountActivityLogsArgs
+    ReportNotification?: boolean | UserCountOutputTypeCountReportNotificationArgs
   }
 
   // Custom InputTypes
@@ -2842,6 +3046,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountActivityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ActivityLogWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountReportNotificationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReportNotificationWhereInput
   }
 
 
@@ -3248,6 +3459,68 @@ export namespace Prisma {
 
 
   /**
+   * Count Type ReportCountOutputType
+   */
+
+  export type ReportCountOutputType = {
+    notifiedUsers: number
+  }
+
+  export type ReportCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    notifiedUsers?: boolean | ReportCountOutputTypeCountNotifiedUsersArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ReportCountOutputType without action
+   */
+  export type ReportCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportCountOutputType
+     */
+    select?: ReportCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ReportCountOutputType without action
+   */
+  export type ReportCountOutputTypeCountNotifiedUsersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReportNotificationWhereInput
+  }
+
+
+  /**
+   * Count Type ReportScheduleCountOutputType
+   */
+
+  export type ReportScheduleCountOutputType = {
+    reports: number
+  }
+
+  export type ReportScheduleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    reports?: boolean | ReportScheduleCountOutputTypeCountReportsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ReportScheduleCountOutputType without action
+   */
+  export type ReportScheduleCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportScheduleCountOutputType
+     */
+    select?: ReportScheduleCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ReportScheduleCountOutputType without action
+   */
+  export type ReportScheduleCountOutputTypeCountReportsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReportWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -3616,6 +3889,7 @@ export namespace Prisma {
     userReports?: boolean | User$userReportsArgs<ExtArgs>
     permissions?: boolean | User$permissionsArgs<ExtArgs>
     activityLogs?: boolean | User$activityLogsArgs<ExtArgs>
+    ReportNotification?: boolean | User$ReportNotificationArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -3739,6 +4013,7 @@ export namespace Prisma {
     userReports?: boolean | User$userReportsArgs<ExtArgs>
     permissions?: boolean | User$permissionsArgs<ExtArgs>
     activityLogs?: boolean | User$activityLogsArgs<ExtArgs>
+    ReportNotification?: boolean | User$ReportNotificationArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3774,6 +4049,7 @@ export namespace Prisma {
       userReports: Prisma.$ReportPayload<ExtArgs>[]
       permissions: Prisma.$PermissionPayload<ExtArgs>[]
       activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
+      ReportNotification: Prisma.$ReportNotificationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4219,6 +4495,7 @@ export namespace Prisma {
     userReports<T extends User$userReportsArgs<ExtArgs> = {}>(args?: Subset<T, User$userReportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     permissions<T extends User$permissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$permissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     activityLogs<T extends User$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    ReportNotification<T extends User$ReportNotificationArgs<ExtArgs> = {}>(args?: Subset<T, User$ReportNotificationArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5163,6 +5440,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
+  }
+
+  /**
+   * User.ReportNotification
+   */
+  export type User$ReportNotificationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    where?: ReportNotificationWhereInput
+    orderBy?: ReportNotificationOrderByWithRelationInput | ReportNotificationOrderByWithRelationInput[]
+    cursor?: ReportNotificationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReportNotificationScalarFieldEnum | ReportNotificationScalarFieldEnum[]
   }
 
   /**
@@ -24635,11 +24936,17 @@ export namespace Prisma {
     filePath: string | null
     generatedBy: string | null
     createdAt: Date | null
+    status: $Enums.ReportStatus | null
+    updatedAt: Date | null
+    lastAccessedAt: Date | null
+    expiresAt: Date | null
+    tags: string | null
     organizationId: string | null
     teamId: string | null
     projectId: string | null
     departmentId: string | null
     userId: string | null
+    scheduleId: string | null
     storageProvider: string | null
     storageKey: string | null
   }
@@ -24653,11 +24960,17 @@ export namespace Prisma {
     filePath: string | null
     generatedBy: string | null
     createdAt: Date | null
+    status: $Enums.ReportStatus | null
+    updatedAt: Date | null
+    lastAccessedAt: Date | null
+    expiresAt: Date | null
+    tags: string | null
     organizationId: string | null
     teamId: string | null
     projectId: string | null
     departmentId: string | null
     userId: string | null
+    scheduleId: string | null
     storageProvider: string | null
     storageKey: string | null
   }
@@ -24672,11 +24985,17 @@ export namespace Prisma {
     filePath: number
     generatedBy: number
     createdAt: number
+    status: number
+    updatedAt: number
+    lastAccessedAt: number
+    expiresAt: number
+    tags: number
     organizationId: number
     teamId: number
     projectId: number
     departmentId: number
     userId: number
+    scheduleId: number
     storageProvider: number
     storageKey: number
     _all: number
@@ -24692,11 +25011,17 @@ export namespace Prisma {
     filePath?: true
     generatedBy?: true
     createdAt?: true
+    status?: true
+    updatedAt?: true
+    lastAccessedAt?: true
+    expiresAt?: true
+    tags?: true
     organizationId?: true
     teamId?: true
     projectId?: true
     departmentId?: true
     userId?: true
+    scheduleId?: true
     storageProvider?: true
     storageKey?: true
   }
@@ -24710,11 +25035,17 @@ export namespace Prisma {
     filePath?: true
     generatedBy?: true
     createdAt?: true
+    status?: true
+    updatedAt?: true
+    lastAccessedAt?: true
+    expiresAt?: true
+    tags?: true
     organizationId?: true
     teamId?: true
     projectId?: true
     departmentId?: true
     userId?: true
+    scheduleId?: true
     storageProvider?: true
     storageKey?: true
   }
@@ -24729,11 +25060,17 @@ export namespace Prisma {
     filePath?: true
     generatedBy?: true
     createdAt?: true
+    status?: true
+    updatedAt?: true
+    lastAccessedAt?: true
+    expiresAt?: true
+    tags?: true
     organizationId?: true
     teamId?: true
     projectId?: true
     departmentId?: true
     userId?: true
+    scheduleId?: true
     storageProvider?: true
     storageKey?: true
     _all?: true
@@ -24821,11 +25158,17 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt: Date
+    status: $Enums.ReportStatus
+    updatedAt: Date
+    lastAccessedAt: Date | null
+    expiresAt: Date | null
+    tags: string | null
     organizationId: string | null
     teamId: string | null
     projectId: string | null
     departmentId: string | null
     userId: string | null
+    scheduleId: string | null
     storageProvider: string | null
     storageKey: string
     _count: ReportCountAggregateOutputType | null
@@ -24857,11 +25200,17 @@ export namespace Prisma {
     filePath?: boolean
     generatedBy?: boolean
     createdAt?: boolean
+    status?: boolean
+    updatedAt?: boolean
+    lastAccessedAt?: boolean
+    expiresAt?: boolean
+    tags?: boolean
     organizationId?: boolean
     teamId?: boolean
     projectId?: boolean
     departmentId?: boolean
     userId?: boolean
+    scheduleId?: boolean
     storageProvider?: boolean
     storageKey?: boolean
     generator?: boolean | UserDefaultArgs<ExtArgs>
@@ -24870,6 +25219,9 @@ export namespace Prisma {
     project?: boolean | Report$projectArgs<ExtArgs>
     department?: boolean | Report$departmentArgs<ExtArgs>
     user?: boolean | Report$userArgs<ExtArgs>
+    reportSchedule?: boolean | Report$reportScheduleArgs<ExtArgs>
+    notifiedUsers?: boolean | Report$notifiedUsersArgs<ExtArgs>
+    _count?: boolean | ReportCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["report"]>
 
   export type ReportSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -24882,11 +25234,17 @@ export namespace Prisma {
     filePath?: boolean
     generatedBy?: boolean
     createdAt?: boolean
+    status?: boolean
+    updatedAt?: boolean
+    lastAccessedAt?: boolean
+    expiresAt?: boolean
+    tags?: boolean
     organizationId?: boolean
     teamId?: boolean
     projectId?: boolean
     departmentId?: boolean
     userId?: boolean
+    scheduleId?: boolean
     storageProvider?: boolean
     storageKey?: boolean
     generator?: boolean | UserDefaultArgs<ExtArgs>
@@ -24895,6 +25253,7 @@ export namespace Prisma {
     project?: boolean | Report$projectArgs<ExtArgs>
     department?: boolean | Report$departmentArgs<ExtArgs>
     user?: boolean | Report$userArgs<ExtArgs>
+    reportSchedule?: boolean | Report$reportScheduleArgs<ExtArgs>
   }, ExtArgs["result"]["report"]>
 
   export type ReportSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -24907,11 +25266,17 @@ export namespace Prisma {
     filePath?: boolean
     generatedBy?: boolean
     createdAt?: boolean
+    status?: boolean
+    updatedAt?: boolean
+    lastAccessedAt?: boolean
+    expiresAt?: boolean
+    tags?: boolean
     organizationId?: boolean
     teamId?: boolean
     projectId?: boolean
     departmentId?: boolean
     userId?: boolean
+    scheduleId?: boolean
     storageProvider?: boolean
     storageKey?: boolean
     generator?: boolean | UserDefaultArgs<ExtArgs>
@@ -24920,6 +25285,7 @@ export namespace Prisma {
     project?: boolean | Report$projectArgs<ExtArgs>
     department?: boolean | Report$departmentArgs<ExtArgs>
     user?: boolean | Report$userArgs<ExtArgs>
+    reportSchedule?: boolean | Report$reportScheduleArgs<ExtArgs>
   }, ExtArgs["result"]["report"]>
 
   export type ReportSelectScalar = {
@@ -24932,16 +25298,22 @@ export namespace Prisma {
     filePath?: boolean
     generatedBy?: boolean
     createdAt?: boolean
+    status?: boolean
+    updatedAt?: boolean
+    lastAccessedAt?: boolean
+    expiresAt?: boolean
+    tags?: boolean
     organizationId?: boolean
     teamId?: boolean
     projectId?: boolean
     departmentId?: boolean
     userId?: boolean
+    scheduleId?: boolean
     storageProvider?: boolean
     storageKey?: boolean
   }
 
-  export type ReportOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "reportType" | "format" | "parameters" | "filePath" | "generatedBy" | "createdAt" | "organizationId" | "teamId" | "projectId" | "departmentId" | "userId" | "storageProvider" | "storageKey", ExtArgs["result"]["report"]>
+  export type ReportOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "reportType" | "format" | "parameters" | "filePath" | "generatedBy" | "createdAt" | "status" | "updatedAt" | "lastAccessedAt" | "expiresAt" | "tags" | "organizationId" | "teamId" | "projectId" | "departmentId" | "userId" | "scheduleId" | "storageProvider" | "storageKey", ExtArgs["result"]["report"]>
   export type ReportInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     generator?: boolean | UserDefaultArgs<ExtArgs>
     organization?: boolean | Report$organizationArgs<ExtArgs>
@@ -24949,6 +25321,9 @@ export namespace Prisma {
     project?: boolean | Report$projectArgs<ExtArgs>
     department?: boolean | Report$departmentArgs<ExtArgs>
     user?: boolean | Report$userArgs<ExtArgs>
+    reportSchedule?: boolean | Report$reportScheduleArgs<ExtArgs>
+    notifiedUsers?: boolean | Report$notifiedUsersArgs<ExtArgs>
+    _count?: boolean | ReportCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ReportIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     generator?: boolean | UserDefaultArgs<ExtArgs>
@@ -24957,6 +25332,7 @@ export namespace Prisma {
     project?: boolean | Report$projectArgs<ExtArgs>
     department?: boolean | Report$departmentArgs<ExtArgs>
     user?: boolean | Report$userArgs<ExtArgs>
+    reportSchedule?: boolean | Report$reportScheduleArgs<ExtArgs>
   }
   export type ReportIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     generator?: boolean | UserDefaultArgs<ExtArgs>
@@ -24965,6 +25341,7 @@ export namespace Prisma {
     project?: boolean | Report$projectArgs<ExtArgs>
     department?: boolean | Report$departmentArgs<ExtArgs>
     user?: boolean | Report$userArgs<ExtArgs>
+    reportSchedule?: boolean | Report$reportScheduleArgs<ExtArgs>
   }
 
   export type $ReportPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -24976,6 +25353,8 @@ export namespace Prisma {
       project: Prisma.$ProjectPayload<ExtArgs> | null
       department: Prisma.$DepartmentPayload<ExtArgs> | null
       user: Prisma.$UserPayload<ExtArgs> | null
+      reportSchedule: Prisma.$ReportSchedulePayload<ExtArgs> | null
+      notifiedUsers: Prisma.$ReportNotificationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -24987,11 +25366,17 @@ export namespace Prisma {
       filePath: string
       generatedBy: string
       createdAt: Date
+      status: $Enums.ReportStatus
+      updatedAt: Date
+      lastAccessedAt: Date | null
+      expiresAt: Date | null
+      tags: string | null
       organizationId: string | null
       teamId: string | null
       projectId: string | null
       departmentId: string | null
       userId: string | null
+      scheduleId: string | null
       storageProvider: string | null
       storageKey: string
     }, ExtArgs["result"]["report"]>
@@ -25394,6 +25779,8 @@ export namespace Prisma {
     project<T extends Report$projectArgs<ExtArgs> = {}>(args?: Subset<T, Report$projectArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     department<T extends Report$departmentArgs<ExtArgs> = {}>(args?: Subset<T, Report$departmentArgs<ExtArgs>>): Prisma__DepartmentClient<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     user<T extends Report$userArgs<ExtArgs> = {}>(args?: Subset<T, Report$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    reportSchedule<T extends Report$reportScheduleArgs<ExtArgs> = {}>(args?: Subset<T, Report$reportScheduleArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    notifiedUsers<T extends Report$notifiedUsersArgs<ExtArgs> = {}>(args?: Subset<T, Report$notifiedUsersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -25432,11 +25819,17 @@ export namespace Prisma {
     readonly filePath: FieldRef<"Report", 'String'>
     readonly generatedBy: FieldRef<"Report", 'String'>
     readonly createdAt: FieldRef<"Report", 'DateTime'>
+    readonly status: FieldRef<"Report", 'ReportStatus'>
+    readonly updatedAt: FieldRef<"Report", 'DateTime'>
+    readonly lastAccessedAt: FieldRef<"Report", 'DateTime'>
+    readonly expiresAt: FieldRef<"Report", 'DateTime'>
+    readonly tags: FieldRef<"Report", 'String'>
     readonly organizationId: FieldRef<"Report", 'String'>
     readonly teamId: FieldRef<"Report", 'String'>
     readonly projectId: FieldRef<"Report", 'String'>
     readonly departmentId: FieldRef<"Report", 'String'>
     readonly userId: FieldRef<"Report", 'String'>
+    readonly scheduleId: FieldRef<"Report", 'String'>
     readonly storageProvider: FieldRef<"Report", 'String'>
     readonly storageKey: FieldRef<"Report", 'String'>
   }
@@ -25930,6 +26323,49 @@ export namespace Prisma {
   }
 
   /**
+   * Report.reportSchedule
+   */
+  export type Report$reportScheduleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    where?: ReportScheduleWhereInput
+  }
+
+  /**
+   * Report.notifiedUsers
+   */
+  export type Report$notifiedUsersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    where?: ReportNotificationWhereInput
+    orderBy?: ReportNotificationOrderByWithRelationInput | ReportNotificationOrderByWithRelationInput[]
+    cursor?: ReportNotificationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReportNotificationScalarFieldEnum | ReportNotificationScalarFieldEnum[]
+  }
+
+  /**
    * Report without action
    */
   export type ReportDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -25945,6 +26381,2142 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ReportInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReportSchedule
+   */
+
+  export type AggregateReportSchedule = {
+    _count: ReportScheduleCountAggregateOutputType | null
+    _min: ReportScheduleMinAggregateOutputType | null
+    _max: ReportScheduleMaxAggregateOutputType | null
+  }
+
+  export type ReportScheduleMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    cronExpression: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    createdBy: string | null
+  }
+
+  export type ReportScheduleMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    cronExpression: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    createdBy: string | null
+  }
+
+  export type ReportScheduleCountAggregateOutputType = {
+    id: number
+    name: number
+    cronExpression: number
+    isActive: number
+    createdAt: number
+    createdBy: number
+    _all: number
+  }
+
+
+  export type ReportScheduleMinAggregateInputType = {
+    id?: true
+    name?: true
+    cronExpression?: true
+    isActive?: true
+    createdAt?: true
+    createdBy?: true
+  }
+
+  export type ReportScheduleMaxAggregateInputType = {
+    id?: true
+    name?: true
+    cronExpression?: true
+    isActive?: true
+    createdAt?: true
+    createdBy?: true
+  }
+
+  export type ReportScheduleCountAggregateInputType = {
+    id?: true
+    name?: true
+    cronExpression?: true
+    isActive?: true
+    createdAt?: true
+    createdBy?: true
+    _all?: true
+  }
+
+  export type ReportScheduleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReportSchedule to aggregate.
+     */
+    where?: ReportScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportSchedules to fetch.
+     */
+    orderBy?: ReportScheduleOrderByWithRelationInput | ReportScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ReportScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ReportSchedules
+    **/
+    _count?: true | ReportScheduleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReportScheduleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReportScheduleMaxAggregateInputType
+  }
+
+  export type GetReportScheduleAggregateType<T extends ReportScheduleAggregateArgs> = {
+        [P in keyof T & keyof AggregateReportSchedule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReportSchedule[P]>
+      : GetScalarType<T[P], AggregateReportSchedule[P]>
+  }
+
+
+
+
+  export type ReportScheduleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReportScheduleWhereInput
+    orderBy?: ReportScheduleOrderByWithAggregationInput | ReportScheduleOrderByWithAggregationInput[]
+    by: ReportScheduleScalarFieldEnum[] | ReportScheduleScalarFieldEnum
+    having?: ReportScheduleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReportScheduleCountAggregateInputType | true
+    _min?: ReportScheduleMinAggregateInputType
+    _max?: ReportScheduleMaxAggregateInputType
+  }
+
+  export type ReportScheduleGroupByOutputType = {
+    id: string
+    name: string
+    cronExpression: string
+    isActive: boolean
+    createdAt: Date
+    createdBy: string
+    _count: ReportScheduleCountAggregateOutputType | null
+    _min: ReportScheduleMinAggregateOutputType | null
+    _max: ReportScheduleMaxAggregateOutputType | null
+  }
+
+  type GetReportScheduleGroupByPayload<T extends ReportScheduleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReportScheduleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReportScheduleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReportScheduleGroupByOutputType[P]>
+            : GetScalarType<T[P], ReportScheduleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReportScheduleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    cronExpression?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    reports?: boolean | ReportSchedule$reportsArgs<ExtArgs>
+    _count?: boolean | ReportScheduleCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reportSchedule"]>
+
+  export type ReportScheduleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    cronExpression?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+  }, ExtArgs["result"]["reportSchedule"]>
+
+  export type ReportScheduleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    cronExpression?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+  }, ExtArgs["result"]["reportSchedule"]>
+
+  export type ReportScheduleSelectScalar = {
+    id?: boolean
+    name?: boolean
+    cronExpression?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+  }
+
+  export type ReportScheduleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "cronExpression" | "isActive" | "createdAt" | "createdBy", ExtArgs["result"]["reportSchedule"]>
+  export type ReportScheduleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    reports?: boolean | ReportSchedule$reportsArgs<ExtArgs>
+    _count?: boolean | ReportScheduleCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ReportScheduleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type ReportScheduleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $ReportSchedulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReportSchedule"
+    objects: {
+      reports: Prisma.$ReportPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      cronExpression: string
+      isActive: boolean
+      createdAt: Date
+      createdBy: string
+    }, ExtArgs["result"]["reportSchedule"]>
+    composites: {}
+  }
+
+  type ReportScheduleGetPayload<S extends boolean | null | undefined | ReportScheduleDefaultArgs> = $Result.GetResult<Prisma.$ReportSchedulePayload, S>
+
+  type ReportScheduleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ReportScheduleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ReportScheduleCountAggregateInputType | true
+    }
+
+  export interface ReportScheduleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReportSchedule'], meta: { name: 'ReportSchedule' } }
+    /**
+     * Find zero or one ReportSchedule that matches the filter.
+     * @param {ReportScheduleFindUniqueArgs} args - Arguments to find a ReportSchedule
+     * @example
+     * // Get one ReportSchedule
+     * const reportSchedule = await prisma.reportSchedule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReportScheduleFindUniqueArgs>(args: SelectSubset<T, ReportScheduleFindUniqueArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ReportSchedule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ReportScheduleFindUniqueOrThrowArgs} args - Arguments to find a ReportSchedule
+     * @example
+     * // Get one ReportSchedule
+     * const reportSchedule = await prisma.reportSchedule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReportScheduleFindUniqueOrThrowArgs>(args: SelectSubset<T, ReportScheduleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReportSchedule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportScheduleFindFirstArgs} args - Arguments to find a ReportSchedule
+     * @example
+     * // Get one ReportSchedule
+     * const reportSchedule = await prisma.reportSchedule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReportScheduleFindFirstArgs>(args?: SelectSubset<T, ReportScheduleFindFirstArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReportSchedule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportScheduleFindFirstOrThrowArgs} args - Arguments to find a ReportSchedule
+     * @example
+     * // Get one ReportSchedule
+     * const reportSchedule = await prisma.reportSchedule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReportScheduleFindFirstOrThrowArgs>(args?: SelectSubset<T, ReportScheduleFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ReportSchedules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportScheduleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReportSchedules
+     * const reportSchedules = await prisma.reportSchedule.findMany()
+     * 
+     * // Get first 10 ReportSchedules
+     * const reportSchedules = await prisma.reportSchedule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const reportScheduleWithIdOnly = await prisma.reportSchedule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ReportScheduleFindManyArgs>(args?: SelectSubset<T, ReportScheduleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ReportSchedule.
+     * @param {ReportScheduleCreateArgs} args - Arguments to create a ReportSchedule.
+     * @example
+     * // Create one ReportSchedule
+     * const ReportSchedule = await prisma.reportSchedule.create({
+     *   data: {
+     *     // ... data to create a ReportSchedule
+     *   }
+     * })
+     * 
+     */
+    create<T extends ReportScheduleCreateArgs>(args: SelectSubset<T, ReportScheduleCreateArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ReportSchedules.
+     * @param {ReportScheduleCreateManyArgs} args - Arguments to create many ReportSchedules.
+     * @example
+     * // Create many ReportSchedules
+     * const reportSchedule = await prisma.reportSchedule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ReportScheduleCreateManyArgs>(args?: SelectSubset<T, ReportScheduleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReportSchedules and returns the data saved in the database.
+     * @param {ReportScheduleCreateManyAndReturnArgs} args - Arguments to create many ReportSchedules.
+     * @example
+     * // Create many ReportSchedules
+     * const reportSchedule = await prisma.reportSchedule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ReportSchedules and only return the `id`
+     * const reportScheduleWithIdOnly = await prisma.reportSchedule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ReportScheduleCreateManyAndReturnArgs>(args?: SelectSubset<T, ReportScheduleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ReportSchedule.
+     * @param {ReportScheduleDeleteArgs} args - Arguments to delete one ReportSchedule.
+     * @example
+     * // Delete one ReportSchedule
+     * const ReportSchedule = await prisma.reportSchedule.delete({
+     *   where: {
+     *     // ... filter to delete one ReportSchedule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ReportScheduleDeleteArgs>(args: SelectSubset<T, ReportScheduleDeleteArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ReportSchedule.
+     * @param {ReportScheduleUpdateArgs} args - Arguments to update one ReportSchedule.
+     * @example
+     * // Update one ReportSchedule
+     * const reportSchedule = await prisma.reportSchedule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ReportScheduleUpdateArgs>(args: SelectSubset<T, ReportScheduleUpdateArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ReportSchedules.
+     * @param {ReportScheduleDeleteManyArgs} args - Arguments to filter ReportSchedules to delete.
+     * @example
+     * // Delete a few ReportSchedules
+     * const { count } = await prisma.reportSchedule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ReportScheduleDeleteManyArgs>(args?: SelectSubset<T, ReportScheduleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReportSchedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportScheduleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReportSchedules
+     * const reportSchedule = await prisma.reportSchedule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ReportScheduleUpdateManyArgs>(args: SelectSubset<T, ReportScheduleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReportSchedules and returns the data updated in the database.
+     * @param {ReportScheduleUpdateManyAndReturnArgs} args - Arguments to update many ReportSchedules.
+     * @example
+     * // Update many ReportSchedules
+     * const reportSchedule = await prisma.reportSchedule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ReportSchedules and only return the `id`
+     * const reportScheduleWithIdOnly = await prisma.reportSchedule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ReportScheduleUpdateManyAndReturnArgs>(args: SelectSubset<T, ReportScheduleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ReportSchedule.
+     * @param {ReportScheduleUpsertArgs} args - Arguments to update or create a ReportSchedule.
+     * @example
+     * // Update or create a ReportSchedule
+     * const reportSchedule = await prisma.reportSchedule.upsert({
+     *   create: {
+     *     // ... data to create a ReportSchedule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReportSchedule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReportScheduleUpsertArgs>(args: SelectSubset<T, ReportScheduleUpsertArgs<ExtArgs>>): Prisma__ReportScheduleClient<$Result.GetResult<Prisma.$ReportSchedulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ReportSchedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportScheduleCountArgs} args - Arguments to filter ReportSchedules to count.
+     * @example
+     * // Count the number of ReportSchedules
+     * const count = await prisma.reportSchedule.count({
+     *   where: {
+     *     // ... the filter for the ReportSchedules we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReportScheduleCountArgs>(
+      args?: Subset<T, ReportScheduleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReportScheduleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReportSchedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportScheduleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReportScheduleAggregateArgs>(args: Subset<T, ReportScheduleAggregateArgs>): Prisma.PrismaPromise<GetReportScheduleAggregateType<T>>
+
+    /**
+     * Group by ReportSchedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportScheduleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ReportScheduleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReportScheduleGroupByArgs['orderBy'] }
+        : { orderBy?: ReportScheduleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReportScheduleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReportScheduleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReportSchedule model
+   */
+  readonly fields: ReportScheduleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReportSchedule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReportScheduleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    reports<T extends ReportSchedule$reportsArgs<ExtArgs> = {}>(args?: Subset<T, ReportSchedule$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReportSchedule model
+   */
+  interface ReportScheduleFieldRefs {
+    readonly id: FieldRef<"ReportSchedule", 'String'>
+    readonly name: FieldRef<"ReportSchedule", 'String'>
+    readonly cronExpression: FieldRef<"ReportSchedule", 'String'>
+    readonly isActive: FieldRef<"ReportSchedule", 'Boolean'>
+    readonly createdAt: FieldRef<"ReportSchedule", 'DateTime'>
+    readonly createdBy: FieldRef<"ReportSchedule", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ReportSchedule findUnique
+   */
+  export type ReportScheduleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportSchedule to fetch.
+     */
+    where: ReportScheduleWhereUniqueInput
+  }
+
+  /**
+   * ReportSchedule findUniqueOrThrow
+   */
+  export type ReportScheduleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportSchedule to fetch.
+     */
+    where: ReportScheduleWhereUniqueInput
+  }
+
+  /**
+   * ReportSchedule findFirst
+   */
+  export type ReportScheduleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportSchedule to fetch.
+     */
+    where?: ReportScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportSchedules to fetch.
+     */
+    orderBy?: ReportScheduleOrderByWithRelationInput | ReportScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReportSchedules.
+     */
+    cursor?: ReportScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReportSchedules.
+     */
+    distinct?: ReportScheduleScalarFieldEnum | ReportScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * ReportSchedule findFirstOrThrow
+   */
+  export type ReportScheduleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportSchedule to fetch.
+     */
+    where?: ReportScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportSchedules to fetch.
+     */
+    orderBy?: ReportScheduleOrderByWithRelationInput | ReportScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReportSchedules.
+     */
+    cursor?: ReportScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReportSchedules.
+     */
+    distinct?: ReportScheduleScalarFieldEnum | ReportScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * ReportSchedule findMany
+   */
+  export type ReportScheduleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportSchedules to fetch.
+     */
+    where?: ReportScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportSchedules to fetch.
+     */
+    orderBy?: ReportScheduleOrderByWithRelationInput | ReportScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ReportSchedules.
+     */
+    cursor?: ReportScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportSchedules.
+     */
+    skip?: number
+    distinct?: ReportScheduleScalarFieldEnum | ReportScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * ReportSchedule create
+   */
+  export type ReportScheduleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReportSchedule.
+     */
+    data: XOR<ReportScheduleCreateInput, ReportScheduleUncheckedCreateInput>
+  }
+
+  /**
+   * ReportSchedule createMany
+   */
+  export type ReportScheduleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReportSchedules.
+     */
+    data: ReportScheduleCreateManyInput | ReportScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReportSchedule createManyAndReturn
+   */
+  export type ReportScheduleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to create many ReportSchedules.
+     */
+    data: ReportScheduleCreateManyInput | ReportScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReportSchedule update
+   */
+  export type ReportScheduleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReportSchedule.
+     */
+    data: XOR<ReportScheduleUpdateInput, ReportScheduleUncheckedUpdateInput>
+    /**
+     * Choose, which ReportSchedule to update.
+     */
+    where: ReportScheduleWhereUniqueInput
+  }
+
+  /**
+   * ReportSchedule updateMany
+   */
+  export type ReportScheduleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReportSchedules.
+     */
+    data: XOR<ReportScheduleUpdateManyMutationInput, ReportScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which ReportSchedules to update
+     */
+    where?: ReportScheduleWhereInput
+    /**
+     * Limit how many ReportSchedules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReportSchedule updateManyAndReturn
+   */
+  export type ReportScheduleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to update ReportSchedules.
+     */
+    data: XOR<ReportScheduleUpdateManyMutationInput, ReportScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which ReportSchedules to update
+     */
+    where?: ReportScheduleWhereInput
+    /**
+     * Limit how many ReportSchedules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReportSchedule upsert
+   */
+  export type ReportScheduleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReportSchedule to update in case it exists.
+     */
+    where: ReportScheduleWhereUniqueInput
+    /**
+     * In case the ReportSchedule found by the `where` argument doesn't exist, create a new ReportSchedule with this data.
+     */
+    create: XOR<ReportScheduleCreateInput, ReportScheduleUncheckedCreateInput>
+    /**
+     * In case the ReportSchedule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReportScheduleUpdateInput, ReportScheduleUncheckedUpdateInput>
+  }
+
+  /**
+   * ReportSchedule delete
+   */
+  export type ReportScheduleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+    /**
+     * Filter which ReportSchedule to delete.
+     */
+    where: ReportScheduleWhereUniqueInput
+  }
+
+  /**
+   * ReportSchedule deleteMany
+   */
+  export type ReportScheduleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReportSchedules to delete
+     */
+    where?: ReportScheduleWhereInput
+    /**
+     * Limit how many ReportSchedules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReportSchedule.reports
+   */
+  export type ReportSchedule$reportsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Report
+     */
+    select?: ReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Report
+     */
+    omit?: ReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportInclude<ExtArgs> | null
+    where?: ReportWhereInput
+    orderBy?: ReportOrderByWithRelationInput | ReportOrderByWithRelationInput[]
+    cursor?: ReportWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReportScalarFieldEnum | ReportScalarFieldEnum[]
+  }
+
+  /**
+   * ReportSchedule without action
+   */
+  export type ReportScheduleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportSchedule
+     */
+    select?: ReportScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportSchedule
+     */
+    omit?: ReportScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportScheduleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReportNotification
+   */
+
+  export type AggregateReportNotification = {
+    _count: ReportNotificationCountAggregateOutputType | null
+    _min: ReportNotificationMinAggregateOutputType | null
+    _max: ReportNotificationMaxAggregateOutputType | null
+  }
+
+  export type ReportNotificationMinAggregateOutputType = {
+    id: string | null
+    reportId: string | null
+    userId: string | null
+    notified: boolean | null
+  }
+
+  export type ReportNotificationMaxAggregateOutputType = {
+    id: string | null
+    reportId: string | null
+    userId: string | null
+    notified: boolean | null
+  }
+
+  export type ReportNotificationCountAggregateOutputType = {
+    id: number
+    reportId: number
+    userId: number
+    notified: number
+    _all: number
+  }
+
+
+  export type ReportNotificationMinAggregateInputType = {
+    id?: true
+    reportId?: true
+    userId?: true
+    notified?: true
+  }
+
+  export type ReportNotificationMaxAggregateInputType = {
+    id?: true
+    reportId?: true
+    userId?: true
+    notified?: true
+  }
+
+  export type ReportNotificationCountAggregateInputType = {
+    id?: true
+    reportId?: true
+    userId?: true
+    notified?: true
+    _all?: true
+  }
+
+  export type ReportNotificationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReportNotification to aggregate.
+     */
+    where?: ReportNotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportNotifications to fetch.
+     */
+    orderBy?: ReportNotificationOrderByWithRelationInput | ReportNotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ReportNotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportNotifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportNotifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ReportNotifications
+    **/
+    _count?: true | ReportNotificationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReportNotificationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReportNotificationMaxAggregateInputType
+  }
+
+  export type GetReportNotificationAggregateType<T extends ReportNotificationAggregateArgs> = {
+        [P in keyof T & keyof AggregateReportNotification]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReportNotification[P]>
+      : GetScalarType<T[P], AggregateReportNotification[P]>
+  }
+
+
+
+
+  export type ReportNotificationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReportNotificationWhereInput
+    orderBy?: ReportNotificationOrderByWithAggregationInput | ReportNotificationOrderByWithAggregationInput[]
+    by: ReportNotificationScalarFieldEnum[] | ReportNotificationScalarFieldEnum
+    having?: ReportNotificationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReportNotificationCountAggregateInputType | true
+    _min?: ReportNotificationMinAggregateInputType
+    _max?: ReportNotificationMaxAggregateInputType
+  }
+
+  export type ReportNotificationGroupByOutputType = {
+    id: string
+    reportId: string
+    userId: string
+    notified: boolean
+    _count: ReportNotificationCountAggregateOutputType | null
+    _min: ReportNotificationMinAggregateOutputType | null
+    _max: ReportNotificationMaxAggregateOutputType | null
+  }
+
+  type GetReportNotificationGroupByPayload<T extends ReportNotificationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReportNotificationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReportNotificationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReportNotificationGroupByOutputType[P]>
+            : GetScalarType<T[P], ReportNotificationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReportNotificationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reportId?: boolean
+    userId?: boolean
+    notified?: boolean
+    report?: boolean | ReportDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reportNotification"]>
+
+  export type ReportNotificationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reportId?: boolean
+    userId?: boolean
+    notified?: boolean
+    report?: boolean | ReportDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reportNotification"]>
+
+  export type ReportNotificationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reportId?: boolean
+    userId?: boolean
+    notified?: boolean
+    report?: boolean | ReportDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reportNotification"]>
+
+  export type ReportNotificationSelectScalar = {
+    id?: boolean
+    reportId?: boolean
+    userId?: boolean
+    notified?: boolean
+  }
+
+  export type ReportNotificationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "reportId" | "userId" | "notified", ExtArgs["result"]["reportNotification"]>
+  export type ReportNotificationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    report?: boolean | ReportDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ReportNotificationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    report?: boolean | ReportDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ReportNotificationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    report?: boolean | ReportDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $ReportNotificationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReportNotification"
+    objects: {
+      report: Prisma.$ReportPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      reportId: string
+      userId: string
+      notified: boolean
+    }, ExtArgs["result"]["reportNotification"]>
+    composites: {}
+  }
+
+  type ReportNotificationGetPayload<S extends boolean | null | undefined | ReportNotificationDefaultArgs> = $Result.GetResult<Prisma.$ReportNotificationPayload, S>
+
+  type ReportNotificationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ReportNotificationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ReportNotificationCountAggregateInputType | true
+    }
+
+  export interface ReportNotificationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReportNotification'], meta: { name: 'ReportNotification' } }
+    /**
+     * Find zero or one ReportNotification that matches the filter.
+     * @param {ReportNotificationFindUniqueArgs} args - Arguments to find a ReportNotification
+     * @example
+     * // Get one ReportNotification
+     * const reportNotification = await prisma.reportNotification.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReportNotificationFindUniqueArgs>(args: SelectSubset<T, ReportNotificationFindUniqueArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ReportNotification that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ReportNotificationFindUniqueOrThrowArgs} args - Arguments to find a ReportNotification
+     * @example
+     * // Get one ReportNotification
+     * const reportNotification = await prisma.reportNotification.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReportNotificationFindUniqueOrThrowArgs>(args: SelectSubset<T, ReportNotificationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReportNotification that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportNotificationFindFirstArgs} args - Arguments to find a ReportNotification
+     * @example
+     * // Get one ReportNotification
+     * const reportNotification = await prisma.reportNotification.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReportNotificationFindFirstArgs>(args?: SelectSubset<T, ReportNotificationFindFirstArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReportNotification that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportNotificationFindFirstOrThrowArgs} args - Arguments to find a ReportNotification
+     * @example
+     * // Get one ReportNotification
+     * const reportNotification = await prisma.reportNotification.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReportNotificationFindFirstOrThrowArgs>(args?: SelectSubset<T, ReportNotificationFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ReportNotifications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportNotificationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReportNotifications
+     * const reportNotifications = await prisma.reportNotification.findMany()
+     * 
+     * // Get first 10 ReportNotifications
+     * const reportNotifications = await prisma.reportNotification.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const reportNotificationWithIdOnly = await prisma.reportNotification.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ReportNotificationFindManyArgs>(args?: SelectSubset<T, ReportNotificationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ReportNotification.
+     * @param {ReportNotificationCreateArgs} args - Arguments to create a ReportNotification.
+     * @example
+     * // Create one ReportNotification
+     * const ReportNotification = await prisma.reportNotification.create({
+     *   data: {
+     *     // ... data to create a ReportNotification
+     *   }
+     * })
+     * 
+     */
+    create<T extends ReportNotificationCreateArgs>(args: SelectSubset<T, ReportNotificationCreateArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ReportNotifications.
+     * @param {ReportNotificationCreateManyArgs} args - Arguments to create many ReportNotifications.
+     * @example
+     * // Create many ReportNotifications
+     * const reportNotification = await prisma.reportNotification.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ReportNotificationCreateManyArgs>(args?: SelectSubset<T, ReportNotificationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReportNotifications and returns the data saved in the database.
+     * @param {ReportNotificationCreateManyAndReturnArgs} args - Arguments to create many ReportNotifications.
+     * @example
+     * // Create many ReportNotifications
+     * const reportNotification = await prisma.reportNotification.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ReportNotifications and only return the `id`
+     * const reportNotificationWithIdOnly = await prisma.reportNotification.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ReportNotificationCreateManyAndReturnArgs>(args?: SelectSubset<T, ReportNotificationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ReportNotification.
+     * @param {ReportNotificationDeleteArgs} args - Arguments to delete one ReportNotification.
+     * @example
+     * // Delete one ReportNotification
+     * const ReportNotification = await prisma.reportNotification.delete({
+     *   where: {
+     *     // ... filter to delete one ReportNotification
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ReportNotificationDeleteArgs>(args: SelectSubset<T, ReportNotificationDeleteArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ReportNotification.
+     * @param {ReportNotificationUpdateArgs} args - Arguments to update one ReportNotification.
+     * @example
+     * // Update one ReportNotification
+     * const reportNotification = await prisma.reportNotification.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ReportNotificationUpdateArgs>(args: SelectSubset<T, ReportNotificationUpdateArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ReportNotifications.
+     * @param {ReportNotificationDeleteManyArgs} args - Arguments to filter ReportNotifications to delete.
+     * @example
+     * // Delete a few ReportNotifications
+     * const { count } = await prisma.reportNotification.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ReportNotificationDeleteManyArgs>(args?: SelectSubset<T, ReportNotificationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReportNotifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportNotificationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReportNotifications
+     * const reportNotification = await prisma.reportNotification.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ReportNotificationUpdateManyArgs>(args: SelectSubset<T, ReportNotificationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReportNotifications and returns the data updated in the database.
+     * @param {ReportNotificationUpdateManyAndReturnArgs} args - Arguments to update many ReportNotifications.
+     * @example
+     * // Update many ReportNotifications
+     * const reportNotification = await prisma.reportNotification.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ReportNotifications and only return the `id`
+     * const reportNotificationWithIdOnly = await prisma.reportNotification.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ReportNotificationUpdateManyAndReturnArgs>(args: SelectSubset<T, ReportNotificationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ReportNotification.
+     * @param {ReportNotificationUpsertArgs} args - Arguments to update or create a ReportNotification.
+     * @example
+     * // Update or create a ReportNotification
+     * const reportNotification = await prisma.reportNotification.upsert({
+     *   create: {
+     *     // ... data to create a ReportNotification
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReportNotification we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReportNotificationUpsertArgs>(args: SelectSubset<T, ReportNotificationUpsertArgs<ExtArgs>>): Prisma__ReportNotificationClient<$Result.GetResult<Prisma.$ReportNotificationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ReportNotifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportNotificationCountArgs} args - Arguments to filter ReportNotifications to count.
+     * @example
+     * // Count the number of ReportNotifications
+     * const count = await prisma.reportNotification.count({
+     *   where: {
+     *     // ... the filter for the ReportNotifications we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReportNotificationCountArgs>(
+      args?: Subset<T, ReportNotificationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReportNotificationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReportNotification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportNotificationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReportNotificationAggregateArgs>(args: Subset<T, ReportNotificationAggregateArgs>): Prisma.PrismaPromise<GetReportNotificationAggregateType<T>>
+
+    /**
+     * Group by ReportNotification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReportNotificationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ReportNotificationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReportNotificationGroupByArgs['orderBy'] }
+        : { orderBy?: ReportNotificationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReportNotificationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReportNotificationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReportNotification model
+   */
+  readonly fields: ReportNotificationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReportNotification.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReportNotificationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    report<T extends ReportDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ReportDefaultArgs<ExtArgs>>): Prisma__ReportClient<$Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReportNotification model
+   */
+  interface ReportNotificationFieldRefs {
+    readonly id: FieldRef<"ReportNotification", 'String'>
+    readonly reportId: FieldRef<"ReportNotification", 'String'>
+    readonly userId: FieldRef<"ReportNotification", 'String'>
+    readonly notified: FieldRef<"ReportNotification", 'Boolean'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ReportNotification findUnique
+   */
+  export type ReportNotificationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportNotification to fetch.
+     */
+    where: ReportNotificationWhereUniqueInput
+  }
+
+  /**
+   * ReportNotification findUniqueOrThrow
+   */
+  export type ReportNotificationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportNotification to fetch.
+     */
+    where: ReportNotificationWhereUniqueInput
+  }
+
+  /**
+   * ReportNotification findFirst
+   */
+  export type ReportNotificationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportNotification to fetch.
+     */
+    where?: ReportNotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportNotifications to fetch.
+     */
+    orderBy?: ReportNotificationOrderByWithRelationInput | ReportNotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReportNotifications.
+     */
+    cursor?: ReportNotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportNotifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportNotifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReportNotifications.
+     */
+    distinct?: ReportNotificationScalarFieldEnum | ReportNotificationScalarFieldEnum[]
+  }
+
+  /**
+   * ReportNotification findFirstOrThrow
+   */
+  export type ReportNotificationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportNotification to fetch.
+     */
+    where?: ReportNotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportNotifications to fetch.
+     */
+    orderBy?: ReportNotificationOrderByWithRelationInput | ReportNotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReportNotifications.
+     */
+    cursor?: ReportNotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportNotifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportNotifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReportNotifications.
+     */
+    distinct?: ReportNotificationScalarFieldEnum | ReportNotificationScalarFieldEnum[]
+  }
+
+  /**
+   * ReportNotification findMany
+   */
+  export type ReportNotificationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which ReportNotifications to fetch.
+     */
+    where?: ReportNotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReportNotifications to fetch.
+     */
+    orderBy?: ReportNotificationOrderByWithRelationInput | ReportNotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ReportNotifications.
+     */
+    cursor?: ReportNotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReportNotifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReportNotifications.
+     */
+    skip?: number
+    distinct?: ReportNotificationScalarFieldEnum | ReportNotificationScalarFieldEnum[]
+  }
+
+  /**
+   * ReportNotification create
+   */
+  export type ReportNotificationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReportNotification.
+     */
+    data: XOR<ReportNotificationCreateInput, ReportNotificationUncheckedCreateInput>
+  }
+
+  /**
+   * ReportNotification createMany
+   */
+  export type ReportNotificationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReportNotifications.
+     */
+    data: ReportNotificationCreateManyInput | ReportNotificationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReportNotification createManyAndReturn
+   */
+  export type ReportNotificationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * The data used to create many ReportNotifications.
+     */
+    data: ReportNotificationCreateManyInput | ReportNotificationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReportNotification update
+   */
+  export type ReportNotificationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReportNotification.
+     */
+    data: XOR<ReportNotificationUpdateInput, ReportNotificationUncheckedUpdateInput>
+    /**
+     * Choose, which ReportNotification to update.
+     */
+    where: ReportNotificationWhereUniqueInput
+  }
+
+  /**
+   * ReportNotification updateMany
+   */
+  export type ReportNotificationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReportNotifications.
+     */
+    data: XOR<ReportNotificationUpdateManyMutationInput, ReportNotificationUncheckedUpdateManyInput>
+    /**
+     * Filter which ReportNotifications to update
+     */
+    where?: ReportNotificationWhereInput
+    /**
+     * Limit how many ReportNotifications to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReportNotification updateManyAndReturn
+   */
+  export type ReportNotificationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * The data used to update ReportNotifications.
+     */
+    data: XOR<ReportNotificationUpdateManyMutationInput, ReportNotificationUncheckedUpdateManyInput>
+    /**
+     * Filter which ReportNotifications to update
+     */
+    where?: ReportNotificationWhereInput
+    /**
+     * Limit how many ReportNotifications to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReportNotification upsert
+   */
+  export type ReportNotificationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReportNotification to update in case it exists.
+     */
+    where: ReportNotificationWhereUniqueInput
+    /**
+     * In case the ReportNotification found by the `where` argument doesn't exist, create a new ReportNotification with this data.
+     */
+    create: XOR<ReportNotificationCreateInput, ReportNotificationUncheckedCreateInput>
+    /**
+     * In case the ReportNotification was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReportNotificationUpdateInput, ReportNotificationUncheckedUpdateInput>
+  }
+
+  /**
+   * ReportNotification delete
+   */
+  export type ReportNotificationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
+    /**
+     * Filter which ReportNotification to delete.
+     */
+    where: ReportNotificationWhereUniqueInput
+  }
+
+  /**
+   * ReportNotification deleteMany
+   */
+  export type ReportNotificationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReportNotifications to delete
+     */
+    where?: ReportNotificationWhereInput
+    /**
+     * Limit how many ReportNotifications to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReportNotification without action
+   */
+  export type ReportNotificationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReportNotification
+     */
+    select?: ReportNotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReportNotification
+     */
+    omit?: ReportNotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReportNotificationInclude<ExtArgs> | null
   }
 
 
@@ -27344,16 +29916,44 @@ export namespace Prisma {
     filePath: 'filePath',
     generatedBy: 'generatedBy',
     createdAt: 'createdAt',
+    status: 'status',
+    updatedAt: 'updatedAt',
+    lastAccessedAt: 'lastAccessedAt',
+    expiresAt: 'expiresAt',
+    tags: 'tags',
     organizationId: 'organizationId',
     teamId: 'teamId',
     projectId: 'projectId',
     departmentId: 'departmentId',
     userId: 'userId',
+    scheduleId: 'scheduleId',
     storageProvider: 'storageProvider',
     storageKey: 'storageKey'
   };
 
   export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
+
+
+  export const ReportScheduleScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    cronExpression: 'cronExpression',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    createdBy: 'createdBy'
+  };
+
+  export type ReportScheduleScalarFieldEnum = (typeof ReportScheduleScalarFieldEnum)[keyof typeof ReportScheduleScalarFieldEnum]
+
+
+  export const ReportNotificationScalarFieldEnum: {
+    id: 'id',
+    reportId: 'reportId',
+    userId: 'userId',
+    notified: 'notified'
+  };
+
+  export type ReportNotificationScalarFieldEnum = (typeof ReportNotificationScalarFieldEnum)[keyof typeof ReportNotificationScalarFieldEnum]
 
 
   export const PermissionScalarFieldEnum: {
@@ -27609,6 +30209,20 @@ export namespace Prisma {
    */
   export type ListEnumReportTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportType[]'>
     
+
+
+  /**
+   * Reference to a field of type 'ReportStatus'
+   */
+  export type EnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ReportStatus[]'
+   */
+  export type ListEnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -27667,6 +30281,7 @@ export namespace Prisma {
     userReports?: ReportListRelationFilter
     permissions?: PermissionListRelationFilter
     activityLogs?: ActivityLogListRelationFilter
+    ReportNotification?: ReportNotificationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -27719,6 +30334,7 @@ export namespace Prisma {
     userReports?: ReportOrderByRelationAggregateInput
     permissions?: PermissionOrderByRelationAggregateInput
     activityLogs?: ActivityLogOrderByRelationAggregateInput
+    ReportNotification?: ReportNotificationOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -27774,6 +30390,7 @@ export namespace Prisma {
     userReports?: ReportListRelationFilter
     permissions?: PermissionListRelationFilter
     activityLogs?: ActivityLogListRelationFilter
+    ReportNotification?: ReportNotificationListRelationFilter
   }, "id" | "email" | "username" | "firebaseUid">
 
   export type UserOrderByWithAggregationInput = {
@@ -29328,11 +31945,17 @@ export namespace Prisma {
     filePath?: StringFilter<"Report"> | string
     generatedBy?: UuidFilter<"Report"> | string
     createdAt?: DateTimeFilter<"Report"> | Date | string
+    status?: EnumReportStatusFilter<"Report"> | $Enums.ReportStatus
+    updatedAt?: DateTimeFilter<"Report"> | Date | string
+    lastAccessedAt?: DateTimeNullableFilter<"Report"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"Report"> | Date | string | null
+    tags?: StringNullableFilter<"Report"> | string | null
     organizationId?: UuidNullableFilter<"Report"> | string | null
     teamId?: UuidNullableFilter<"Report"> | string | null
     projectId?: UuidNullableFilter<"Report"> | string | null
     departmentId?: UuidNullableFilter<"Report"> | string | null
     userId?: UuidNullableFilter<"Report"> | string | null
+    scheduleId?: UuidNullableFilter<"Report"> | string | null
     storageProvider?: StringNullableFilter<"Report"> | string | null
     storageKey?: StringFilter<"Report"> | string
     generator?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -29341,6 +31964,8 @@ export namespace Prisma {
     project?: XOR<ProjectNullableScalarRelationFilter, ProjectWhereInput> | null
     department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    reportSchedule?: XOR<ReportScheduleNullableScalarRelationFilter, ReportScheduleWhereInput> | null
+    notifiedUsers?: ReportNotificationListRelationFilter
   }
 
   export type ReportOrderByWithRelationInput = {
@@ -29353,11 +31978,17 @@ export namespace Prisma {
     filePath?: SortOrder
     generatedBy?: SortOrder
     createdAt?: SortOrder
+    status?: SortOrder
+    updatedAt?: SortOrder
+    lastAccessedAt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    tags?: SortOrderInput | SortOrder
     organizationId?: SortOrderInput | SortOrder
     teamId?: SortOrderInput | SortOrder
     projectId?: SortOrderInput | SortOrder
     departmentId?: SortOrderInput | SortOrder
     userId?: SortOrderInput | SortOrder
+    scheduleId?: SortOrderInput | SortOrder
     storageProvider?: SortOrderInput | SortOrder
     storageKey?: SortOrder
     generator?: UserOrderByWithRelationInput
@@ -29366,6 +31997,8 @@ export namespace Prisma {
     project?: ProjectOrderByWithRelationInput
     department?: DepartmentOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
+    reportSchedule?: ReportScheduleOrderByWithRelationInput
+    notifiedUsers?: ReportNotificationOrderByRelationAggregateInput
   }
 
   export type ReportWhereUniqueInput = Prisma.AtLeast<{
@@ -29381,11 +32014,17 @@ export namespace Prisma {
     filePath?: StringFilter<"Report"> | string
     generatedBy?: UuidFilter<"Report"> | string
     createdAt?: DateTimeFilter<"Report"> | Date | string
+    status?: EnumReportStatusFilter<"Report"> | $Enums.ReportStatus
+    updatedAt?: DateTimeFilter<"Report"> | Date | string
+    lastAccessedAt?: DateTimeNullableFilter<"Report"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"Report"> | Date | string | null
+    tags?: StringNullableFilter<"Report"> | string | null
     organizationId?: UuidNullableFilter<"Report"> | string | null
     teamId?: UuidNullableFilter<"Report"> | string | null
     projectId?: UuidNullableFilter<"Report"> | string | null
     departmentId?: UuidNullableFilter<"Report"> | string | null
     userId?: UuidNullableFilter<"Report"> | string | null
+    scheduleId?: UuidNullableFilter<"Report"> | string | null
     storageProvider?: StringNullableFilter<"Report"> | string | null
     storageKey?: StringFilter<"Report"> | string
     generator?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -29394,6 +32033,8 @@ export namespace Prisma {
     project?: XOR<ProjectNullableScalarRelationFilter, ProjectWhereInput> | null
     department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    reportSchedule?: XOR<ReportScheduleNullableScalarRelationFilter, ReportScheduleWhereInput> | null
+    notifiedUsers?: ReportNotificationListRelationFilter
   }, "id">
 
   export type ReportOrderByWithAggregationInput = {
@@ -29406,11 +32047,17 @@ export namespace Prisma {
     filePath?: SortOrder
     generatedBy?: SortOrder
     createdAt?: SortOrder
+    status?: SortOrder
+    updatedAt?: SortOrder
+    lastAccessedAt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    tags?: SortOrderInput | SortOrder
     organizationId?: SortOrderInput | SortOrder
     teamId?: SortOrderInput | SortOrder
     projectId?: SortOrderInput | SortOrder
     departmentId?: SortOrderInput | SortOrder
     userId?: SortOrderInput | SortOrder
+    scheduleId?: SortOrderInput | SortOrder
     storageProvider?: SortOrderInput | SortOrder
     storageKey?: SortOrder
     _count?: ReportCountOrderByAggregateInput
@@ -29431,13 +32078,133 @@ export namespace Prisma {
     filePath?: StringWithAggregatesFilter<"Report"> | string
     generatedBy?: UuidWithAggregatesFilter<"Report"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Report"> | Date | string
+    status?: EnumReportStatusWithAggregatesFilter<"Report"> | $Enums.ReportStatus
+    updatedAt?: DateTimeWithAggregatesFilter<"Report"> | Date | string
+    lastAccessedAt?: DateTimeNullableWithAggregatesFilter<"Report"> | Date | string | null
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"Report"> | Date | string | null
+    tags?: StringNullableWithAggregatesFilter<"Report"> | string | null
     organizationId?: UuidNullableWithAggregatesFilter<"Report"> | string | null
     teamId?: UuidNullableWithAggregatesFilter<"Report"> | string | null
     projectId?: UuidNullableWithAggregatesFilter<"Report"> | string | null
     departmentId?: UuidNullableWithAggregatesFilter<"Report"> | string | null
     userId?: UuidNullableWithAggregatesFilter<"Report"> | string | null
+    scheduleId?: UuidNullableWithAggregatesFilter<"Report"> | string | null
     storageProvider?: StringNullableWithAggregatesFilter<"Report"> | string | null
     storageKey?: StringWithAggregatesFilter<"Report"> | string
+  }
+
+  export type ReportScheduleWhereInput = {
+    AND?: ReportScheduleWhereInput | ReportScheduleWhereInput[]
+    OR?: ReportScheduleWhereInput[]
+    NOT?: ReportScheduleWhereInput | ReportScheduleWhereInput[]
+    id?: UuidFilter<"ReportSchedule"> | string
+    name?: StringFilter<"ReportSchedule"> | string
+    cronExpression?: StringFilter<"ReportSchedule"> | string
+    isActive?: BoolFilter<"ReportSchedule"> | boolean
+    createdAt?: DateTimeFilter<"ReportSchedule"> | Date | string
+    createdBy?: UuidFilter<"ReportSchedule"> | string
+    reports?: ReportListRelationFilter
+  }
+
+  export type ReportScheduleOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    cronExpression?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    reports?: ReportOrderByRelationAggregateInput
+  }
+
+  export type ReportScheduleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ReportScheduleWhereInput | ReportScheduleWhereInput[]
+    OR?: ReportScheduleWhereInput[]
+    NOT?: ReportScheduleWhereInput | ReportScheduleWhereInput[]
+    name?: StringFilter<"ReportSchedule"> | string
+    cronExpression?: StringFilter<"ReportSchedule"> | string
+    isActive?: BoolFilter<"ReportSchedule"> | boolean
+    createdAt?: DateTimeFilter<"ReportSchedule"> | Date | string
+    createdBy?: UuidFilter<"ReportSchedule"> | string
+    reports?: ReportListRelationFilter
+  }, "id">
+
+  export type ReportScheduleOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    cronExpression?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    _count?: ReportScheduleCountOrderByAggregateInput
+    _max?: ReportScheduleMaxOrderByAggregateInput
+    _min?: ReportScheduleMinOrderByAggregateInput
+  }
+
+  export type ReportScheduleScalarWhereWithAggregatesInput = {
+    AND?: ReportScheduleScalarWhereWithAggregatesInput | ReportScheduleScalarWhereWithAggregatesInput[]
+    OR?: ReportScheduleScalarWhereWithAggregatesInput[]
+    NOT?: ReportScheduleScalarWhereWithAggregatesInput | ReportScheduleScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"ReportSchedule"> | string
+    name?: StringWithAggregatesFilter<"ReportSchedule"> | string
+    cronExpression?: StringWithAggregatesFilter<"ReportSchedule"> | string
+    isActive?: BoolWithAggregatesFilter<"ReportSchedule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"ReportSchedule"> | Date | string
+    createdBy?: UuidWithAggregatesFilter<"ReportSchedule"> | string
+  }
+
+  export type ReportNotificationWhereInput = {
+    AND?: ReportNotificationWhereInput | ReportNotificationWhereInput[]
+    OR?: ReportNotificationWhereInput[]
+    NOT?: ReportNotificationWhereInput | ReportNotificationWhereInput[]
+    id?: UuidFilter<"ReportNotification"> | string
+    reportId?: UuidFilter<"ReportNotification"> | string
+    userId?: UuidFilter<"ReportNotification"> | string
+    notified?: BoolFilter<"ReportNotification"> | boolean
+    report?: XOR<ReportScalarRelationFilter, ReportWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type ReportNotificationOrderByWithRelationInput = {
+    id?: SortOrder
+    reportId?: SortOrder
+    userId?: SortOrder
+    notified?: SortOrder
+    report?: ReportOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type ReportNotificationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    reportId_userId?: ReportNotificationReportIdUserIdCompoundUniqueInput
+    AND?: ReportNotificationWhereInput | ReportNotificationWhereInput[]
+    OR?: ReportNotificationWhereInput[]
+    NOT?: ReportNotificationWhereInput | ReportNotificationWhereInput[]
+    reportId?: UuidFilter<"ReportNotification"> | string
+    userId?: UuidFilter<"ReportNotification"> | string
+    notified?: BoolFilter<"ReportNotification"> | boolean
+    report?: XOR<ReportScalarRelationFilter, ReportWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "reportId_userId">
+
+  export type ReportNotificationOrderByWithAggregationInput = {
+    id?: SortOrder
+    reportId?: SortOrder
+    userId?: SortOrder
+    notified?: SortOrder
+    _count?: ReportNotificationCountOrderByAggregateInput
+    _max?: ReportNotificationMaxOrderByAggregateInput
+    _min?: ReportNotificationMinOrderByAggregateInput
+  }
+
+  export type ReportNotificationScalarWhereWithAggregatesInput = {
+    AND?: ReportNotificationScalarWhereWithAggregatesInput | ReportNotificationScalarWhereWithAggregatesInput[]
+    OR?: ReportNotificationScalarWhereWithAggregatesInput[]
+    NOT?: ReportNotificationScalarWhereWithAggregatesInput | ReportNotificationScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"ReportNotification"> | string
+    reportId?: UuidWithAggregatesFilter<"ReportNotification"> | string
+    userId?: UuidWithAggregatesFilter<"ReportNotification"> | string
+    notified?: BoolWithAggregatesFilter<"ReportNotification"> | boolean
   }
 
   export type PermissionWhereInput = {
@@ -29554,6 +32321,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -29604,6 +32372,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -29654,6 +32423,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -29704,6 +32474,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -31356,6 +34127,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     storageProvider?: string | null
     storageKey: string
     generator: UserCreateNestedOneWithoutGeneratedReportsInput
@@ -31364,6 +34140,8 @@ export namespace Prisma {
     project?: ProjectCreateNestedOneWithoutReportsInput
     department?: DepartmentCreateNestedOneWithoutReportInput
     user?: UserCreateNestedOneWithoutUserReportsInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
   }
 
   export type ReportUncheckedCreateInput = {
@@ -31376,13 +34154,20 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
   }
 
   export type ReportUpdateInput = {
@@ -31394,6 +34179,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
     generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
@@ -31402,6 +34192,8 @@ export namespace Prisma {
     project?: ProjectUpdateOneWithoutReportsNestedInput
     department?: DepartmentUpdateOneWithoutReportNestedInput
     user?: UserUpdateOneWithoutUserReportsNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateInput = {
@@ -31414,13 +34206,20 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
   }
 
   export type ReportCreateManyInput = {
@@ -31433,11 +34232,17 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
   }
@@ -31451,6 +34256,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
   }
@@ -31465,13 +34275,133 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReportScheduleCreateInput = {
+    id?: string
+    name: string
+    cronExpression: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy: string
+    reports?: ReportCreateNestedManyWithoutReportScheduleInput
+  }
+
+  export type ReportScheduleUncheckedCreateInput = {
+    id?: string
+    name: string
+    cronExpression: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy: string
+    reports?: ReportUncheckedCreateNestedManyWithoutReportScheduleInput
+  }
+
+  export type ReportScheduleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    cronExpression?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    reports?: ReportUpdateManyWithoutReportScheduleNestedInput
+  }
+
+  export type ReportScheduleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    cronExpression?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    reports?: ReportUncheckedUpdateManyWithoutReportScheduleNestedInput
+  }
+
+  export type ReportScheduleCreateManyInput = {
+    id?: string
+    name: string
+    cronExpression: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy: string
+  }
+
+  export type ReportScheduleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    cronExpression?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReportScheduleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    cronExpression?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReportNotificationCreateInput = {
+    id?: string
+    notified?: boolean
+    report: ReportCreateNestedOneWithoutNotifiedUsersInput
+    user: UserCreateNestedOneWithoutReportNotificationInput
+  }
+
+  export type ReportNotificationUncheckedCreateInput = {
+    id?: string
+    reportId: string
+    userId: string
+    notified?: boolean
+  }
+
+  export type ReportNotificationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    report?: ReportUpdateOneRequiredWithoutNotifiedUsersNestedInput
+    user?: UserUpdateOneRequiredWithoutReportNotificationNestedInput
+  }
+
+  export type ReportNotificationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reportId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ReportNotificationCreateManyInput = {
+    id?: string
+    reportId: string
+    userId: string
+    notified?: boolean
+  }
+
+  export type ReportNotificationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ReportNotificationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reportId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type PermissionCreateInput = {
@@ -31754,6 +34684,12 @@ export namespace Prisma {
     none?: ActivityLogWhereInput
   }
 
+  export type ReportNotificationListRelationFilter = {
+    every?: ReportNotificationWhereInput
+    some?: ReportNotificationWhereInput
+    none?: ReportNotificationWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -31816,6 +34752,10 @@ export namespace Prisma {
   }
 
   export type ActivityLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ReportNotificationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -33022,6 +35962,18 @@ export namespace Prisma {
     not?: NestedEnumReportTypeFilter<$PrismaModel> | $Enums.ReportType
   }
 
+  export type EnumReportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusFilter<$PrismaModel> | $Enums.ReportStatus
+  }
+
+  export type ReportScheduleNullableScalarRelationFilter = {
+    is?: ReportScheduleWhereInput | null
+    isNot?: ReportScheduleWhereInput | null
+  }
+
   export type ReportCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -33032,11 +35984,17 @@ export namespace Prisma {
     filePath?: SortOrder
     generatedBy?: SortOrder
     createdAt?: SortOrder
+    status?: SortOrder
+    updatedAt?: SortOrder
+    lastAccessedAt?: SortOrder
+    expiresAt?: SortOrder
+    tags?: SortOrder
     organizationId?: SortOrder
     teamId?: SortOrder
     projectId?: SortOrder
     departmentId?: SortOrder
     userId?: SortOrder
+    scheduleId?: SortOrder
     storageProvider?: SortOrder
     storageKey?: SortOrder
   }
@@ -33050,11 +36008,17 @@ export namespace Prisma {
     filePath?: SortOrder
     generatedBy?: SortOrder
     createdAt?: SortOrder
+    status?: SortOrder
+    updatedAt?: SortOrder
+    lastAccessedAt?: SortOrder
+    expiresAt?: SortOrder
+    tags?: SortOrder
     organizationId?: SortOrder
     teamId?: SortOrder
     projectId?: SortOrder
     departmentId?: SortOrder
     userId?: SortOrder
+    scheduleId?: SortOrder
     storageProvider?: SortOrder
     storageKey?: SortOrder
   }
@@ -33068,11 +36032,17 @@ export namespace Prisma {
     filePath?: SortOrder
     generatedBy?: SortOrder
     createdAt?: SortOrder
+    status?: SortOrder
+    updatedAt?: SortOrder
+    lastAccessedAt?: SortOrder
+    expiresAt?: SortOrder
+    tags?: SortOrder
     organizationId?: SortOrder
     teamId?: SortOrder
     projectId?: SortOrder
     departmentId?: SortOrder
     userId?: SortOrder
+    scheduleId?: SortOrder
     storageProvider?: SortOrder
     storageKey?: SortOrder
   }
@@ -33085,6 +36055,74 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumReportTypeFilter<$PrismaModel>
     _max?: NestedEnumReportTypeFilter<$PrismaModel>
+  }
+
+  export type EnumReportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReportStatusFilter<$PrismaModel>
+    _max?: NestedEnumReportStatusFilter<$PrismaModel>
+  }
+
+  export type ReportScheduleCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    cronExpression?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type ReportScheduleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    cronExpression?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type ReportScheduleMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    cronExpression?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type ReportScalarRelationFilter = {
+    is?: ReportWhereInput
+    isNot?: ReportWhereInput
+  }
+
+  export type ReportNotificationReportIdUserIdCompoundUniqueInput = {
+    reportId: string
+    userId: string
+  }
+
+  export type ReportNotificationCountOrderByAggregateInput = {
+    id?: SortOrder
+    reportId?: SortOrder
+    userId?: SortOrder
+    notified?: SortOrder
+  }
+
+  export type ReportNotificationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    reportId?: SortOrder
+    userId?: SortOrder
+    notified?: SortOrder
+  }
+
+  export type ReportNotificationMinOrderByAggregateInput = {
+    id?: SortOrder
+    reportId?: SortOrder
+    userId?: SortOrder
+    notified?: SortOrder
   }
   export type JsonFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -33315,6 +36353,13 @@ export namespace Prisma {
     connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
   }
 
+  export type ReportNotificationCreateNestedManyWithoutUserInput = {
+    create?: XOR<ReportNotificationCreateWithoutUserInput, ReportNotificationUncheckedCreateWithoutUserInput> | ReportNotificationCreateWithoutUserInput[] | ReportNotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutUserInput | ReportNotificationCreateOrConnectWithoutUserInput[]
+    createMany?: ReportNotificationCreateManyUserInputEnvelope
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+  }
+
   export type OrganizationUncheckedCreateNestedManyWithoutCreatorInput = {
     create?: XOR<OrganizationCreateWithoutCreatorInput, OrganizationUncheckedCreateWithoutCreatorInput> | OrganizationCreateWithoutCreatorInput[] | OrganizationUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: OrganizationCreateOrConnectWithoutCreatorInput | OrganizationCreateOrConnectWithoutCreatorInput[]
@@ -33446,6 +36491,13 @@ export namespace Prisma {
     connectOrCreate?: ActivityLogCreateOrConnectWithoutUserInput | ActivityLogCreateOrConnectWithoutUserInput[]
     createMany?: ActivityLogCreateManyUserInputEnvelope
     connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+  }
+
+  export type ReportNotificationUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<ReportNotificationCreateWithoutUserInput, ReportNotificationUncheckedCreateWithoutUserInput> | ReportNotificationCreateWithoutUserInput[] | ReportNotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutUserInput | ReportNotificationCreateOrConnectWithoutUserInput[]
+    createMany?: ReportNotificationCreateManyUserInputEnvelope
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -33758,6 +36810,20 @@ export namespace Prisma {
     deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
   }
 
+  export type ReportNotificationUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ReportNotificationCreateWithoutUserInput, ReportNotificationUncheckedCreateWithoutUserInput> | ReportNotificationCreateWithoutUserInput[] | ReportNotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutUserInput | ReportNotificationCreateOrConnectWithoutUserInput[]
+    upsert?: ReportNotificationUpsertWithWhereUniqueWithoutUserInput | ReportNotificationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ReportNotificationCreateManyUserInputEnvelope
+    set?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    disconnect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    delete?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    update?: ReportNotificationUpdateWithWhereUniqueWithoutUserInput | ReportNotificationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ReportNotificationUpdateManyWithWhereWithoutUserInput | ReportNotificationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ReportNotificationScalarWhereInput | ReportNotificationScalarWhereInput[]
+  }
+
   export type OrganizationUncheckedUpdateManyWithoutCreatorNestedInput = {
     create?: XOR<OrganizationCreateWithoutCreatorInput, OrganizationUncheckedCreateWithoutCreatorInput> | OrganizationCreateWithoutCreatorInput[] | OrganizationUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: OrganizationCreateOrConnectWithoutCreatorInput | OrganizationCreateOrConnectWithoutCreatorInput[]
@@ -34022,6 +37088,20 @@ export namespace Prisma {
     update?: ActivityLogUpdateWithWhereUniqueWithoutUserInput | ActivityLogUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: ActivityLogUpdateManyWithWhereWithoutUserInput | ActivityLogUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
+  }
+
+  export type ReportNotificationUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ReportNotificationCreateWithoutUserInput, ReportNotificationUncheckedCreateWithoutUserInput> | ReportNotificationCreateWithoutUserInput[] | ReportNotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutUserInput | ReportNotificationCreateOrConnectWithoutUserInput[]
+    upsert?: ReportNotificationUpsertWithWhereUniqueWithoutUserInput | ReportNotificationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ReportNotificationCreateManyUserInputEnvelope
+    set?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    disconnect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    delete?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    update?: ReportNotificationUpdateWithWhereUniqueWithoutUserInput | ReportNotificationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ReportNotificationUpdateManyWithWhereWithoutUserInput | ReportNotificationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ReportNotificationScalarWhereInput | ReportNotificationScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutCreatedOrganizationsInput = {
@@ -35962,8 +39042,32 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type ReportScheduleCreateNestedOneWithoutReportsInput = {
+    create?: XOR<ReportScheduleCreateWithoutReportsInput, ReportScheduleUncheckedCreateWithoutReportsInput>
+    connectOrCreate?: ReportScheduleCreateOrConnectWithoutReportsInput
+    connect?: ReportScheduleWhereUniqueInput
+  }
+
+  export type ReportNotificationCreateNestedManyWithoutReportInput = {
+    create?: XOR<ReportNotificationCreateWithoutReportInput, ReportNotificationUncheckedCreateWithoutReportInput> | ReportNotificationCreateWithoutReportInput[] | ReportNotificationUncheckedCreateWithoutReportInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutReportInput | ReportNotificationCreateOrConnectWithoutReportInput[]
+    createMany?: ReportNotificationCreateManyReportInputEnvelope
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+  }
+
+  export type ReportNotificationUncheckedCreateNestedManyWithoutReportInput = {
+    create?: XOR<ReportNotificationCreateWithoutReportInput, ReportNotificationUncheckedCreateWithoutReportInput> | ReportNotificationCreateWithoutReportInput[] | ReportNotificationUncheckedCreateWithoutReportInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutReportInput | ReportNotificationCreateOrConnectWithoutReportInput[]
+    createMany?: ReportNotificationCreateManyReportInputEnvelope
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+  }
+
   export type EnumReportTypeFieldUpdateOperationsInput = {
     set?: $Enums.ReportType
+  }
+
+  export type EnumReportStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ReportStatus
   }
 
   export type UserUpdateOneRequiredWithoutGeneratedReportsNestedInput = {
@@ -36022,6 +39126,114 @@ export namespace Prisma {
     delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutUserReportsInput, UserUpdateWithoutUserReportsInput>, UserUncheckedUpdateWithoutUserReportsInput>
+  }
+
+  export type ReportScheduleUpdateOneWithoutReportsNestedInput = {
+    create?: XOR<ReportScheduleCreateWithoutReportsInput, ReportScheduleUncheckedCreateWithoutReportsInput>
+    connectOrCreate?: ReportScheduleCreateOrConnectWithoutReportsInput
+    upsert?: ReportScheduleUpsertWithoutReportsInput
+    disconnect?: ReportScheduleWhereInput | boolean
+    delete?: ReportScheduleWhereInput | boolean
+    connect?: ReportScheduleWhereUniqueInput
+    update?: XOR<XOR<ReportScheduleUpdateToOneWithWhereWithoutReportsInput, ReportScheduleUpdateWithoutReportsInput>, ReportScheduleUncheckedUpdateWithoutReportsInput>
+  }
+
+  export type ReportNotificationUpdateManyWithoutReportNestedInput = {
+    create?: XOR<ReportNotificationCreateWithoutReportInput, ReportNotificationUncheckedCreateWithoutReportInput> | ReportNotificationCreateWithoutReportInput[] | ReportNotificationUncheckedCreateWithoutReportInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutReportInput | ReportNotificationCreateOrConnectWithoutReportInput[]
+    upsert?: ReportNotificationUpsertWithWhereUniqueWithoutReportInput | ReportNotificationUpsertWithWhereUniqueWithoutReportInput[]
+    createMany?: ReportNotificationCreateManyReportInputEnvelope
+    set?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    disconnect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    delete?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    update?: ReportNotificationUpdateWithWhereUniqueWithoutReportInput | ReportNotificationUpdateWithWhereUniqueWithoutReportInput[]
+    updateMany?: ReportNotificationUpdateManyWithWhereWithoutReportInput | ReportNotificationUpdateManyWithWhereWithoutReportInput[]
+    deleteMany?: ReportNotificationScalarWhereInput | ReportNotificationScalarWhereInput[]
+  }
+
+  export type ReportNotificationUncheckedUpdateManyWithoutReportNestedInput = {
+    create?: XOR<ReportNotificationCreateWithoutReportInput, ReportNotificationUncheckedCreateWithoutReportInput> | ReportNotificationCreateWithoutReportInput[] | ReportNotificationUncheckedCreateWithoutReportInput[]
+    connectOrCreate?: ReportNotificationCreateOrConnectWithoutReportInput | ReportNotificationCreateOrConnectWithoutReportInput[]
+    upsert?: ReportNotificationUpsertWithWhereUniqueWithoutReportInput | ReportNotificationUpsertWithWhereUniqueWithoutReportInput[]
+    createMany?: ReportNotificationCreateManyReportInputEnvelope
+    set?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    disconnect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    delete?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    connect?: ReportNotificationWhereUniqueInput | ReportNotificationWhereUniqueInput[]
+    update?: ReportNotificationUpdateWithWhereUniqueWithoutReportInput | ReportNotificationUpdateWithWhereUniqueWithoutReportInput[]
+    updateMany?: ReportNotificationUpdateManyWithWhereWithoutReportInput | ReportNotificationUpdateManyWithWhereWithoutReportInput[]
+    deleteMany?: ReportNotificationScalarWhereInput | ReportNotificationScalarWhereInput[]
+  }
+
+  export type ReportCreateNestedManyWithoutReportScheduleInput = {
+    create?: XOR<ReportCreateWithoutReportScheduleInput, ReportUncheckedCreateWithoutReportScheduleInput> | ReportCreateWithoutReportScheduleInput[] | ReportUncheckedCreateWithoutReportScheduleInput[]
+    connectOrCreate?: ReportCreateOrConnectWithoutReportScheduleInput | ReportCreateOrConnectWithoutReportScheduleInput[]
+    createMany?: ReportCreateManyReportScheduleInputEnvelope
+    connect?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+  }
+
+  export type ReportUncheckedCreateNestedManyWithoutReportScheduleInput = {
+    create?: XOR<ReportCreateWithoutReportScheduleInput, ReportUncheckedCreateWithoutReportScheduleInput> | ReportCreateWithoutReportScheduleInput[] | ReportUncheckedCreateWithoutReportScheduleInput[]
+    connectOrCreate?: ReportCreateOrConnectWithoutReportScheduleInput | ReportCreateOrConnectWithoutReportScheduleInput[]
+    createMany?: ReportCreateManyReportScheduleInputEnvelope
+    connect?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+  }
+
+  export type ReportUpdateManyWithoutReportScheduleNestedInput = {
+    create?: XOR<ReportCreateWithoutReportScheduleInput, ReportUncheckedCreateWithoutReportScheduleInput> | ReportCreateWithoutReportScheduleInput[] | ReportUncheckedCreateWithoutReportScheduleInput[]
+    connectOrCreate?: ReportCreateOrConnectWithoutReportScheduleInput | ReportCreateOrConnectWithoutReportScheduleInput[]
+    upsert?: ReportUpsertWithWhereUniqueWithoutReportScheduleInput | ReportUpsertWithWhereUniqueWithoutReportScheduleInput[]
+    createMany?: ReportCreateManyReportScheduleInputEnvelope
+    set?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    disconnect?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    delete?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    connect?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    update?: ReportUpdateWithWhereUniqueWithoutReportScheduleInput | ReportUpdateWithWhereUniqueWithoutReportScheduleInput[]
+    updateMany?: ReportUpdateManyWithWhereWithoutReportScheduleInput | ReportUpdateManyWithWhereWithoutReportScheduleInput[]
+    deleteMany?: ReportScalarWhereInput | ReportScalarWhereInput[]
+  }
+
+  export type ReportUncheckedUpdateManyWithoutReportScheduleNestedInput = {
+    create?: XOR<ReportCreateWithoutReportScheduleInput, ReportUncheckedCreateWithoutReportScheduleInput> | ReportCreateWithoutReportScheduleInput[] | ReportUncheckedCreateWithoutReportScheduleInput[]
+    connectOrCreate?: ReportCreateOrConnectWithoutReportScheduleInput | ReportCreateOrConnectWithoutReportScheduleInput[]
+    upsert?: ReportUpsertWithWhereUniqueWithoutReportScheduleInput | ReportUpsertWithWhereUniqueWithoutReportScheduleInput[]
+    createMany?: ReportCreateManyReportScheduleInputEnvelope
+    set?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    disconnect?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    delete?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    connect?: ReportWhereUniqueInput | ReportWhereUniqueInput[]
+    update?: ReportUpdateWithWhereUniqueWithoutReportScheduleInput | ReportUpdateWithWhereUniqueWithoutReportScheduleInput[]
+    updateMany?: ReportUpdateManyWithWhereWithoutReportScheduleInput | ReportUpdateManyWithWhereWithoutReportScheduleInput[]
+    deleteMany?: ReportScalarWhereInput | ReportScalarWhereInput[]
+  }
+
+  export type ReportCreateNestedOneWithoutNotifiedUsersInput = {
+    create?: XOR<ReportCreateWithoutNotifiedUsersInput, ReportUncheckedCreateWithoutNotifiedUsersInput>
+    connectOrCreate?: ReportCreateOrConnectWithoutNotifiedUsersInput
+    connect?: ReportWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutReportNotificationInput = {
+    create?: XOR<UserCreateWithoutReportNotificationInput, UserUncheckedCreateWithoutReportNotificationInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReportNotificationInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ReportUpdateOneRequiredWithoutNotifiedUsersNestedInput = {
+    create?: XOR<ReportCreateWithoutNotifiedUsersInput, ReportUncheckedCreateWithoutNotifiedUsersInput>
+    connectOrCreate?: ReportCreateOrConnectWithoutNotifiedUsersInput
+    upsert?: ReportUpsertWithoutNotifiedUsersInput
+    connect?: ReportWhereUniqueInput
+    update?: XOR<XOR<ReportUpdateToOneWithWhereWithoutNotifiedUsersInput, ReportUpdateWithoutNotifiedUsersInput>, ReportUncheckedUpdateWithoutNotifiedUsersInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutReportNotificationNestedInput = {
+    create?: XOR<UserCreateWithoutReportNotificationInput, UserUncheckedCreateWithoutReportNotificationInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReportNotificationInput
+    upsert?: UserUpsertWithoutReportNotificationInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReportNotificationInput, UserUpdateWithoutReportNotificationInput>, UserUncheckedUpdateWithoutReportNotificationInput>
   }
 
   export type UserCreateNestedOneWithoutPermissionsInput = {
@@ -36438,6 +39650,13 @@ export namespace Prisma {
     not?: NestedEnumReportTypeFilter<$PrismaModel> | $Enums.ReportType
   }
 
+  export type NestedEnumReportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusFilter<$PrismaModel> | $Enums.ReportStatus
+  }
+
   export type NestedEnumReportTypeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ReportType | EnumReportTypeFieldRefInput<$PrismaModel>
     in?: $Enums.ReportType[] | ListEnumReportTypeFieldRefInput<$PrismaModel>
@@ -36446,6 +39665,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumReportTypeFilter<$PrismaModel>
     _max?: NestedEnumReportTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumReportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReportStatusFilter<$PrismaModel>
+    _max?: NestedEnumReportStatusFilter<$PrismaModel>
   }
   export type NestedJsonFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -37238,6 +40467,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     storageProvider?: string | null
     storageKey: string
     organization?: OrganizationCreateNestedOneWithoutReportsInput
@@ -37245,6 +40479,8 @@ export namespace Prisma {
     project?: ProjectCreateNestedOneWithoutReportsInput
     department?: DepartmentCreateNestedOneWithoutReportInput
     user?: UserCreateNestedOneWithoutUserReportsInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
   }
 
   export type ReportUncheckedCreateWithoutGeneratorInput = {
@@ -37256,13 +40492,20 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
   }
 
   export type ReportCreateOrConnectWithoutGeneratorInput = {
@@ -37284,6 +40527,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     storageProvider?: string | null
     storageKey: string
     generator: UserCreateNestedOneWithoutGeneratedReportsInput
@@ -37291,6 +40539,8 @@ export namespace Prisma {
     team?: TeamCreateNestedOneWithoutReportsInput
     project?: ProjectCreateNestedOneWithoutReportsInput
     department?: DepartmentCreateNestedOneWithoutReportInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
   }
 
   export type ReportUncheckedCreateWithoutUserInput = {
@@ -37303,12 +40553,19 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
   }
 
   export type ReportCreateOrConnectWithoutUserInput = {
@@ -37384,6 +40641,28 @@ export namespace Prisma {
 
   export type ActivityLogCreateManyUserInputEnvelope = {
     data: ActivityLogCreateManyUserInput | ActivityLogCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReportNotificationCreateWithoutUserInput = {
+    id?: string
+    notified?: boolean
+    report: ReportCreateNestedOneWithoutNotifiedUsersInput
+  }
+
+  export type ReportNotificationUncheckedCreateWithoutUserInput = {
+    id?: string
+    reportId: string
+    notified?: boolean
+  }
+
+  export type ReportNotificationCreateOrConnectWithoutUserInput = {
+    where: ReportNotificationWhereUniqueInput
+    create: XOR<ReportNotificationCreateWithoutUserInput, ReportNotificationUncheckedCreateWithoutUserInput>
+  }
+
+  export type ReportNotificationCreateManyUserInputEnvelope = {
+    data: ReportNotificationCreateManyUserInput | ReportNotificationCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -37958,11 +41237,17 @@ export namespace Prisma {
     filePath?: StringFilter<"Report"> | string
     generatedBy?: UuidFilter<"Report"> | string
     createdAt?: DateTimeFilter<"Report"> | Date | string
+    status?: EnumReportStatusFilter<"Report"> | $Enums.ReportStatus
+    updatedAt?: DateTimeFilter<"Report"> | Date | string
+    lastAccessedAt?: DateTimeNullableFilter<"Report"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"Report"> | Date | string | null
+    tags?: StringNullableFilter<"Report"> | string | null
     organizationId?: UuidNullableFilter<"Report"> | string | null
     teamId?: UuidNullableFilter<"Report"> | string | null
     projectId?: UuidNullableFilter<"Report"> | string | null
     departmentId?: UuidNullableFilter<"Report"> | string | null
     userId?: UuidNullableFilter<"Report"> | string | null
+    scheduleId?: UuidNullableFilter<"Report"> | string | null
     storageProvider?: StringNullableFilter<"Report"> | string | null
     storageKey?: StringFilter<"Report"> | string
   }
@@ -38046,6 +41331,32 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
   }
 
+  export type ReportNotificationUpsertWithWhereUniqueWithoutUserInput = {
+    where: ReportNotificationWhereUniqueInput
+    update: XOR<ReportNotificationUpdateWithoutUserInput, ReportNotificationUncheckedUpdateWithoutUserInput>
+    create: XOR<ReportNotificationCreateWithoutUserInput, ReportNotificationUncheckedCreateWithoutUserInput>
+  }
+
+  export type ReportNotificationUpdateWithWhereUniqueWithoutUserInput = {
+    where: ReportNotificationWhereUniqueInput
+    data: XOR<ReportNotificationUpdateWithoutUserInput, ReportNotificationUncheckedUpdateWithoutUserInput>
+  }
+
+  export type ReportNotificationUpdateManyWithWhereWithoutUserInput = {
+    where: ReportNotificationScalarWhereInput
+    data: XOR<ReportNotificationUpdateManyMutationInput, ReportNotificationUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type ReportNotificationScalarWhereInput = {
+    AND?: ReportNotificationScalarWhereInput | ReportNotificationScalarWhereInput[]
+    OR?: ReportNotificationScalarWhereInput[]
+    NOT?: ReportNotificationScalarWhereInput | ReportNotificationScalarWhereInput[]
+    id?: UuidFilter<"ReportNotification"> | string
+    reportId?: UuidFilter<"ReportNotification"> | string
+    userId?: UuidFilter<"ReportNotification"> | string
+    notified?: BoolFilter<"ReportNotification"> | boolean
+  }
+
   export type UserCreateWithoutCreatedOrganizationsInput = {
     id?: string
     email: string
@@ -38093,6 +41404,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCreatedOrganizationsInput = {
@@ -38142,6 +41454,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCreatedOrganizationsInput = {
@@ -38332,6 +41645,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOrganizationInput = {
@@ -38381,6 +41695,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOrganizationInput = {
@@ -38402,6 +41717,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     storageProvider?: string | null
     storageKey: string
     generator: UserCreateNestedOneWithoutGeneratedReportsInput
@@ -38409,6 +41729,8 @@ export namespace Prisma {
     project?: ProjectCreateNestedOneWithoutReportsInput
     department?: DepartmentCreateNestedOneWithoutReportInput
     user?: UserCreateNestedOneWithoutUserReportsInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
   }
 
   export type ReportUncheckedCreateWithoutOrganizationInput = {
@@ -38421,12 +41743,19 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
   }
 
   export type ReportCreateOrConnectWithoutOrganizationInput = {
@@ -38597,6 +41926,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedOrganizationsInput = {
@@ -38646,6 +41976,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type DepartmentUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -38936,6 +42267,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOwnedOrganizationsInput = {
@@ -38985,6 +42317,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOwnedOrganizationsInput = {
@@ -39117,6 +42450,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOwnedOrganizationsInput = {
@@ -39166,6 +42500,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutDepartmentsInput = {
@@ -39276,6 +42611,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutManagedDepartmentsInput = {
@@ -39325,6 +42661,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutManagedDepartmentsInput = {
@@ -39421,6 +42758,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDepartmentInput = {
@@ -39470,6 +42808,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDepartmentInput = {
@@ -39529,6 +42868,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     storageProvider?: string | null
     storageKey: string
     generator: UserCreateNestedOneWithoutGeneratedReportsInput
@@ -39536,6 +42880,8 @@ export namespace Prisma {
     team?: TeamCreateNestedOneWithoutReportsInput
     project?: ProjectCreateNestedOneWithoutReportsInput
     user?: UserCreateNestedOneWithoutUserReportsInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
   }
 
   export type ReportUncheckedCreateWithoutDepartmentInput = {
@@ -39548,12 +42894,19 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
   }
 
   export type ReportCreateOrConnectWithoutDepartmentInput = {
@@ -39691,6 +43044,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutManagedDepartmentsInput = {
@@ -39740,6 +43094,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TeamUpsertWithWhereUniqueWithoutDepartmentInput = {
@@ -39853,6 +43208,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCreatedTeamsInput = {
@@ -39902,6 +43258,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCreatedTeamsInput = {
@@ -40096,6 +43453,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     storageProvider?: string | null
     storageKey: string
     generator: UserCreateNestedOneWithoutGeneratedReportsInput
@@ -40103,6 +43465,8 @@ export namespace Prisma {
     project?: ProjectCreateNestedOneWithoutReportsInput
     department?: DepartmentCreateNestedOneWithoutReportInput
     user?: UserCreateNestedOneWithoutUserReportsInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
   }
 
   export type ReportUncheckedCreateWithoutTeamInput = {
@@ -40115,12 +43479,19 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
   }
 
   export type ReportCreateOrConnectWithoutTeamInput = {
@@ -40229,6 +43600,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedTeamsInput = {
@@ -40278,6 +43650,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutTeamsInput = {
@@ -40534,6 +43907,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTeamMembershipsInput = {
@@ -40583,6 +43957,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTeamMembershipsInput = {
@@ -40691,6 +44066,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTeamMembershipsInput = {
@@ -40740,6 +44116,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutCreatedProjectsInput = {
@@ -40789,6 +44166,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCreatedProjectsInput = {
@@ -40838,6 +44216,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCreatedProjectsInput = {
@@ -40892,6 +44271,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutModifiedProjectsInput = {
@@ -40941,6 +44321,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutModifiedProjectsInput = {
@@ -41159,6 +44540,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     storageProvider?: string | null
     storageKey: string
     generator: UserCreateNestedOneWithoutGeneratedReportsInput
@@ -41166,6 +44552,8 @@ export namespace Prisma {
     team?: TeamCreateNestedOneWithoutReportsInput
     department?: DepartmentCreateNestedOneWithoutReportInput
     user?: UserCreateNestedOneWithoutUserReportsInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
   }
 
   export type ReportUncheckedCreateWithoutProjectInput = {
@@ -41178,12 +44566,19 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
   }
 
   export type ReportCreateOrConnectWithoutProjectInput = {
@@ -41322,6 +44717,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedProjectsInput = {
@@ -41371,6 +44767,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutModifiedProjectsInput = {
@@ -41431,6 +44828,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutModifiedProjectsInput = {
@@ -41480,6 +44878,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutProjectsInput = {
@@ -41785,6 +45184,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutProjectMembershipsInput = {
@@ -41834,6 +45234,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutProjectMembershipsInput = {
@@ -41956,6 +45357,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProjectMembershipsInput = {
@@ -42005,6 +45407,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ProjectCreateWithoutSprintsInput = {
@@ -42382,6 +45785,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCreatedTasksInput = {
@@ -42431,6 +45835,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCreatedTasksInput = {
@@ -42485,6 +45890,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAssignedTasksInput = {
@@ -42534,6 +45940,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAssignedTasksInput = {
@@ -42588,6 +45995,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutModifiedTasksInput = {
@@ -42637,6 +46045,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutModifiedTasksInput = {
@@ -43099,6 +46508,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedTasksInput = {
@@ -43148,6 +46558,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutAssignedTasksInput = {
@@ -43208,6 +46619,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssignedTasksInput = {
@@ -43257,6 +46669,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutModifiedTasksInput = {
@@ -43317,6 +46730,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutModifiedTasksInput = {
@@ -43366,6 +46780,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TaskAttachmentUpsertWithWhereUniqueWithoutTaskInput = {
@@ -43670,6 +47085,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTaskAttachmentsInput = {
@@ -43719,6 +47135,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTaskAttachmentsInput = {
@@ -43853,6 +47270,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTaskAttachmentsInput = {
@@ -43902,6 +47320,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TaskCreateWithoutDependentOnInput = {
@@ -44406,6 +47825,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTimelogsInput = {
@@ -44455,6 +47875,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTimelogsInput = {
@@ -44589,6 +48010,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTimelogsInput = {
@@ -44638,6 +48060,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TaskCreateWithoutCommentsInput = {
@@ -44750,6 +48173,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCommentsInput = {
@@ -44799,6 +48223,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCommentsInput = {
@@ -44933,6 +48358,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCommentsInput = {
@@ -44982,6 +48408,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutActivityLogsInput = {
@@ -45031,6 +48458,7 @@ export namespace Prisma {
     generatedReports?: ReportCreateNestedManyWithoutGeneratorInput
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutActivityLogsInput = {
@@ -45080,6 +48508,7 @@ export namespace Prisma {
     generatedReports?: ReportUncheckedCreateNestedManyWithoutGeneratorInput
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutActivityLogsInput = {
@@ -45421,6 +48850,7 @@ export namespace Prisma {
     generatedReports?: ReportUpdateManyWithoutGeneratorNestedInput
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutActivityLogsInput = {
@@ -45470,6 +48900,7 @@ export namespace Prisma {
     generatedReports?: ReportUncheckedUpdateManyWithoutGeneratorNestedInput
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutActivityLogsInput = {
@@ -45831,6 +49262,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -45880,6 +49312,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -45945,6 +49378,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -45994,6 +49428,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutGeneratedReportsInput = {
@@ -46043,6 +49478,7 @@ export namespace Prisma {
     userReports?: ReportCreateNestedManyWithoutUserInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutGeneratedReportsInput = {
@@ -46092,6 +49528,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutGeneratedReportsInput = {
@@ -46328,6 +49765,7 @@ export namespace Prisma {
     generatedReports?: ReportCreateNestedManyWithoutGeneratorInput
     permissions?: PermissionCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutUserReportsInput = {
@@ -46377,11 +49815,57 @@ export namespace Prisma {
     generatedReports?: ReportUncheckedCreateNestedManyWithoutGeneratorInput
     permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutUserReportsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutUserReportsInput, UserUncheckedCreateWithoutUserReportsInput>
+  }
+
+  export type ReportScheduleCreateWithoutReportsInput = {
+    id?: string
+    name: string
+    cronExpression: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy: string
+  }
+
+  export type ReportScheduleUncheckedCreateWithoutReportsInput = {
+    id?: string
+    name: string
+    cronExpression: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy: string
+  }
+
+  export type ReportScheduleCreateOrConnectWithoutReportsInput = {
+    where: ReportScheduleWhereUniqueInput
+    create: XOR<ReportScheduleCreateWithoutReportsInput, ReportScheduleUncheckedCreateWithoutReportsInput>
+  }
+
+  export type ReportNotificationCreateWithoutReportInput = {
+    id?: string
+    notified?: boolean
+    user: UserCreateNestedOneWithoutReportNotificationInput
+  }
+
+  export type ReportNotificationUncheckedCreateWithoutReportInput = {
+    id?: string
+    userId: string
+    notified?: boolean
+  }
+
+  export type ReportNotificationCreateOrConnectWithoutReportInput = {
+    where: ReportNotificationWhereUniqueInput
+    create: XOR<ReportNotificationCreateWithoutReportInput, ReportNotificationUncheckedCreateWithoutReportInput>
+  }
+
+  export type ReportNotificationCreateManyReportInputEnvelope = {
+    data: ReportNotificationCreateManyReportInput | ReportNotificationCreateManyReportInput[]
+    skipDuplicates?: boolean
   }
 
   export type UserUpsertWithoutGeneratedReportsInput = {
@@ -46442,6 +49926,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutGeneratedReportsInput = {
@@ -46491,6 +49976,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutReportsInput = {
@@ -46757,6 +50243,7 @@ export namespace Prisma {
     generatedReports?: ReportUpdateManyWithoutGeneratorNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutUserReportsInput = {
@@ -46804,6 +50291,460 @@ export namespace Prisma {
     comments?: CommentUncheckedUpdateManyWithoutUserNestedInput
     taskAttachments?: TaskAttachmentUncheckedUpdateManyWithoutUploaderNestedInput
     generatedReports?: ReportUncheckedUpdateManyWithoutGeneratorNestedInput
+    permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ReportScheduleUpsertWithoutReportsInput = {
+    update: XOR<ReportScheduleUpdateWithoutReportsInput, ReportScheduleUncheckedUpdateWithoutReportsInput>
+    create: XOR<ReportScheduleCreateWithoutReportsInput, ReportScheduleUncheckedCreateWithoutReportsInput>
+    where?: ReportScheduleWhereInput
+  }
+
+  export type ReportScheduleUpdateToOneWithWhereWithoutReportsInput = {
+    where?: ReportScheduleWhereInput
+    data: XOR<ReportScheduleUpdateWithoutReportsInput, ReportScheduleUncheckedUpdateWithoutReportsInput>
+  }
+
+  export type ReportScheduleUpdateWithoutReportsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    cronExpression?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReportScheduleUncheckedUpdateWithoutReportsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    cronExpression?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReportNotificationUpsertWithWhereUniqueWithoutReportInput = {
+    where: ReportNotificationWhereUniqueInput
+    update: XOR<ReportNotificationUpdateWithoutReportInput, ReportNotificationUncheckedUpdateWithoutReportInput>
+    create: XOR<ReportNotificationCreateWithoutReportInput, ReportNotificationUncheckedCreateWithoutReportInput>
+  }
+
+  export type ReportNotificationUpdateWithWhereUniqueWithoutReportInput = {
+    where: ReportNotificationWhereUniqueInput
+    data: XOR<ReportNotificationUpdateWithoutReportInput, ReportNotificationUncheckedUpdateWithoutReportInput>
+  }
+
+  export type ReportNotificationUpdateManyWithWhereWithoutReportInput = {
+    where: ReportNotificationScalarWhereInput
+    data: XOR<ReportNotificationUpdateManyMutationInput, ReportNotificationUncheckedUpdateManyWithoutReportInput>
+  }
+
+  export type ReportCreateWithoutReportScheduleInput = {
+    id?: string
+    name: string
+    description?: string | null
+    reportType: $Enums.ReportType
+    format: string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath: string
+    createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
+    storageProvider?: string | null
+    storageKey: string
+    generator: UserCreateNestedOneWithoutGeneratedReportsInput
+    organization?: OrganizationCreateNestedOneWithoutReportsInput
+    team?: TeamCreateNestedOneWithoutReportsInput
+    project?: ProjectCreateNestedOneWithoutReportsInput
+    department?: DepartmentCreateNestedOneWithoutReportInput
+    user?: UserCreateNestedOneWithoutUserReportsInput
+    notifiedUsers?: ReportNotificationCreateNestedManyWithoutReportInput
+  }
+
+  export type ReportUncheckedCreateWithoutReportScheduleInput = {
+    id?: string
+    name: string
+    description?: string | null
+    reportType: $Enums.ReportType
+    format: string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath: string
+    generatedBy: string
+    createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
+    organizationId?: string | null
+    teamId?: string | null
+    projectId?: string | null
+    departmentId?: string | null
+    userId?: string | null
+    storageProvider?: string | null
+    storageKey: string
+    notifiedUsers?: ReportNotificationUncheckedCreateNestedManyWithoutReportInput
+  }
+
+  export type ReportCreateOrConnectWithoutReportScheduleInput = {
+    where: ReportWhereUniqueInput
+    create: XOR<ReportCreateWithoutReportScheduleInput, ReportUncheckedCreateWithoutReportScheduleInput>
+  }
+
+  export type ReportCreateManyReportScheduleInputEnvelope = {
+    data: ReportCreateManyReportScheduleInput | ReportCreateManyReportScheduleInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReportUpsertWithWhereUniqueWithoutReportScheduleInput = {
+    where: ReportWhereUniqueInput
+    update: XOR<ReportUpdateWithoutReportScheduleInput, ReportUncheckedUpdateWithoutReportScheduleInput>
+    create: XOR<ReportCreateWithoutReportScheduleInput, ReportUncheckedCreateWithoutReportScheduleInput>
+  }
+
+  export type ReportUpdateWithWhereUniqueWithoutReportScheduleInput = {
+    where: ReportWhereUniqueInput
+    data: XOR<ReportUpdateWithoutReportScheduleInput, ReportUncheckedUpdateWithoutReportScheduleInput>
+  }
+
+  export type ReportUpdateManyWithWhereWithoutReportScheduleInput = {
+    where: ReportScalarWhereInput
+    data: XOR<ReportUpdateManyMutationInput, ReportUncheckedUpdateManyWithoutReportScheduleInput>
+  }
+
+  export type ReportCreateWithoutNotifiedUsersInput = {
+    id?: string
+    name: string
+    description?: string | null
+    reportType: $Enums.ReportType
+    format: string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath: string
+    createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
+    storageProvider?: string | null
+    storageKey: string
+    generator: UserCreateNestedOneWithoutGeneratedReportsInput
+    organization?: OrganizationCreateNestedOneWithoutReportsInput
+    team?: TeamCreateNestedOneWithoutReportsInput
+    project?: ProjectCreateNestedOneWithoutReportsInput
+    department?: DepartmentCreateNestedOneWithoutReportInput
+    user?: UserCreateNestedOneWithoutUserReportsInput
+    reportSchedule?: ReportScheduleCreateNestedOneWithoutReportsInput
+  }
+
+  export type ReportUncheckedCreateWithoutNotifiedUsersInput = {
+    id?: string
+    name: string
+    description?: string | null
+    reportType: $Enums.ReportType
+    format: string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath: string
+    generatedBy: string
+    createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
+    organizationId?: string | null
+    teamId?: string | null
+    projectId?: string | null
+    departmentId?: string | null
+    userId?: string | null
+    scheduleId?: string | null
+    storageProvider?: string | null
+    storageKey: string
+  }
+
+  export type ReportCreateOrConnectWithoutNotifiedUsersInput = {
+    where: ReportWhereUniqueInput
+    create: XOR<ReportCreateWithoutNotifiedUsersInput, ReportUncheckedCreateWithoutNotifiedUsersInput>
+  }
+
+  export type UserCreateWithoutReportNotificationInput = {
+    id?: string
+    email: string
+    username: string
+    password: string
+    firebaseUid?: string | null
+    firstName: string
+    lastName: string
+    role: $Enums.UserRole
+    profilePic?: string | null
+    isOwner?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    phoneNumber?: string | null
+    jobTitle?: string | null
+    timezone?: string | null
+    bio?: string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    emailVerificationToken?: string | null
+    emailVerificationExpires?: Date | string | null
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    refreshToken?: string | null
+    lastLogin?: Date | string | null
+    lastLogout?: Date | string | null
+    department?: DepartmentCreateNestedOneWithoutUsersInput
+    organization?: OrganizationCreateNestedOneWithoutUsersInput
+    createdOrganizations?: OrganizationCreateNestedManyWithoutCreatorInput
+    ownedOrganizations?: OrganizationOwnerCreateNestedManyWithoutUserInput
+    managedDepartments?: DepartmentCreateNestedManyWithoutManagerInput
+    createdTeams?: TeamCreateNestedManyWithoutCreatorInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutUserInput
+    projectMemberships?: ProjectMemberCreateNestedManyWithoutUserInput
+    createdProjects?: ProjectCreateNestedManyWithoutCreatorInput
+    modifiedProjects?: ProjectCreateNestedManyWithoutModifierInput
+    createdTasks?: TaskCreateNestedManyWithoutCreatorInput
+    assignedTasks?: TaskCreateNestedManyWithoutAssigneeInput
+    modifiedTasks?: TaskCreateNestedManyWithoutModifierInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    timelogs?: TimelogCreateNestedManyWithoutUserInput
+    comments?: CommentCreateNestedManyWithoutUserInput
+    taskAttachments?: TaskAttachmentCreateNestedManyWithoutUploaderInput
+    generatedReports?: ReportCreateNestedManyWithoutGeneratorInput
+    userReports?: ReportCreateNestedManyWithoutUserInput
+    permissions?: PermissionCreateNestedManyWithoutUserInput
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutReportNotificationInput = {
+    id?: string
+    email: string
+    username: string
+    password: string
+    firebaseUid?: string | null
+    firstName: string
+    lastName: string
+    role: $Enums.UserRole
+    profilePic?: string | null
+    departmentId?: string | null
+    organizationId?: string | null
+    isOwner?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    phoneNumber?: string | null
+    jobTitle?: string | null
+    timezone?: string | null
+    bio?: string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    emailVerificationToken?: string | null
+    emailVerificationExpires?: Date | string | null
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    refreshToken?: string | null
+    lastLogin?: Date | string | null
+    lastLogout?: Date | string | null
+    createdOrganizations?: OrganizationUncheckedCreateNestedManyWithoutCreatorInput
+    ownedOrganizations?: OrganizationOwnerUncheckedCreateNestedManyWithoutUserInput
+    managedDepartments?: DepartmentUncheckedCreateNestedManyWithoutManagerInput
+    createdTeams?: TeamUncheckedCreateNestedManyWithoutCreatorInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutUserInput
+    projectMemberships?: ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+    createdProjects?: ProjectUncheckedCreateNestedManyWithoutCreatorInput
+    modifiedProjects?: ProjectUncheckedCreateNestedManyWithoutModifierInput
+    createdTasks?: TaskUncheckedCreateNestedManyWithoutCreatorInput
+    assignedTasks?: TaskUncheckedCreateNestedManyWithoutAssigneeInput
+    modifiedTasks?: TaskUncheckedCreateNestedManyWithoutModifierInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    timelogs?: TimelogUncheckedCreateNestedManyWithoutUserInput
+    comments?: CommentUncheckedCreateNestedManyWithoutUserInput
+    taskAttachments?: TaskAttachmentUncheckedCreateNestedManyWithoutUploaderInput
+    generatedReports?: ReportUncheckedCreateNestedManyWithoutGeneratorInput
+    userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
+    permissions?: PermissionUncheckedCreateNestedManyWithoutUserInput
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutReportNotificationInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutReportNotificationInput, UserUncheckedCreateWithoutReportNotificationInput>
+  }
+
+  export type ReportUpsertWithoutNotifiedUsersInput = {
+    update: XOR<ReportUpdateWithoutNotifiedUsersInput, ReportUncheckedUpdateWithoutNotifiedUsersInput>
+    create: XOR<ReportCreateWithoutNotifiedUsersInput, ReportUncheckedCreateWithoutNotifiedUsersInput>
+    where?: ReportWhereInput
+  }
+
+  export type ReportUpdateToOneWithWhereWithoutNotifiedUsersInput = {
+    where?: ReportWhereInput
+    data: XOR<ReportUpdateWithoutNotifiedUsersInput, ReportUncheckedUpdateWithoutNotifiedUsersInput>
+  }
+
+  export type ReportUpdateWithoutNotifiedUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    reportType?: EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+    format?: StringFieldUpdateOperationsInput | string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    storageKey?: StringFieldUpdateOperationsInput | string
+    generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
+    organization?: OrganizationUpdateOneWithoutReportsNestedInput
+    team?: TeamUpdateOneWithoutReportsNestedInput
+    project?: ProjectUpdateOneWithoutReportsNestedInput
+    department?: DepartmentUpdateOneWithoutReportNestedInput
+    user?: UserUpdateOneWithoutUserReportsNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+  }
+
+  export type ReportUncheckedUpdateWithoutNotifiedUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    reportType?: EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+    format?: StringFieldUpdateOperationsInput | string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath?: StringFieldUpdateOperationsInput | string
+    generatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    storageKey?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type UserUpsertWithoutReportNotificationInput = {
+    update: XOR<UserUpdateWithoutReportNotificationInput, UserUncheckedUpdateWithoutReportNotificationInput>
+    create: XOR<UserCreateWithoutReportNotificationInput, UserUncheckedCreateWithoutReportNotificationInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutReportNotificationInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutReportNotificationInput, UserUncheckedUpdateWithoutReportNotificationInput>
+  }
+
+  export type UserUpdateWithoutReportNotificationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firebaseUid?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    isOwner?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastLogin?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLogout?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    department?: DepartmentUpdateOneWithoutUsersNestedInput
+    organization?: OrganizationUpdateOneWithoutUsersNestedInput
+    createdOrganizations?: OrganizationUpdateManyWithoutCreatorNestedInput
+    ownedOrganizations?: OrganizationOwnerUpdateManyWithoutUserNestedInput
+    managedDepartments?: DepartmentUpdateManyWithoutManagerNestedInput
+    createdTeams?: TeamUpdateManyWithoutCreatorNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutUserNestedInput
+    projectMemberships?: ProjectMemberUpdateManyWithoutUserNestedInput
+    createdProjects?: ProjectUpdateManyWithoutCreatorNestedInput
+    modifiedProjects?: ProjectUpdateManyWithoutModifierNestedInput
+    createdTasks?: TaskUpdateManyWithoutCreatorNestedInput
+    assignedTasks?: TaskUpdateManyWithoutAssigneeNestedInput
+    modifiedTasks?: TaskUpdateManyWithoutModifierNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    timelogs?: TimelogUpdateManyWithoutUserNestedInput
+    comments?: CommentUpdateManyWithoutUserNestedInput
+    taskAttachments?: TaskAttachmentUpdateManyWithoutUploaderNestedInput
+    generatedReports?: ReportUpdateManyWithoutGeneratorNestedInput
+    userReports?: ReportUpdateManyWithoutUserNestedInput
+    permissions?: PermissionUpdateManyWithoutUserNestedInput
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutReportNotificationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firebaseUid?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    isOwner?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastLogin?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastLogout?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdOrganizations?: OrganizationUncheckedUpdateManyWithoutCreatorNestedInput
+    ownedOrganizations?: OrganizationOwnerUncheckedUpdateManyWithoutUserNestedInput
+    managedDepartments?: DepartmentUncheckedUpdateManyWithoutManagerNestedInput
+    createdTeams?: TeamUncheckedUpdateManyWithoutCreatorNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutUserNestedInput
+    projectMemberships?: ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+    createdProjects?: ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+    modifiedProjects?: ProjectUncheckedUpdateManyWithoutModifierNestedInput
+    createdTasks?: TaskUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedTasks?: TaskUncheckedUpdateManyWithoutAssigneeNestedInput
+    modifiedTasks?: TaskUncheckedUpdateManyWithoutModifierNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    timelogs?: TimelogUncheckedUpdateManyWithoutUserNestedInput
+    comments?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    taskAttachments?: TaskAttachmentUncheckedUpdateManyWithoutUploaderNestedInput
+    generatedReports?: ReportUncheckedUpdateManyWithoutGeneratorNestedInput
+    userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -46855,6 +50796,7 @@ export namespace Prisma {
     generatedReports?: ReportCreateNestedManyWithoutGeneratorInput
     userReports?: ReportCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPermissionsInput = {
@@ -46904,6 +50846,7 @@ export namespace Prisma {
     generatedReports?: ReportUncheckedCreateNestedManyWithoutGeneratorInput
     userReports?: ReportUncheckedCreateNestedManyWithoutUserInput
     activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
+    ReportNotification?: ReportNotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPermissionsInput = {
@@ -46969,6 +50912,7 @@ export namespace Prisma {
     generatedReports?: ReportUpdateManyWithoutGeneratorNestedInput
     userReports?: ReportUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPermissionsInput = {
@@ -47018,6 +50962,7 @@ export namespace Prisma {
     generatedReports?: ReportUncheckedUpdateManyWithoutGeneratorNestedInput
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateManyCreatorInput = {
@@ -47239,11 +51184,17 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
   }
@@ -47258,10 +51209,16 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
   }
@@ -47287,6 +51244,12 @@ export namespace Prisma {
     taskId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+  }
+
+  export type ReportNotificationCreateManyUserInput = {
+    id?: string
+    reportId: string
+    notified?: boolean
   }
 
   export type OrganizationUpdateWithoutCreatorInput = {
@@ -48022,6 +51985,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
     organization?: OrganizationUpdateOneWithoutReportsNestedInput
@@ -48029,6 +51997,8 @@ export namespace Prisma {
     project?: ProjectUpdateOneWithoutReportsNestedInput
     department?: DepartmentUpdateOneWithoutReportNestedInput
     user?: UserUpdateOneWithoutUserReportsNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateWithoutGeneratorInput = {
@@ -48040,13 +52010,20 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateManyWithoutGeneratorInput = {
@@ -48058,11 +52035,17 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
   }
@@ -48076,6 +52059,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
     generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
@@ -48083,6 +52071,8 @@ export namespace Prisma {
     team?: TeamUpdateOneWithoutReportsNestedInput
     project?: ProjectUpdateOneWithoutReportsNestedInput
     department?: DepartmentUpdateOneWithoutReportNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateWithoutUserInput = {
@@ -48095,12 +52085,19 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateManyWithoutUserInput = {
@@ -48113,10 +52110,16 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
   }
@@ -48188,6 +52191,24 @@ export namespace Prisma {
     taskId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReportNotificationUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    report?: ReportUpdateOneRequiredWithoutNotifiedUsersNestedInput
+  }
+
+  export type ReportNotificationUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reportId?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ReportNotificationUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reportId?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type DepartmentCreateManyOrganizationInput = {
@@ -48270,10 +52291,16 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     teamId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
   }
@@ -48506,6 +52533,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrganizationInput = {
@@ -48555,6 +52583,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutOrganizationInput = {
@@ -48596,6 +52625,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
     generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
@@ -48603,6 +52637,8 @@ export namespace Prisma {
     project?: ProjectUpdateOneWithoutReportsNestedInput
     department?: DepartmentUpdateOneWithoutReportNestedInput
     user?: UserUpdateOneWithoutUserReportsNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateWithoutOrganizationInput = {
@@ -48615,12 +52651,19 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateManyWithoutOrganizationInput = {
@@ -48633,10 +52676,16 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
   }
@@ -48812,10 +52861,16 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     projectId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
   }
@@ -48911,6 +52966,7 @@ export namespace Prisma {
     userReports?: ReportUpdateManyWithoutUserNestedInput
     permissions?: PermissionUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDepartmentInput = {
@@ -48960,6 +53016,7 @@ export namespace Prisma {
     userReports?: ReportUncheckedUpdateManyWithoutUserNestedInput
     permissions?: PermissionUncheckedUpdateManyWithoutUserNestedInput
     activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+    ReportNotification?: ReportNotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutDepartmentInput = {
@@ -49043,6 +53100,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
     generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
@@ -49050,6 +53112,8 @@ export namespace Prisma {
     team?: TeamUpdateOneWithoutReportsNestedInput
     project?: ProjectUpdateOneWithoutReportsNestedInput
     user?: UserUpdateOneWithoutUserReportsNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateWithoutDepartmentInput = {
@@ -49062,12 +53126,19 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateManyWithoutDepartmentInput = {
@@ -49080,10 +53151,16 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
   }
@@ -49125,10 +53202,16 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     projectId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
   }
@@ -49247,6 +53330,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
     generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
@@ -49254,6 +53342,8 @@ export namespace Prisma {
     project?: ProjectUpdateOneWithoutReportsNestedInput
     department?: DepartmentUpdateOneWithoutReportNestedInput
     user?: UserUpdateOneWithoutUserReportsNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateWithoutTeamInput = {
@@ -49266,12 +53356,19 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateManyWithoutTeamInput = {
@@ -49284,10 +53381,16 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     projectId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
   }
@@ -49377,10 +53480,16 @@ export namespace Prisma {
     filePath: string
     generatedBy: string
     createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
     organizationId?: string | null
     teamId?: string | null
     departmentId?: string | null
     userId?: string | null
+    scheduleId?: string | null
     storageProvider?: string | null
     storageKey: string
   }
@@ -49535,6 +53644,11 @@ export namespace Prisma {
     parameters?: NullableJsonNullValueInput | InputJsonValue
     filePath?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
     generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
@@ -49542,6 +53656,8 @@ export namespace Prisma {
     team?: TeamUpdateOneWithoutReportsNestedInput
     department?: DepartmentUpdateOneWithoutReportNestedInput
     user?: UserUpdateOneWithoutUserReportsNestedInput
+    reportSchedule?: ReportScheduleUpdateOneWithoutReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateWithoutProjectInput = {
@@ -49554,12 +53670,19 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
   }
 
   export type ReportUncheckedUpdateManyWithoutProjectInput = {
@@ -49572,10 +53695,16 @@ export namespace Prisma {
     filePath?: StringFieldUpdateOperationsInput | string
     generatedBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
     organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
     storageKey?: StringFieldUpdateOperationsInput | string
   }
@@ -50134,6 +54263,128 @@ export namespace Prisma {
     sprintId?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReportNotificationCreateManyReportInput = {
+    id?: string
+    userId: string
+    notified?: boolean
+  }
+
+  export type ReportNotificationUpdateWithoutReportInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    user?: UserUpdateOneRequiredWithoutReportNotificationNestedInput
+  }
+
+  export type ReportNotificationUncheckedUpdateWithoutReportInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ReportNotificationUncheckedUpdateManyWithoutReportInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ReportCreateManyReportScheduleInput = {
+    id?: string
+    name: string
+    description?: string | null
+    reportType: $Enums.ReportType
+    format: string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath: string
+    generatedBy: string
+    createdAt?: Date | string
+    status?: $Enums.ReportStatus
+    updatedAt?: Date | string
+    lastAccessedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    tags?: string | null
+    organizationId?: string | null
+    teamId?: string | null
+    projectId?: string | null
+    departmentId?: string | null
+    userId?: string | null
+    storageProvider?: string | null
+    storageKey: string
+  }
+
+  export type ReportUpdateWithoutReportScheduleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    reportType?: EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+    format?: StringFieldUpdateOperationsInput | string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    storageKey?: StringFieldUpdateOperationsInput | string
+    generator?: UserUpdateOneRequiredWithoutGeneratedReportsNestedInput
+    organization?: OrganizationUpdateOneWithoutReportsNestedInput
+    team?: TeamUpdateOneWithoutReportsNestedInput
+    project?: ProjectUpdateOneWithoutReportsNestedInput
+    department?: DepartmentUpdateOneWithoutReportNestedInput
+    user?: UserUpdateOneWithoutUserReportsNestedInput
+    notifiedUsers?: ReportNotificationUpdateManyWithoutReportNestedInput
+  }
+
+  export type ReportUncheckedUpdateWithoutReportScheduleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    reportType?: EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+    format?: StringFieldUpdateOperationsInput | string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath?: StringFieldUpdateOperationsInput | string
+    generatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    storageKey?: StringFieldUpdateOperationsInput | string
+    notifiedUsers?: ReportNotificationUncheckedUpdateManyWithoutReportNestedInput
+  }
+
+  export type ReportUncheckedUpdateManyWithoutReportScheduleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    reportType?: EnumReportTypeFieldUpdateOperationsInput | $Enums.ReportType
+    format?: StringFieldUpdateOperationsInput | string
+    parameters?: NullableJsonNullValueInput | InputJsonValue
+    filePath?: StringFieldUpdateOperationsInput | string
+    generatedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tags?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    teamId?: NullableStringFieldUpdateOperationsInput | string | null
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    storageProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    storageKey?: StringFieldUpdateOperationsInput | string
   }
 
 

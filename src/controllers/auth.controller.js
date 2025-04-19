@@ -77,6 +77,19 @@ export const signup = async (req, res, next) => {
       text: `Your verification code is: ${verificationOTP}`,
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'CREATED',
+      userId: user.id,
+      details: generateActivityDetails('CREATED', null, {
+        userId: user.id,
+        email: user.email,
+        createdAt: user.createdAt,
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      }),
+    });
+
     return res.status(201).json({
       message: 'User created. Please verify your email.',
       userId: user.id,

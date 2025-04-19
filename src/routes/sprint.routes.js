@@ -40,4 +40,9 @@ router.get(
   getAllSprints,
 );
 
+router.delete(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId',
+  verifyAccessToken,
+  getAllSprints,
+);
 export default router;

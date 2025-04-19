@@ -1260,6 +1260,20 @@ export const removeProjectMember = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'MEMBER_REMOVED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      details: {
+        removedUserId: memberToRemove.id,
+        previousRole: memberToRemove.role,
+        removedAt: new Date(),
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Member removed from project successfully',

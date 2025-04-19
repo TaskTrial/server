@@ -6318,6 +6318,344 @@
           }
         }
       }
+    },
+    "/api/organization/{organizationId}/activity-logs/{logId}": {
+      "get": {
+        "tags": ["Activity Logs"],
+        "summary": "Get a specific activity log by ID",
+        "description": "Retrieves detailed information about a specific activity log. Requires 'view activity logs' permission.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "logId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the activity log to retrieve",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activity log retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "activityLog": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "entityType": { "type": "string" },
+                        "entityId": { "type": "string" },
+                        "action": { "type": "string" },
+                        "oldValue": { "type": "object" },
+                        "newValue": { "type": "object" },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "firstName": { "type": "string" },
+                            "lastName": { "type": "string" },
+                            "email": { "type": "string" },
+                            "profilePic": { "type": "string" }
+                          }
+                        },
+                        "organization": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "name": { "type": "string" }
+                          }
+                        },
+                        "department": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "name": { "type": "string" }
+                          }
+                        },
+                        "team": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "name": { "type": "string" }
+                          }
+                        },
+                        "project": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "name": { "type": "string" }
+                          }
+                        },
+                        "sprint": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "name": { "type": "string" }
+                          }
+                        },
+                        "task": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "title": { "type": "string" },
+                            "description": { "type": "string" },
+                            "status": { "type": "string" },
+                            "priority": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to view activity logs"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - organization or activity log not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "example": "Organization not found"
+                        },
+                        {
+                          "type": "string",
+                          "example": "Activity log not found"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/activity-feed": {
+      "get": {
+        "tags": ["Activity Logs"],
+        "summary": "Get activity feed for an entity",
+        "description": "Retrieves a paginated activity feed for a specific entity (task, project, etc.) with cursor-based pagination.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "entityType",
+            "in": "query",
+            "description": "Type of entity to filter by (ORGANIZATION, DEPARTMENT, TEAM, PROJECT, SPRINT, TASK, USER)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORGANIZATION",
+                "DEPARTMENT",
+                "TEAM",
+                "PROJECT",
+                "SPRINT",
+                "TASK",
+                "USER"
+              ]
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "description": "ID of the entity to filter by (required if entityType is provided)",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items to return (default: 20)",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Cursor for pagination (ISO timestamp of the last item from previous request)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activity feed retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "activityFeed": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "message": { "type": "string" },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string" },
+                              "firstName": { "type": "string" },
+                              "lastName": { "type": "string" },
+                              "profilePic": { "type": "string" }
+                            }
+                          },
+                          "entityType": { "type": "string" },
+                          "action": { "type": "string" },
+                          "details": { "type": "object" },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "entityData": { "type": "object" }
+                        }
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "nextCursor": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Timestamp to use for next page pagination"
+                        },
+                        "hasMore": {
+                          "type": "boolean",
+                          "description": "Whether there are more items available"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "oneOf": [
+                        { "type": "string", "example": "Invalid entity type" },
+                        {
+                          "type": "string",
+                          "example": "entityId is required when entityType is provided"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 

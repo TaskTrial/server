@@ -80,7 +80,7 @@ export const generateActivityDetails = (
       };
     case 'UPDATED':
       // Find what fields were changed
-      const changes = {}; /* eslint-disable-line */
+      const changes = {};
       if (oldData && newData) {
         Object.keys(newData).forEach((key) => {
           // Only include fields that were actually changed

@@ -886,6 +886,21 @@ export const firebaseLogin = async (req, res, next) => {
     // Generate a custom token for this user if needed
     // const customToken = await firebaseAdmin.auth().createCustomToken(uid);
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: isNewUser ? 'CREATED' : 'UPDATED',
+      userId: user.id,
+      details: {
+        action: isNewUser ? 'FIREBASE_SIGNUP' : 'FIREBASE_SIGNIN',
+        userId: user.id,
+        email: user.email,
+        timestamp: new Date(),
+        provider: 'firebase',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     return res.status(200).json({
       user: {
         id: user.id,

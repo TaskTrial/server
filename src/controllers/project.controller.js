@@ -909,6 +909,20 @@ export const deleteProject = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'DELETED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId: project.id,
+      details: {
+        projectName: project.name,
+        deletedAt: new Date(),
+        projectData: project,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project deleted successfully',

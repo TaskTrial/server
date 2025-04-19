@@ -371,6 +371,19 @@ export const forgotPassword = async (req, res, next) => {
       text: `Your password reset code is: ${resetOTP}`,
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'FORGOT_PASSWORD_REQUESTED',
+        email: user.email,
+        requestedAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     return res.status(200).json({
       message: 'Password reset OTP sent',
     });

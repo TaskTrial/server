@@ -371,3 +371,221 @@ export const getActivityLogById = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get activity feed for a specific entity (e.g., for a task or project)
+ * @route  /api/organization/:organizationId/activity-feed
+ * @method GET
+ * @access private
+ */
+export const getActivityFeed = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+    const { entityType, entityId, limit = 20, before } = req.query;
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Build where conditions based on entity type and ID
+    const whereConditions = {
+      organizationId,
+    };
+
+    // Filter by entity type and ID
+    if (entityType && entityId) {
+      switch (entityType) {
+        case 'ORGANIZATION':
+          // No additional filter needed since we already filter by organizationId
+          break;
+        case 'DEPARTMENT':
+          whereConditions.departmentId = entityId;
+          break;
+        case 'TEAM':
+          whereConditions.teamId = entityId;
+          break;
+        case 'PROJECT':
+          whereConditions.projectId = entityId;
+          break;
+        case 'SPRINT':
+          whereConditions.sprintId = entityId;
+          break;
+        case 'TASK':
+          whereConditions.taskId = entityId;
+          break;
+        case 'USER':
+          whereConditions.userId = entityId;
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid entity type',
+          });
+      }
+    }
+
+    // For pagination using cursor-based approach (more efficient for feeds)
+    if (before) {
+      whereConditions.createdAt = {
+        lt: new Date(before),
+      };
+    }
+
+    // Get activity logs for the feed
+    const activityFeed = await prisma.activityLog.findMany({
+      where: whereConditions,
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePic: true,
+          },
+        },
+        task: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        project: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        sprint: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: parseInt(limit),
+    });
+
+    // Get the last timestamp for next pagination
+    const lastTimestamp =
+      activityFeed.length > 0
+        ? activityFeed[activityFeed.length - 1].createdAt.toISOString()
+        : null;
+
+    // Format activity feed for display
+    const formattedFeed = activityFeed.map((log) => {
+      // Create a user-friendly message based on action type
+      const message = formatActivityLogMessage(log);
+
+      return {
+        id: log.id,
+        message,
+        user: log.user,
+        entityType: log.entityType,
+        action: log.action,
+        details: log.details,
+        createdAt: log.createdAt,
+        entityData: getEntityData(log),
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      activityFeed: formattedFeed,
+      pagination: {
+        nextCursor: lastTimestamp,
+        hasMore: activityFeed.length === parseInt(limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Helper function to format activity log messages
+ * @param {Object} log - Activity log entry
+ * @returns {String} Formatted message
+ */
+const formatActivityLogMessage = (log) => {
+  const userName = `${log.user.firstName} ${log.user.lastName}`;
+
+  switch (log.action) {
+    case 'CREATED':
+      return `${userName} created a new ${log.entityType.toLowerCase()}${log.task ? ` "${log.task.title}"` : ''}`;
+
+    case 'UPDATED':
+      return `${userName} updated ${log.entityType.toLowerCase()}${log.task ? ` "${log.task.title}"` : ''}`;
+
+    case 'DELETED':
+      return `${userName} deleted ${log.entityType.toLowerCase()}${log.task ? ` "${log.task.title}"` : ''}`;
+
+    case 'RESTORED':
+      return `${userName} restored ${log.entityType.toLowerCase()}${log.task ? ` "${log.task.title}"` : ''}`;
+
+    case 'STATUS_CHANGED':
+      const oldStatus = log.details?.oldStatus || 'previous status';
+      const newStatus = log.details?.newStatus || 'new status';
+      return `${userName} changed status from ${oldStatus} to ${newStatus}${log.task ? ` for "${log.task.title}"` : ''}`;
+
+    case 'ASSIGNED':
+      const assigneeName = log.details?.assigneeName || 'someone';
+      return `${userName} assigned ${log.task ? `"${log.task.title}"` : 'a task'} to ${assigneeName}`;
+
+    case 'UNASSIGNED':
+      return `${userName} unassigned ${log.task ? `"${log.task.title}"` : 'a task'}`;
+
+    case 'COMMENTED':
+      return `${userName} commented on ${log.entityType.toLowerCase()}${log.task ? ` "${log.task.title}"` : ''}`;
+
+    case 'ATTACHMENT_ADDED':
+      return `${userName} added an attachment to ${log.entityType.toLowerCase()}${log.task ? ` "${log.task.title}"` : ''}`;
+
+    case 'ATTACHMENT_REMOVED':
+      return `${userName} removed an attachment from ${log.entityType.toLowerCase()}${log.task ? ` "${log.task.title}"` : ''}`;
+
+    case 'SPRINT_STARTED':
+      return `${userName} started sprint${log.sprint ? ` "${log.sprint.name}"` : ''}`;
+
+    case 'SPRINT_COMPLETED':
+      return `${userName} completed sprint${log.sprint ? ` "${log.sprint.name}"` : ''}`;
+
+    case 'TASK_MOVED':
+      const fromSprint = log.details?.from?.sprintName || 'previous sprint';
+      const toSprint = log.details?.to?.sprintName || 'new sprint';
+      return `${userName} moved ${log.task ? `"${log.task.title}"` : 'a task'} from ${fromSprint} to ${toSprint}`;
+
+    case 'LOGGED_TIME':
+      const time = log.details?.timeDetails?.hours || 'some time';
+      return `${userName} logged ${time} hours on ${log.task ? `"${log.task.title}"` : 'a task'}`;
+
+    default:
+      return `${userName} performed ${log.action.toLowerCase()} on ${log.entityType.toLowerCase()}`;
+  }
+};
+
+/**
+ * Helper function to extract relevant entity data from a log
+ * @param {Object} log - Activity log entry
+ * @returns {Object} Entity data
+ */
+const getEntityData = (log) => {
+  switch (log.entityType) {
+    case 'TASK':
+      return log.task;
+    case 'PROJECT':
+      return log.project;
+    case 'SPRINT':
+      return log.sprint;
+    // Add other entity types as needed
+    default:
+      return null;
+  }
+};

@@ -439,6 +439,19 @@ export const resetPassword = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'PASSWORD_RESET',
+        email: user.email,
+        resetAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     return res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
     next(error);

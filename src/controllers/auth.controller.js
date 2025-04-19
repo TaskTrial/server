@@ -639,6 +639,19 @@ export const refreshAccessToken = async (req, res, next) => {
         { expiresIn: '1h' },
       );
 
+      await createActivityLog({
+        entityType: 'USER',
+        action: 'UPDATED',
+        userId: user.id,
+        details: {
+          action: 'TOKEN_REFRESHED',
+          userId: user.id,
+          refreshedAt: new Date(),
+          ipAddress: req.ip || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+        },
+      });
+
       res.status(200).json({ accessToken: newAccessToken });
     });
   } catch (err) {

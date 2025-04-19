@@ -954,3 +954,143 @@ export const getSpecificSprint = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Delete a sprint (soft delete)
+ * @route  DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId
+ * @method DELETE
+ * @access private
+ */
+export const deleteSprint = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, sprintId } = req.params;
+    const user = req.user;
+
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, teamId, projectId, sprintId },
+      ['organizationId', 'teamId', 'projectId', 'sprintId'],
+    );
+
+    if (!paramsValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: paramsValidation.message,
+      });
+    }
+
+    // Check project access and permissions
+    const accessCheck = await checkProjectAccess(
+      projectId,
+      organizationId,
+      teamId,
+      user,
+    );
+    if (!accessCheck.success) {
+      return res
+        .status(accessCheck.message === 'Project not found' ? 404 : 403)
+        .json({
+          success: false,
+          message: accessCheck.message,
+        });
+    }
+
+    // Only allow deletion by admins, org owners, team managers, or project owners
+    if (!accessCheck.hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete sprints in this project',
+      });
+    }
+
+    // Check if sprint exists and get current status
+    const existingSprint = await prisma.sprint.findUnique({
+      where: {
+        id: sprintId,
+        projectId,
+      },
+      include: {
+        _count: {
+          select: {
+            tasks: {
+              where: {
+                status: {
+                  not: 'DONE',
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!existingSprint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sprint not found',
+      });
+    }
+
+    // Prevent deletion of active sprints with unfinished tasks
+    if (existingSprint.status === 'ACTIVE' && existingSprint._count.tasks > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete active sprint with unfinished tasks',
+        unfinishedTasks: existingSprint._count.tasks,
+      });
+    }
+
+    // Use transaction to ensure data consistency
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Remove sprint from all tasks
+      await tx.task.updateMany({
+        where: { sprintId },
+        data: { sprintId: null },
+      });
+
+      // 2. Soft delete the sprint
+      const deletedSprint = await tx.sprint.update({
+        where: { id: sprintId },
+        data: {
+          deletedAt: new Date(),
+          lastModifiedBy: user.id,
+        },
+        include: {
+          project: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      // 3. Create audit log
+      await tx.activityLog.create({
+        data: {
+          action: 'SPRINT_DELETED',
+          entityType: 'SPRINT',
+          entityId: sprintId,
+          userId: user.id,
+          details: {
+            sprintName: deletedSprint.name,
+            projectName: deletedSprint.project.name,
+          },
+        },
+      });
+
+      return deletedSprint;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Sprint deleted successfully',
+      data: {
+        id: result.id,
+        name: result.name,
+        deletedAt: result.deletedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

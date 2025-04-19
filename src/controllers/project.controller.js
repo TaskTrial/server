@@ -501,6 +501,20 @@ export const updateProject = async (req, res, next) => {
         data: updateData,
       });
 
+      await createActivityLog({
+        entityType: 'PROJECT',
+        action: 'UPDATED',
+        userId: req.user.id,
+        organizationId,
+        teamId,
+        projectId: updatedProject.id,
+        details: generateActivityDetails(
+          'UPDATED',
+          existingProject,
+          updatedProject,
+        ),
+      });
+
       res.status(200).json({
         success: true,
         message: 'Project updated successfully',

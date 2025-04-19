@@ -792,6 +792,19 @@ export const logout = async (req, res, next) => {
       sameSite: 'Strict',
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'LOGGED_OUT',
+        userId: user.id,
+        loggedOutAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     res.status(200).json({ message: 'Logged out successfully' });
   } catch (err) {
     next(err);

@@ -17,6 +17,10 @@ import {
   generateRefreshToken,
 } from '../utils/token.utils.js';
 import { googleVerifyIdToken } from '../utils/googleVerifyToken.utils.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /* eslint no-undef:off */
 /**

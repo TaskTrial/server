@@ -732,6 +732,21 @@ export const googleOAuthLogin = async (req, res) => {
       profilePic: user.profilePic,
     };
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: isNewUser ? 'CREATED' : 'UPDATED',
+      userId: user.id,
+      details: {
+        action: isNewUser ? 'GOOGLE_OAUTH_SIGNUP' : 'GOOGLE_OAUTH_SIGNIN',
+        userId: user.id,
+        email: user.email,
+        timestamp: new Date(),
+        provider: 'google',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     res.status(200).json({
       message: 'Google authentication successful',
       user: userResponse,

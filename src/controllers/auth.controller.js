@@ -156,6 +156,19 @@ export const resendOTP = async (req, res, next) => {
       });
     }
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'RESEND_OTP',
+        email: user.email,
+        timestamp: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Code send successfully. Please check your email',

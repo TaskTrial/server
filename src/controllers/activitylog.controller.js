@@ -102,10 +102,10 @@ export const getAllActivityLogs = async (req, res, next) => {
       'view activity logs',
     );
 
-    if (!hasPermission) {
+    if (!hasPermission.success) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to view activity logs',
+        message: hasPermission.message,
       });
     }
 

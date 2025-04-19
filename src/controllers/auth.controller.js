@@ -588,6 +588,20 @@ export const resetPasswordWithoutEmail = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'PASSWORD_RESET_ALT',
+        userId: user.id,
+        resetAt: new Date(),
+        method: 'alternative',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     return res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
     next(error);

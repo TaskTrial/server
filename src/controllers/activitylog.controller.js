@@ -264,3 +264,110 @@ export const getAllActivityLogs = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get a specific activity log by ID
+ * @route  /api/organization/:organizationId/activity-logs/:logId
+ * @method GET
+ * @access private
+ */
+export const getActivityLogById = async (req, res, next) => {
+  try {
+    const { organizationId, logId } = req.params;
+    const user = req.user;
+
+    // Check if organization exists
+    const orgCheck = await checkOrganization(organizationId);
+    if (!orgCheck.success) {
+      return res.status(404).json({
+        success: false,
+        message: orgCheck.message,
+      });
+    }
+
+    // Check user permissions for viewing logs
+    const hasPermission = checkUserPermission(
+      user,
+      orgCheck.organization,
+      'view activity logs',
+    );
+    if (!hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view activity logs',
+      });
+    }
+
+    // Find the activity log
+    const activityLog = await prisma.activityLog.findFirst({
+      where: {
+        id: logId,
+        organizationId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        project: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        sprint: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        task: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+            priority: true,
+          },
+        },
+      },
+    });
+
+    if (!activityLog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Activity log not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      activityLog,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

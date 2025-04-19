@@ -816,6 +816,21 @@ export const updateProjectPriority = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      projectId: updatedProject.id,
+      details: {
+        field: 'priority',
+        oldPriority: existingProject.priority,
+        newPriority: updatedProject.priority,
+        updatedAt: updatedProject.updatedAt,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project priority updated successfully',

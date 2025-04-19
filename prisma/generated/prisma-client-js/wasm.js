@@ -409,6 +409,121 @@ exports.Prisma.PermissionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ChatRoomScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  type: 'type',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isActive: 'isActive',
+  isArchived: 'isArchived',
+  archivedAt: 'archivedAt',
+  avatarUrl: 'avatarUrl',
+  lastMessageAt: 'lastMessageAt'
+};
+
+exports.Prisma.ChatParticipantScalarFieldEnum = {
+  id: 'id',
+  chatRoomId: 'chatRoomId',
+  userId: 'userId',
+  joinedAt: 'joinedAt',
+  lastReadMessageId: 'lastReadMessageId',
+  lastReadAt: 'lastReadAt',
+  isAdmin: 'isAdmin',
+  notificationsOn: 'notificationsOn',
+  status: 'status'
+};
+
+exports.Prisma.ChatMessageScalarFieldEnum = {
+  id: 'id',
+  chatRoomId: 'chatRoomId',
+  senderId: 'senderId',
+  content: 'content',
+  contentType: 'contentType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isEdited: 'isEdited',
+  isDeleted: 'isDeleted',
+  deletedAt: 'deletedAt',
+  replyToId: 'replyToId',
+  metadata: 'metadata'
+};
+
+exports.Prisma.MessageAttachmentScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  fileName: 'fileName',
+  fileType: 'fileType',
+  filePath: 'filePath',
+  fileSize: 'fileSize',
+  thumbnailPath: 'thumbnailPath',
+  storageProvider: 'storageProvider',
+  storageKey: 'storageKey',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MessageReactionScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  userId: 'userId',
+  reaction: 'reaction',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PinnedMessageScalarFieldEnum = {
+  id: 'id',
+  chatRoomId: 'chatRoomId',
+  messageId: 'messageId',
+  pinnedBy: 'pinnedBy',
+  pinnedAt: 'pinnedAt'
+};
+
+exports.Prisma.VideoConferenceSessionScalarFieldEnum = {
+  id: 'id',
+  chatRoomId: 'chatRoomId',
+  title: 'title',
+  description: 'description',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  status: 'status',
+  hostId: 'hostId',
+  meetingUrl: 'meetingUrl',
+  recordingUrl: 'recordingUrl',
+  settings: 'settings'
+};
+
+exports.Prisma.VideoParticipantScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  userId: 'userId',
+  joinedAt: 'joinedAt',
+  leftAt: 'leftAt',
+  role: 'role',
+  deviceInfo: 'deviceInfo',
+  connectionQuality: 'connectionQuality',
+  hasVideo: 'hasVideo',
+  hasAudio: 'hasAudio'
+};
+
+exports.Prisma.VideoRecordingScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  fileName: 'fileName',
+  fileSize: 'fileSize',
+  duration: 'duration',
+  recordedBy: 'recordedBy',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  storageProvider: 'storageProvider',
+  storageKey: 'storageKey',
+  processingStatus: 'processingStatus',
+  visibility: 'visibility',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -540,6 +655,61 @@ exports.ReportStatus = exports.$Enums.ReportStatus = {
   EXPIRED: 'EXPIRED'
 };
 
+exports.ChatRoomType = exports.$Enums.ChatRoomType = {
+  ORGANIZATION: 'ORGANIZATION',
+  DEPARTMENT: 'DEPARTMENT',
+  TEAM: 'TEAM',
+  PROJECT: 'PROJECT',
+  TASK: 'TASK',
+  DIRECT: 'DIRECT',
+  GROUP: 'GROUP'
+};
+
+exports.ParticipantStatus = exports.$Enums.ParticipantStatus = {
+  ACTIVE: 'ACTIVE',
+  MUTED: 'MUTED',
+  BLOCKED: 'BLOCKED',
+  LEFT: 'LEFT'
+};
+
+exports.MessageContentType = exports.$Enums.MessageContentType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  FILE: 'FILE',
+  AUDIO: 'AUDIO',
+  VIDEO: 'VIDEO',
+  CODE: 'CODE',
+  LINK: 'LINK',
+  SYSTEM: 'SYSTEM'
+};
+
+exports.SessionStatus = exports.$Enums.SessionStatus = {
+  SCHEDULED: 'SCHEDULED',
+  ACTIVE: 'ACTIVE',
+  ENDED: 'ENDED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.VideoParticipantRole = exports.$Enums.VideoParticipantRole = {
+  HOST: 'HOST',
+  COHOST: 'COHOST',
+  PRESENTER: 'PRESENTER',
+  ATTENDEE: 'ATTENDEE'
+};
+
+exports.ProcessingStatus = exports.$Enums.ProcessingStatus = {
+  PROCESSING: 'PROCESSING',
+  READY: 'READY',
+  FAILED: 'FAILED'
+};
+
+exports.RecordingVisibility = exports.$Enums.RecordingVisibility = {
+  PRIVATE: 'PRIVATE',
+  PARTICIPANTS_ONLY: 'PARTICIPANTS_ONLY',
+  ORGANIZATION: 'ORGANIZATION',
+  PUBLIC: 'PUBLIC'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Organization: 'Organization',
@@ -561,7 +731,16 @@ exports.Prisma.ModelName = {
   Report: 'Report',
   ReportSchedule: 'ReportSchedule',
   ReportNotification: 'ReportNotification',
-  Permission: 'Permission'
+  Permission: 'Permission',
+  ChatRoom: 'ChatRoom',
+  ChatParticipant: 'ChatParticipant',
+  ChatMessage: 'ChatMessage',
+  MessageAttachment: 'MessageAttachment',
+  MessageReaction: 'MessageReaction',
+  PinnedMessage: 'PinnedMessage',
+  VideoConferenceSession: 'VideoConferenceSession',
+  VideoParticipant: 'VideoParticipant',
+  VideoRecording: 'VideoRecording'
 };
 
 /**

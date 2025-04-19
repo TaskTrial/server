@@ -3,6 +3,10 @@ import {
   createProjectValidation,
   updateProjectValidation,
 } from '../validations/project.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Helper function to validate required params
@@ -261,6 +265,24 @@ export const createProject = async (req, res, next) => {
         return { project, projectLeader, projectMembers };
       });
 
+      await createActivityLog({
+        entityType: 'PROJECT',
+        action: 'CREATED',
+        userId: req.user.id,
+        organizationId,
+        teamId,
+        projectId: result.project.id,
+        details: generateActivityDetails('CREATED', null, {
+          projectId: result.project.id,
+          name: result.project.name,
+          description: result.project.description,
+          startDate: result.project.startDate,
+          endDate: result.project.endDate,
+          status: result.project.status,
+          priority: result.project.priority,
+        }),
+      });
+
       res.status(201).json({
         success: true,
         message: 'Project created successfully.',
@@ -479,6 +501,20 @@ export const updateProject = async (req, res, next) => {
         data: updateData,
       });
 
+      await createActivityLog({
+        entityType: 'PROJECT',
+        action: 'UPDATED',
+        userId: req.user.id,
+        organizationId,
+        teamId,
+        projectId: updatedProject.id,
+        details: generateActivityDetails(
+          'UPDATED',
+          existingProject,
+          updatedProject,
+        ),
+      });
+
       res.status(200).json({
         success: true,
         message: 'Project updated successfully',
@@ -631,6 +667,20 @@ export const updateProjectStatus = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'STATUS_CHANGED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      projectId: updatedProject.id,
+      details: {
+        oldStatus: existingProject.status,
+        newStatus: updatedProject.status,
+        updatedAt: updatedProject.updatedAt,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project status updated successfully',
@@ -766,6 +816,21 @@ export const updateProjectPriority = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      projectId: updatedProject.id,
+      details: {
+        field: 'priority',
+        oldPriority: existingProject.priority,
+        newPriority: updatedProject.priority,
+        updatedAt: updatedProject.updatedAt,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project priority updated successfully',
@@ -844,6 +909,20 @@ export const deleteProject = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'DELETED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId: project.id,
+      details: {
+        projectName: project.name,
+        deletedAt: new Date(),
+        projectData: project,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project deleted successfully',
@@ -917,6 +996,20 @@ export const restoreProject = async (req, res, next) => {
       data: {
         deletedAt: null,
         lastModifiedBy: user.id,
+      },
+    });
+
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'RESTORED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId: project.id,
+      details: {
+        projectName: project.name,
+        restoredAt: new Date(),
+        previouslyDeletedAt: project.deletedAt,
       },
     });
 
@@ -1056,6 +1149,19 @@ export const addProjectMember = async (req, res, next) => {
       })),
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'MEMBER_ADDED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      projectId,
+      details: {
+        projectMembers,
+        addedAt: new Date(),
+      },
+    });
+
     res.status(201).json({
       success: true,
       message: `Successfully added ${newMemberData.length} members to the project`,
@@ -1151,6 +1257,20 @@ export const removeProjectMember = async (req, res, next) => {
         deletedAt: new Date(),
         leftAt: new Date(),
         isActive: false,
+      },
+    });
+
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'MEMBER_REMOVED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      details: {
+        removedUserId: memberToRemove.id,
+        previousRole: memberToRemove.role,
+        removedAt: new Date(),
       },
     });
 

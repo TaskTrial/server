@@ -799,10 +799,10 @@ export const logout = async (req, res, next) => {
     await createActivityLog({
       entityType: 'USER',
       action: 'UPDATED',
-      userId: user.id,
+      userId: decoded.id,
       details: {
         action: 'LOGGED_OUT',
-        userId: user.id,
+        userId: decoded.id,
         loggedOutAt: new Date(),
         ipAddress: req.ip || 'unknown',
         userAgent: req.headers['user-agent'] || 'unknown',
@@ -895,7 +895,6 @@ export const firebaseLogin = async (req, res, next) => {
       action: isNewUser ? 'CREATED' : 'UPDATED',
       userId: user.id,
       details: {
-        action: isNewUser ? 'FIREBASE_SIGNUP' : 'FIREBASE_SIGNIN',
         userId: user.id,
         email: user.email,
         timestamp: new Date(),

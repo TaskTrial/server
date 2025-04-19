@@ -6,6 +6,7 @@ import {
   updateSprintStatus,
 } from '../controllers/sprint.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
+import { apiLimiter } from '../utils/apiLimiter.utils.js';
 
 const router = Router();
 
@@ -27,6 +28,14 @@ router.patch(
 
 router.get(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/sprints',
+  apiLimiter,
+  verifyAccessToken,
+  getAllSprints,
+);
+
+router.get(
+  '/api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId',
+  apiLimiter,
   verifyAccessToken,
   getAllSprints,
 );

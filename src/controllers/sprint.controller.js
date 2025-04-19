@@ -791,3 +791,166 @@ export const getAllSprints = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get a specific sprint with detailed information
+ * @route  GET /api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId
+ * @method GET
+ * @access private
+ */
+export const getSpecificSprint = async (req, res, next) => {
+  try {
+    const { organizationId, teamId, projectId, sprintId } = req.params;
+    const user = req.user;
+
+    // Validate required parameters
+    const paramsValidation = validateParams(
+      { organizationId, teamId, projectId, sprintId },
+      ['organizationId', 'teamId', 'projectId', 'sprintId'],
+    );
+
+    if (!paramsValidation.success) {
+      return res.status(400).json({
+        success: false,
+        message: paramsValidation.message,
+      });
+    }
+
+    // Check if user has access to the project (all members can view)
+    const isMember = await prisma.projectMember.findFirst({
+      where: {
+        projectId,
+        userId: user.id,
+        leftAt: null,
+      },
+    });
+
+    const isAdminOrOwner =
+      user.role === 'ADMIN' ||
+      (await prisma.organizationMember.findFirst({
+        where: {
+          organizationId,
+          userId: user.id,
+          role: 'OWNER',
+        },
+      }));
+
+    if (!isMember && !isAdminOrOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view this sprint',
+      });
+    }
+
+    // Get the sprint with all related data
+    const sprint = await prisma.sprint.findUnique({
+      where: {
+        id: sprintId,
+        projectId,
+      },
+      include: {
+        project: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+          },
+        },
+        tasks: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            dueDate: true,
+            assignees: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profilePic: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        activityLogs: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 10,
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            tasks: true,
+            activityLogs: true,
+          },
+        },
+      },
+    });
+
+    if (!sprint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sprint not found',
+      });
+    }
+
+    // Calculate additional metrics
+    const completedTasks = await prisma.task.count({
+      where: {
+        sprintId,
+        status: 'DONE',
+      },
+    });
+
+    const progress =
+      sprint._count.tasks > 0
+        ? Math.round((completedTasks / sprint._count.tasks) * 100)
+        : 0;
+
+    const daysRemaining = Math.ceil(
+      (new Date(sprint.endDate) - new Date()) / (1000 * 60 * 60 * 24),
+    );
+
+    // Format the response
+    const response = {
+      success: true,
+      data: {
+        ...sprint,
+        progress,
+        daysRemaining,
+        project: sprint.project,
+        tasks: sprint.tasks.map((task) => ({
+          ...task,
+          assignees: task.assignees.map((a) => a.user),
+        })),
+        recentActivity: sprint.activityLogs,
+        stats: {
+          totalTasks: sprint._count.tasks,
+          completedTasks,
+          activityCount: sprint._count.activityLogs,
+        },
+      },
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+};

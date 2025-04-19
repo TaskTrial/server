@@ -110,3 +110,4 @@ base url: `http://localhost:3000`
 ### Activity Logs
 
 - Get all logs: `GET /api/organization/:organizationId/activity-logs`
+- Get a specific log by id: `GET /api/organization/:organizationId/activity-logs/:logId`

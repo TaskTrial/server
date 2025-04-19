@@ -1149,6 +1149,19 @@ export const addProjectMember = async (req, res, next) => {
       })),
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'MEMBER_ADDED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      projectId,
+      details: {
+        projectMembers,
+        addedAt: new Date(),
+      },
+    });
+
     res.status(201).json({
       success: true,
       message: `Successfully added ${newMemberData.length} members to the project`,

@@ -248,7 +248,7 @@ model ProjectMember {
 
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId]) // A user can only have one active role in a project
   @@index([projectId])
@@ -575,6 +575,16 @@ enum ActionType {
   SPRINT_COMPLETED
   TASK_MOVED
   LOGGED_TIME
+  VERIFIED
+  LOGO_UPDATED
+  SETTINGS_CHANGED
+  SUBSCRIPTION_CHANGED
+  TEAM_CREATED
+  TEAM_DELETED
+  DEPARTMENT_CREATED
+  DEPARTMENT_DELETED
+  OWNER_ADDED
+  OWNER_REMOVED
 }
 
 enum TaskPriority {

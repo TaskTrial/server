@@ -291,7 +291,7 @@ export const getActivityLogById = async (req, res, next) => {
       orgCheck.organization,
       'view activity logs',
     );
-    if (!hasPermission) {
+    if (!hasPermission.success) {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to view activity logs',

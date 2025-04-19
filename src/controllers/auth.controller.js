@@ -77,6 +77,19 @@ export const signup = async (req, res, next) => {
       text: `Your verification code is: ${verificationOTP}`,
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'CREATED',
+      userId: user.id,
+      details: generateActivityDetails('CREATED', null, {
+        userId: user.id,
+        email: user.email,
+        createdAt: user.createdAt,
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      }),
+    });
+
     return res.status(201).json({
       message: 'User created. Please verify your email.',
       userId: user.id,
@@ -143,6 +156,19 @@ export const resendOTP = async (req, res, next) => {
       });
     }
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'RESEND_OTP',
+        email: user.email,
+        timestamp: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Code send successfully. Please check your email',
@@ -196,6 +222,19 @@ export const verifyEmail = async (req, res, next) => {
         isActive: true,
         emailVerificationToken: null,
         emailVerificationExpires: null,
+      },
+    });
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'EMAIL_VERIFIED',
+        email: user.email,
+        verifiedAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
       },
     });
 
@@ -255,6 +294,19 @@ export const signin = async (req, res, next) => {
       secure: process.env.NODE_ENV === 'development',
       sameSite: 'Strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'SIGN_IN',
+        email: user.email,
+        signedInAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
     });
 
     return res.status(200).json({
@@ -319,6 +371,19 @@ export const forgotPassword = async (req, res, next) => {
       text: `Your password reset code is: ${resetOTP}`,
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'FORGOT_PASSWORD_REQUESTED',
+        email: user.email,
+        requestedAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     return res.status(200).json({
       message: 'Password reset OTP sent',
     });
@@ -371,6 +436,19 @@ export const resetPassword = async (req, res, next) => {
         password: hashedPassword,
         passwordResetToken: null,
         passwordResetExpires: null,
+      },
+    });
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'PASSWORD_RESET',
+        email: user.email,
+        resetAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
       },
     });
 
@@ -428,6 +506,20 @@ export const forgotPasswordWithoutEmail = async (req, res, next) => {
       to: user.email,
       subject: 'Password Reset Request',
       text: `Your password reset code is: ${resetOTP}`,
+    });
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'FORGOT_PASSWORD_ALT_REQUESTED',
+        userId: user.id,
+        requestedAt: new Date(),
+        method: 'alternative',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
     });
 
     return res.status(200).json({
@@ -496,6 +588,20 @@ export const resetPasswordWithoutEmail = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'PASSWORD_RESET_ALT',
+        userId: user.id,
+        resetAt: new Date(),
+        method: 'alternative',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     return res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
     next(error);
@@ -532,6 +638,19 @@ export const refreshAccessToken = async (req, res, next) => {
         process.env.JWT_ACCESS_SECRET,
         { expiresIn: '1h' },
       );
+
+      await createActivityLog({
+        entityType: 'USER',
+        action: 'UPDATED',
+        userId: user.id,
+        details: {
+          action: 'TOKEN_REFRESHED',
+          userId: user.id,
+          refreshedAt: new Date(),
+          ipAddress: req.ip || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+        },
+      });
 
       res.status(200).json({ accessToken: newAccessToken });
     });
@@ -613,6 +732,21 @@ export const googleOAuthLogin = async (req, res) => {
       profilePic: user.profilePic,
     };
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: isNewUser ? 'CREATED' : 'UPDATED',
+      userId: user.id,
+      details: {
+        action: isNewUser ? 'GOOGLE_OAUTH_SIGNUP' : 'GOOGLE_OAUTH_SIGNIN',
+        userId: user.id,
+        email: user.email,
+        timestamp: new Date(),
+        provider: 'google',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     res.status(200).json({
       message: 'Google authentication successful',
       user: userResponse,
@@ -656,6 +790,19 @@ export const logout = async (req, res, next) => {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'Strict',
+    });
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'LOGGED_OUT',
+        userId: user.id,
+        loggedOutAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
     });
 
     res.status(200).json({ message: 'Logged out successfully' });
@@ -738,6 +885,21 @@ export const firebaseLogin = async (req, res, next) => {
 
     // Generate a custom token for this user if needed
     // const customToken = await firebaseAdmin.auth().createCustomToken(uid);
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: isNewUser ? 'CREATED' : 'UPDATED',
+      userId: user.id,
+      details: {
+        action: isNewUser ? 'FIREBASE_SIGNUP' : 'FIREBASE_SIGNIN',
+        userId: user.id,
+        email: user.email,
+        timestamp: new Date(),
+        provider: 'firebase',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
 
     return res.status(200).json({
       user: {

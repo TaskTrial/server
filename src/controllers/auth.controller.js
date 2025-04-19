@@ -895,6 +895,7 @@ export const firebaseLogin = async (req, res, next) => {
       action: isNewUser ? 'CREATED' : 'UPDATED',
       userId: user.id,
       details: {
+        action: 'FIREBASE_SIGNUP',
         userId: user.id,
         email: user.email,
         timestamp: new Date(),

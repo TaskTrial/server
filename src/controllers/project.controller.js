@@ -3,6 +3,10 @@ import {
   createProjectValidation,
   updateProjectValidation,
 } from '../validations/project.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Helper function to validate required params
@@ -259,6 +263,24 @@ export const createProject = async (req, res, next) => {
         }
 
         return { project, projectLeader, projectMembers };
+      });
+
+      await createActivityLog({
+        entityType: 'PROJECT',
+        action: 'CREATED',
+        userId: req.user.id,
+        organizationId,
+        teamId,
+        projectId: result.project.id,
+        details: generateActivityDetails('CREATED', null, {
+          projectId: result.project.id,
+          name: result.project.name,
+          description: result.project.description,
+          startDate: result.project.startDate,
+          endDate: result.project.endDate,
+          status: result.project.status,
+          priority: result.project.priority,
+        }),
       });
 
       res.status(201).json({

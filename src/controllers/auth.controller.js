@@ -225,6 +225,19 @@ export const verifyEmail = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: user.id,
+      details: {
+        action: 'EMAIL_VERIFIED',
+        email: user.email,
+        verifiedAt: new Date(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
     return res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
     next(error);

@@ -17,6 +17,10 @@ import {
   generateRefreshToken,
 } from '../utils/token.utils.js';
 import { googleVerifyIdToken } from '../utils/googleVerifyToken.utils.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /* eslint no-undef:off */
 /**
@@ -795,10 +799,10 @@ export const logout = async (req, res, next) => {
     await createActivityLog({
       entityType: 'USER',
       action: 'UPDATED',
-      userId: user.id,
+      userId: decoded.id,
       details: {
         action: 'LOGGED_OUT',
-        userId: user.id,
+        userId: decoded.id,
         loggedOutAt: new Date(),
         ipAddress: req.ip || 'unknown',
         userAgent: req.headers['user-agent'] || 'unknown',
@@ -891,7 +895,7 @@ export const firebaseLogin = async (req, res, next) => {
       action: isNewUser ? 'CREATED' : 'UPDATED',
       userId: user.id,
       details: {
-        action: isNewUser ? 'FIREBASE_SIGNUP' : 'FIREBASE_SIGNIN',
+        action: 'FIREBASE_SIGNUP',
         userId: user.id,
         email: user.email,
         timestamp: new Date(),

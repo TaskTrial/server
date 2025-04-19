@@ -19,6 +19,7 @@ import teamRoutes from './routes/team.routes.js';
 import projectRoutes from './routes/project.routes.js';
 import sprintRoutes from './routes/sprint.routes.js';
 import taskRoutes from './routes/task.routes.js';
+import activitylogRoutes from './routes/activitylog.routes.js';
 import {
   errorHandler,
   notFound,
@@ -84,6 +85,7 @@ app.use(teamRoutes);
 app.use(projectRoutes);
 app.use(sprintRoutes);
 app.use(taskRoutes);
+app.use(activitylogRoutes);
 
 // Error handling middleware
 app.use(notFound);

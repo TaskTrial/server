@@ -248,7 +248,7 @@ model ProjectMember {
 
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId]) // A user can only have one active role in a project
   @@index([projectId])

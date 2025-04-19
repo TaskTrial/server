@@ -667,6 +667,20 @@ export const updateProjectStatus = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'PROJECT',
+      action: 'STATUS_CHANGED',
+      userId: req.user.id,
+      organizationId,
+      teamId,
+      projectId: updatedProject.id,
+      details: {
+        oldStatus: existingProject.status,
+        newStatus: updatedProject.status,
+        updatedAt: updatedProject.updatedAt,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project status updated successfully',

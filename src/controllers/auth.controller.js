@@ -620,44 +620,48 @@ export const resetPasswordWithoutEmail = async (req, res, next) => {
  */
 export const refreshAccessToken = async (req, res, next) => {
   try {
-    const token = req.cookies.refreshToken;
-    if (!token) {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
       return res.status(401).json({ message: 'Refresh token missing' });
     }
 
-    jwt.verify(token, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
-      if (err || !decoded || !decoded.id) {
-        return res.status(403).json({ message: 'Invalid refresh token' });
-      }
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      async (err, decoded) => {
+        if (err || !decoded || !decoded.id) {
+          return res.status(403).json({ message: 'Invalid refresh token' });
+        }
 
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-      });
-      if (!user || user.refreshToken !== token) {
-        return res.status(403).json({ message: 'Token mismatch' });
-      }
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.id },
+        });
+        if (!user || user.refreshToken !== refreshToken) {
+          return res.status(403).json({ message: 'Token mismatch' });
+        }
 
-      const newAccessToken = jwt.sign(
-        { id: user.id, role: user.role },
-        process.env.JWT_ACCESS_SECRET,
-        { expiresIn: '1h' },
-      );
+        const newAccessToken = jwt.sign(
+          { id: user.id, role: user.role },
+          process.env.JWT_ACCESS_SECRET,
+          { expiresIn: '1h' },
+        );
 
-      await createActivityLog({
-        entityType: 'USER',
-        action: 'UPDATED',
-        userId: user.id,
-        details: {
-          action: 'TOKEN_REFRESHED',
+        await createActivityLog({
+          entityType: 'USER',
+          action: 'UPDATED',
           userId: user.id,
-          refreshedAt: new Date(),
-          ipAddress: req.ip || 'unknown',
-          userAgent: req.headers['user-agent'] || 'unknown',
-        },
-      });
+          details: {
+            action: 'TOKEN_REFRESHED',
+            userId: user.id,
+            refreshedAt: new Date(),
+            ipAddress: req.ip || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown',
+          },
+        });
 
-      res.status(200).json({ accessToken: newAccessToken });
-    });
+        res.status(200).json({ accessToken: newAccessToken });
+      },
+    );
   } catch (err) {
     next(err);
   }

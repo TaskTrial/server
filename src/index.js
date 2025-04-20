@@ -57,8 +57,8 @@ app.use(passport.session());
 // Cors Policy
 app.use(
   cors({
-    origin: '*', // Allow all origins or specify allowed origins
-    credentials: true, // Allow cookies
+    origin: 'http://localhost:5173',
+    credentials: true,
   }),
 );
 

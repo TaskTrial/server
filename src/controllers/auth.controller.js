@@ -892,7 +892,7 @@ export const firebaseLogin = async (req, res, next) => {
 
     await createActivityLog({
       entityType: 'USER',
-      action: isNewUser ? 'CREATED' : 'UPDATED',
+      action: 'CREATED',
       userId: user.id,
       details: {
         action: 'FIREBASE_SIGNUP',

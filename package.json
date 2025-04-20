@@ -9,7 +9,7 @@
     "start": "node ./src/index.js",
     "start:dev": "nodemon ./src/index.js",
     "format": "npx prettier . --write",
-    "lint": "npx eslint . --fix --ignore-pattern 'prisma/generated**'",
+    "lint": "npx eslint . --fix --ignore-pattern 'prisma/**'",
     "prepare": "husky install"
   },
   "keywords": [],

@@ -14,6 +14,7 @@ export default [
     ignores: [
       '**/*.config.js',
       '**/eslint.config.js',
+      'prisma/**',
       'prisma/generated/**',
       'node_modules/**',
       'dist/**',

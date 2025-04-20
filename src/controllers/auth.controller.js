@@ -626,7 +626,7 @@ export const refreshAccessToken = async (req, res, next) => {
     }
 
     jwt.verify(token, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
-      if (err) {
+      if (err || !decoded || !decoded.id) {
         return res.status(403).json({ message: 'Invalid refresh token' });
       }
 

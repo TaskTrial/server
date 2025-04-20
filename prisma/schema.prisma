@@ -440,7 +440,7 @@ model ActivityLog {
   projectId      String?    @db.Uuid
   teamId         String?    @db.Uuid
   sprintId       String?    @db.Uuid
-  taskId         String     @db.Uuid
+  taskId         String?    @db.Uuid
   details        Json?
   createdAt      DateTime   @default(now())
 

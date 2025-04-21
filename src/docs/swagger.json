@@ -748,10 +748,193 @@
           "description": "Rate limited to prevent brute force attacks"
         }
       }
+    },
+    "/api/auth/forgotPasswordWithoutEmail": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Initiate password reset using refreshToken",
+        "description": "Generates and sends a password reset OTP to the user's email identified by their refreshToken. Requires valid refreshToken cookie.",
+        "operationId": "forgotPasswordWithoutEmail",
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset OTP sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-rate-limit": {
+          "description": "Rate limited to prevent abuse"
+        }
+      }
+    },
+    "/api/auth/resetPasswordWithoutEmail": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset password using OTP (refreshToken flow)",
+        "description": "Resets user's password using OTP received via email. Requires valid refreshToken cookie.",
+        "operationId": "resetPasswordWithoutEmail",
+        "requestBody": {
+          "description": "Password reset details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "otp": {
+                    "type": "string",
+                    "description": "One-time password received via email"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "New password to set",
+                    "minLength": 6
+                  }
+                },
+                "required": ["otp", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid or expired reset token"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Validation error message"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-rate-limit": {
+          "description": "Rate limited to prevent brute force attacks"
+        }
+      }
     }
   },
 
   "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refreshToken",
+        "description": "Refresh token cookie for authentication"
+      }
+    },
     "schemas": {
       "User": {
         "type": "object",

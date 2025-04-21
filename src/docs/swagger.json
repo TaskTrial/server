@@ -547,6 +547,100 @@
         },
         "security": []
       }
+    },
+    "/api/auth/forgotPassword": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Initiate password reset process",
+        "description": "Sends a password reset OTP to the user's email address if the account exists.",
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "description": "User's email address",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset OTP sent if account exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset OTP sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "\"email\" is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to send email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to send password reset email"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
     }
   },
 

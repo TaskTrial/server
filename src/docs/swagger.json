@@ -3276,6 +3276,161 @@
           }
         }
       }
+    },
+    "/api/organizations/{organizationId}/departments/create": {
+      "post": {
+        "tags": ["Department"],
+        "summary": "Create a new department",
+        "description": "Creates a department within the specified organization. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Department created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Unauthorized action"
+          },
+          "409": {
+            "description": "Duplicate department name"
+          }
+        }
+      }
+    },
+    "/api/organizations/{organizationId}/departments/{departmentId}/": {
+      "put": {
+        "tags": ["Department"],
+        "summary": "Update department details",
+        "description": "Updates a department’s name or description. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Department updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Department or organization not found"
+          },
+          "409": {
+            "description": "Duplicate department name"
+          }
+        }
+      }
+    },
+    "/api/organizations/{organizationId}/departments/{departmentId}/delete": {
+      "delete": {
+        "tags": ["Department"],
+        "summary": "Soft delete department",
+        "description": "Soft deletes a department by setting deletedAt timestamp. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department deleted successfully"
+          },
+          "404": {
+            "description": "Department or organization not found"
+          }
+        }
+      }
+    },
+    "/api/organizations/{organizationId}/departments/{departmentId}/restore": {
+      "patch": {
+        "tags": ["Department"],
+        "summary": "Restore department",
+        "description": "Restores a soft-deleted department. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department restored successfully"
+          },
+          "404": {
+            "description": "Department or organization not found"
+          }
+        }
+      }
     }
   },
 

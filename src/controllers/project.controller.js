@@ -1544,7 +1544,14 @@ export const getSpecificProject = async (req, res, next) => {
 export const getProjectsInSpecificOrg = async (req, res, next) => {
   try {
     const { organizationId } = req.params;
-    const { teamId, teamName, status, page = 1, limit = 10 } = req.query;
+    const {
+      teamId,
+      teamName,
+      status,
+      page = 1,
+      limit = 10,
+      includeTasks = 'true',
+    } = req.query;
 
     if (!organizationId) {
       return res.status(400).json({
@@ -1661,6 +1668,87 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    // Build the include object for the projects query
+    const includeObj = {
+      team: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      ProjectMember: {
+        where: {
+          leftAt: null,
+        },
+        select: {
+          userId: true,
+          role: true,
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profilePic: true,
+            },
+          },
+        },
+        take: 5,
+      },
+      _count: {
+        select: {
+          tasks: {
+            where: {
+              deletedAt: null,
+            },
+          },
+          ProjectMember: {
+            where: {
+              leftAt: null,
+            },
+          },
+        },
+      },
+    };
+
+    // Include tasks if requested
+    if (includeTasks === 'true') {
+      includeObj.tasks = {
+        where: {
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          priority: true,
+          status: true,
+          dueDate: true,
+          createdAt: true,
+          updatedAt: true,
+          estimatedTime: true,
+          actualTime: true,
+          labels: true,
+          assignedTo: true,
+          assignee: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePic: true,
+            },
+          },
+          _count: {
+            select: {
+              subtasks: true,
+              comments: true,
+              attachments: true,
+            },
+          },
+        },
+        orderBy: [{ priority: 'desc' }, { dueDate: 'asc' }],
+        take: 10, // Limit to 10 tasks per project
+      };
+    }
+
     // Get active projects (not deleted)
     const activeProjects = await prisma.project.findMany({
       where: {
@@ -1676,47 +1764,12 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
         endDate: true,
         createdAt: true,
         updatedAt: true,
-        team: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        ProjectMember: {
-          where: {
-            leftAt: null,
-          },
-          select: {
-            userId: true,
-            role: true,
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                profilePic: true,
-              },
-            },
-          },
-          take: 5,
-        },
-        _count: {
-          select: {
-            tasks: {
-              where: {
-                deletedAt: null,
-              },
-            },
-            ProjectMember: {
-              where: {
-                leftAt: null,
-              },
-            },
-          },
-        },
+        priority: true,
+        progress: true,
+        budget: true,
+        ...includeObj,
       },
-      orderBy: {
-        updatedAt: 'desc',
-      },
+      orderBy: [{ priority: 'desc' }, { updatedAt: 'desc' }],
       skip,
       take: parseInt(limit),
     });
@@ -1752,6 +1805,8 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
           startDate: true,
           endDate: true,
           deletedAt: true,
+          priority: true,
+          progress: true,
           team: {
             select: {
               id: true,
@@ -1788,6 +1843,66 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
         (member) => member.userId === req.user.id,
       );
 
+      // Calculate task statistics
+      const taskStats = {
+        total: project._count.tasks,
+        notStarted: 0,
+        inProgress: 0,
+        completed: 0,
+        overdue: 0,
+      };
+
+      let formattedTasks = [];
+
+      if (includeTasks === 'true' && project.tasks) {
+        // Count tasks by status
+        project.tasks.forEach((task) => {
+          if (task.status === 'NOT_STARTED') {
+            taskStats.notStarted++;
+          } else if (task.status === 'IN_PROGRESS') {
+            taskStats.inProgress++;
+          } else if (task.status === 'COMPLETED') {
+            taskStats.completed++;
+          }
+
+          // Check for overdue tasks
+          if (task.dueDate < new Date() && task.status !== 'COMPLETED') {
+            taskStats.overdue++;
+          }
+        });
+
+        // Format tasks
+        formattedTasks = project.tasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: task.status,
+          dueDate: task.dueDate,
+          estimatedTime: task.estimatedTime,
+          actualTime: task.actualTime,
+          labels: task.labels,
+          subtaskCount: task._count.subtasks,
+          commentCount: task._count.comments,
+          attachmentCount: task._count.attachments,
+          assignee: task.assignee
+            ? {
+                id: task.assignee.id,
+                firstName: task.assignee.firstName,
+                lastName: task.assignee.lastName,
+                profilePic: task.assignee.profilePic,
+              }
+            : null,
+          isOverdue: task.dueDate < new Date() && task.status !== 'COMPLETED',
+        }));
+      }
+
+      // Calculate completion percentage
+      const completionPercentage =
+        taskStats.total > 0
+          ? Math.round((taskStats.completed / taskStats.total) * 100)
+          : 0;
+
       return {
         id: project.id,
         name: project.name,
@@ -1795,10 +1910,12 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
         status: project.status,
         startDate: project.startDate,
         endDate: project.endDate,
+        priority: project.priority,
+        progress: project.progress || completionPercentage, // Use calculated percentage if progress is not set
+        budget: project.budget,
         team: project.team,
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
-        taskCount: project._count.tasks,
         memberCount: project._count.ProjectMember,
         members: project.ProjectMember.map((member) => ({
           userId: member.userId,
@@ -1809,6 +1926,9 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
         })),
         hasMoreMembers: project._count.ProjectMember > 5,
         userRole: userMembership?.role || null,
+        taskStats,
+        tasks: includeTasks === 'true' ? formattedTasks : undefined,
+        hasMoreTasks: project._count.tasks > (formattedTasks?.length || 0),
       };
     });
 
@@ -1829,6 +1949,8 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
           startDate: project.startDate,
           endDate: project.endDate,
           deletedAt: project.deletedAt,
+          priority: project.priority,
+          progress: project.progress,
           team: project.team,
           taskCount: project._count.tasks,
           memberCount: project._count.ProjectMember,

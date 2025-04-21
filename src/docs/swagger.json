@@ -2525,10 +2525,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
+                    "success": { "type": "boolean", "example": true },
                     "message": {
                       "type": "string",
                       "example": "Organization retrieved successfully"
@@ -2545,9 +2542,7 @@
             "description": "Bad request",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           },
@@ -2555,9 +2550,7 @@
             "description": "Forbidden",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           },
@@ -2565,9 +2558,7 @@
             "description": "Organization not found",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }
@@ -2596,9 +2587,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrganizationUpdate"
-              }
+              "schema": { "$ref": "#/components/schemas/OrganizationUpdate" }
             }
           }
         },
@@ -2610,10 +2599,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
+                    "success": { "type": "boolean", "example": true },
                     "message": {
                       "type": "string",
                       "example": "Organization updated successfully"
@@ -2622,9 +2608,7 @@
                       "type": "string",
                       "example": "Please verify your organization email"
                     },
-                    "data": {
-                      "$ref": "#/components/schemas/OrganizationBasic"
-                    }
+                    "data": { "$ref": "#/components/schemas/OrganizationBasic" }
                   }
                 }
               }
@@ -2637,18 +2621,228 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Validation error"
+                    },
+                    "errors": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Organization name exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Email verification failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization updated but failed to send verification email"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Organization"],
+        "summary": "Soft delete an organization",
+        "description": "Marks an organization as deleted but retains it in the database. Only accessible to admins and organization owners.",
+        "operationId": "deleteOrganization",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization to delete",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing organization ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found or already deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/addOwner": {
+      "post": {
+        "tags": ["Organization"],
+        "summary": "Add owners to an organization",
+        "description": "Adds one or more users as owners to an organization. Requires admin or existing owner permissions.",
+        "operationId": "addOwners",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "User IDs to add as owners",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userIds"],
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "description": "Array of user IDs to add as owners",
+                    "example": ["123e4567-e89b-12d3-a456-426614174000"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owners added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully added 2 owner(s) to the organization"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "addedOwners": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/UserBasic"
+                          }
+                        },
+                        "skippedOwners": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid user IDs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
                     "success": {
                       "type": "boolean",
                       "example": false
                     },
                     "message": {
-                      "type": "string",
-                      "example": "Validation error"
+                      "type": "string"
                     },
                     "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+                      "type": "object",
+                      "properties": {
+                        "invalidUserIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        }
                       }
                     }
                   }
@@ -2657,7 +2851,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "Forbidden - insufficient permissions",
             "content": {
               "application/json": {
                 "schema": {
@@ -2675,9 +2869,71 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/logo/upload": {
+      "post": {
+        "tags": ["Organization"],
+        "summary": "Upload organization logo",
+        "description": "Uploads a logo image for the organization. Requires admin or owner permissions.",
+        "operationId": "uploadOrganizationLogo",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Logo image file"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logo uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Organization logo uploaded successfully"
+                    },
+                    "logoUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "organization": {
+                      "$ref": "#/components/schemas/OrganizationBasic"
+                    }
+                  }
+                }
+              }
+            }
           },
-          "409": {
-            "description": "Conflict - Organization name exists",
+          "400": {
+            "description": "No file uploaded or missing organization ID",
             "content": {
               "application/json": {
                 "schema": {
@@ -2686,22 +2942,84 @@
               }
             }
           },
-          "500": {
-            "description": "Email verification failed",
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/logo/delete": {
+      "delete": {
+        "tags": ["Organization"],
+        "summary": "Delete organization logo",
+        "description": "Deletes the organization's logo. Requires admin or owner permissions.",
+        "operationId": "deleteOrganizationLogo",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logo deleted successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
                     "message": {
                       "type": "string",
-                      "example": "Organization updated but failed to send verification email"
+                      "example": "Organization logo deleted successfully"
+                    },
+                    "organization": {
+                      "$ref": "#/components/schemas/OrganizationBasic"
                     }
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing organization ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization or logo not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3142,6 +3460,23 @@
           "message": {
             "type": "string",
             "example": "Error message"
+          }
+        }
+      },
+      "UserBasic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Combined first and last name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
           }
         }
       }

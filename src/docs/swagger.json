@@ -5284,9 +5284,9 @@
     },
     "/api/organization/{organizationId}/projects": {
       "get": {
-        "tags": ["Project"],
+        "tags": ["Organization"],
         "summary": "Get projects in a specific organization",
-        "description": "Retrieves paginated list of projects in an organization with filtering options. Includes active and archived projects (if user has permission).",
+        "description": "Retrieves paginated list of projects in an organization with filtering options. Includes active and archived projects (if user has permission). Can optionally include tasks for each project.",
         "operationId": "getProjectsInSpecificOrg",
         "security": [
           {
@@ -5350,6 +5350,17 @@
               "type": "integer",
               "default": 10
             }
+          },
+          {
+            "name": "includeTasks",
+            "in": "query",
+            "required": false,
+            "description": "Include tasks for each project (default: true)",
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "true"
+            }
           }
         ],
         "responses": {
@@ -5396,6 +5407,19 @@
                                 "type": "string",
                                 "format": "date-time"
                               },
+                              "priority": {
+                                "type": "string",
+                                "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                                "description": "Project priority level"
+                              },
+                              "progress": {
+                                "type": "integer",
+                                "description": "Completion percentage (0-100)"
+                              },
+                              "budget": {
+                                "type": "number",
+                                "description": "Project budget amount"
+                              },
                               "team": {
                                 "type": "object",
                                 "properties": {
@@ -5414,9 +5438,6 @@
                               "updatedAt": {
                                 "type": "string",
                                 "format": "date-time"
-                              },
-                              "taskCount": {
-                                "type": "integer"
                               },
                               "memberCount": {
                                 "type": "integer"
@@ -5450,6 +5471,98 @@
                               "userRole": {
                                 "type": "string",
                                 "nullable": true
+                              },
+                              "taskStats": {
+                                "type": "object",
+                                "properties": {
+                                  "total": {
+                                    "type": "integer"
+                                  },
+                                  "notStarted": {
+                                    "type": "integer"
+                                  },
+                                  "inProgress": {
+                                    "type": "integer"
+                                  },
+                                  "completed": {
+                                    "type": "integer"
+                                  },
+                                  "overdue": {
+                                    "type": "integer"
+                                  }
+                                }
+                              },
+                              "tasks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "title": {
+                                      "type": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "priority": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string"
+                                    },
+                                    "dueDate": {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    },
+                                    "estimatedTime": {
+                                      "type": "number"
+                                    },
+                                    "actualTime": {
+                                      "type": "number"
+                                    },
+                                    "labels": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "subtaskCount": {
+                                      "type": "integer"
+                                    },
+                                    "commentCount": {
+                                      "type": "integer"
+                                    },
+                                    "attachmentCount": {
+                                      "type": "integer"
+                                    },
+                                    "assignee": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "firstName": {
+                                          "type": "string"
+                                        },
+                                        "lastName": {
+                                          "type": "string"
+                                        },
+                                        "profilePic": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "nullable": true
+                                    },
+                                    "isOverdue": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                }
+                              },
+                              "hasMoreTasks": {
+                                "type": "boolean"
                               }
                             }
                           }
@@ -5482,6 +5595,12 @@
                               "deletedAt": {
                                 "type": "string",
                                 "format": "date-time"
+                              },
+                              "priority": {
+                                "type": "string"
+                              },
+                              "progress": {
+                                "type": "integer"
                               },
                               "team": {
                                 "type": "object",

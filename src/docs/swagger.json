@@ -59,14 +59,23 @@
     "/api/auth/signup": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Register a new user",
-        "description": "Creates a new user account and sends verification OTP to email",
+        "summary": "Creates a new user account and sends verification OTP to email",
+        "description": "Register a new user with email, password, and personal details. Sends verification OTP to the provided email.",
+        "operationId": "signup",
         "requestBody": {
+          "description": "User registration data",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "email",
+                  "password",
+                  "firstName",
+                  "lastName",
+                  "username"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -75,8 +84,9 @@
                   },
                   "password": {
                     "type": "string",
+                    "format": "password",
                     "minLength": 6,
-                    "example": "password123"
+                    "example": "securePassword123"
                   },
                   "firstName": {
                     "type": "string",
@@ -90,21 +100,14 @@
                     "type": "string",
                     "example": "johndoe"
                   }
-                },
-                "required": [
-                  "email",
-                  "password",
-                  "firstName",
-                  "lastName",
-                  "username"
-                ]
+                }
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "User created successfully",
+            "description": "User created successfully. Verification OTP sent to email.",
             "content": {
               "application/json": {
                 "schema": {
@@ -116,7 +119,8 @@
                     },
                     "userId": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "123e4567-e89b-12d3-a456-426614174000"
                     },
                     "user": {
                       "$ref": "#/components/schemas/User"
@@ -127,30 +131,62 @@
             }
           },
           "400": {
-            "description": "Validation error or user already exists"
+            "description": "Validation error or user already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User with this email or username already exists"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "security": []
       }
     },
     "/api/auth/resendOTP": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Resend OTP code",
-        "description": "Resend OTP code if it expired",
+        "summary": "Resend OTP code for email verification",
+        "description": "Generates a new OTP and sends it to the user's email if the previous one expired or wasn't received.",
+        "operationId": "resendOTP",
         "requestBody": {
+          "description": "Email address to resend OTP",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["email"],
                 "properties": {
                   "email": {
                     "type": "string",
                     "format": "email",
                     "example": "user@example.com"
                   }
-                },
-                "required": ["email"]
+                }
               }
             }
           }
@@ -177,25 +213,102 @@
             }
           },
           "400": {
-            "description": "Invalid email"
+            "description": "Missing or invalid email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Please enter a valid email"
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to send email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to send verification email. Please try again later."
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "security": []
       }
     },
     "/api/auth/verifyEmail": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Verify email address",
-        "description": "Verify user's email address using the OTP sent to their email",
+        "summary": "Verify user's email address using OTP",
+        "description": "Validates the OTP sent to user's email and activates their account if verification is successful.",
+        "operationId": "verifyEmail",
         "requestBody": {
+          "description": "Email and OTP for verification",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["email", "otp"],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -204,10 +317,10 @@
                   },
                   "otp": {
                     "type": "string",
+                    "description": "6-digit verification code",
                     "example": "123456"
                   }
-                },
-                "required": ["email", "otp"]
+                }
               }
             }
           }
@@ -230,25 +343,71 @@
             }
           },
           "400": {
-            "description": "Invalid or expired OTP"
+            "description": "Validation error, invalid OTP, or email already verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid or expired OTP"
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "security": []
       }
     },
     "/api/auth/signin": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Authenticate user",
-        "description": "Authenticate user and return JWT tokens",
+        "summary": "Authenticate user and return JWT tokens",
+        "description": "Validates user credentials and returns access and refresh tokens if authentication is successful.",
+        "operationId": "signin",
         "requestBody": {
+          "description": "User credentials",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["email", "password"],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -257,305 +416,8 @@
                   },
                   "password": {
                     "type": "string",
-                    "example": "password123"
-                  }
-                },
-                "required": ["email", "password"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User logged in successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "User login successfully"
-                    },
-                    "accessToken": {
-                      "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    },
-                    "refreshToken": {
-                      "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    },
-                    "user": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "role": {
-                          "type": "string",
-                          "enum": ["MEMBER", "ADMIN", "SUPER_ADMIN"]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error"
-          },
-          "401": {
-            "description": "Invalid credentials"
-          },
-          "403": {
-            "description": "Account not activated"
-          }
-        }
-      }
-    },
-    "/api/auth/forgotPassword": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Request password reset",
-        "description": "Initiate password reset process by sending OTP to user's email",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "user@example.com"
-                  }
-                },
-                "required": ["email"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password reset OTP sent",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Password reset OTP sent"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error"
-          }
-        }
-      }
-    },
-    "/api/auth/resetPassword": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Reset password",
-        "description": "Reset user password using the OTP received via email",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "user@example.com"
-                  },
-                  "otp": {
-                    "type": "string",
-                    "example": "123456"
-                  },
-                  "newPassword": {
-                    "type": "string",
-                    "minLength": 6,
-                    "example": "newpassword123"
-                  }
-                },
-                "required": ["email", "otp", "newPassword"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password reset successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Password reset successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid or expired OTP"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/api/auth/forgotPasswordWithoutEmail": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Request password reset without email",
-        "description": "Initiate password reset using refreshToken to identify user",
-        "responses": {
-          "200": {
-            "description": "Password reset OTP sent",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Password reset OTP sent"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No token provided or invalid token"
-          }
-        }
-      }
-    },
-    "/api/auth/resetPasswordWithoutEmail": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Reset password without email",
-        "description": "Reset user password using the OTP received via email (authenticated via refresh token)",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "otp": {
-                    "type": "string",
-                    "example": "123456"
-                  },
-                  "newPassword": {
-                    "type": "string",
-                    "minLength": 6,
-                    "example": "newpassword123"
-                  }
-                },
-                "required": ["otp", "newPassword"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password reset successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Password reset successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid or expired OTP"
-          },
-          "401": {
-            "description": "No token provided or invalid token"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/api/auth/refreshAccessToken": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Refresh access token",
-        "description": "Generate new access token using refresh token",
-        "responses": {
-          "200": {
-            "description": "New access token generated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "accessToken": {
-                      "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Refresh token missing"
-          },
-          "403": {
-            "description": "Invalid refresh token"
-          }
-        }
-      }
-    },
-    "/api/auth/firebase": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Authenticate with Firebase ID token",
-        "description": "Authenticates a user using Firebase ID token, creates or updates user in database",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "idToken": {
-                    "type": "string",
-                    "description": "Firebase ID token from client",
-                    "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
+                    "format": "password",
+                    "example": "yourpassword123"
                   }
                 }
               }
@@ -570,89 +432,72 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User login successfully"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "description": "JWT access token",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "JWT refresh token (also set as HTTP-only cookie)",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
                     "user": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string", "format": "uuid" },
-                        "email": { "type": "string", "format": "email" },
-                        "username": { "type": "string" },
-                        "firstName": { "type": "string" },
-                        "lastName": { "type": "string" },
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
                         "role": {
                           "type": "string",
-                          "enum": ["MEMBER", "ADMIN"]
-                        },
-                        "profilePic": { "type": "string", "format": "uri" }
+                          "enum": ["MEMBER", "ADMIN", "SUPER_ADMIN"]
+                        }
                       }
-                    },
-                    "message": { "type": "string" }
-                  },
-                  "example": {
-                    "user": {
-                      "id": "123e4567-e89b-12d3-a456-426614174000",
-                      "email": "user@example.com",
-                      "username": "user123",
-                      "firstName": "John",
-                      "lastName": "Doe",
-                      "role": "MEMBER",
-                      "profilePic": "https://example.com/profile.jpg"
-                    },
-                    "message": "Authentication successful"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string",
+                  "example": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Max-Age=604800"
+                },
+                "description": "Refresh token set as HTTP-only cookie"
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "\"email\" is required"
+                    }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Missing or invalid ID token"
-          },
           "401": {
-            "description": "Invalid or expired Firebase token"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/me": {
-      "get": {
-        "tags": ["User"],
-        "summary": "Get current user profile",
-        "description": "Returns the profile of the currently authenticated user",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User profile retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Missing or invalid token"
-          },
-          "404": {
-            "description": "User not found in database"
-          }
-        }
-      }
-    },
-    "/api/auth/logout": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Log out user",
-        "description": "Log out user by invalidating their refresh token",
-        "responses": {
-          "200": {
-            "description": "Logged out successfully",
+            "description": "Invalid credentials",
             "content": {
               "application/json": {
                 "schema": {
@@ -660,197 +505,813 @@
                   "properties": {
                     "message": {
                       "type": "string",
-                      "example": "Logged out successfully"
+                      "example": "Invalid email or password"
                     }
                   }
                 }
               }
             }
           },
-          "204": {
-            "description": "No content (no token provided)"
+          "403": {
+            "description": "Account not activated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Account not activated. Please verify your email"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/forgotPassword": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Initiate password reset process",
+        "description": "Sends a password reset OTP to the user's email address if the account exists.",
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "description": "User's email address",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset OTP sent if account exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset OTP sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "\"email\" is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to send email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to send password reset email"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/resetPassword": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset user password using OTP",
+        "description": "Allows users to reset their password by providing a valid OTP sent to their email.",
+        "operationId": "resetPassword",
+        "requestBody": {
+          "description": "Password reset details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "description": "One-time password received via email"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "New password to set",
+                    "minLength": 6
+                  }
+                },
+                "required": ["email", "otp", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid or expired reset token"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Validation error message"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [],
+        "x-rate-limit": {
+          "description": "Rate limited to prevent brute force attacks"
+        }
+      }
+    },
+    "/api/auth/forgotPasswordWithoutEmail": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Initiate password reset using refreshToken",
+        "description": "Generates and sends a password reset OTP to the user's email identified by their refreshToken. Requires valid refreshToken cookie.",
+        "operationId": "forgotPasswordWithoutEmail",
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset OTP sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-rate-limit": {
+          "description": "Rate limited to prevent abuse"
+        }
+      }
+    },
+    "/api/auth/resetPasswordWithoutEmail": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset password using OTP (refreshToken flow)",
+        "description": "Resets user's password using OTP received via email. Requires valid refreshToken cookie.",
+        "operationId": "resetPasswordWithoutEmail",
+        "requestBody": {
+          "description": "Password reset details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "otp": {
+                    "type": "string",
+                    "description": "One-time password received via email"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "New password to set",
+                    "minLength": 6
+                  }
+                },
+                "required": ["otp", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid or expired reset token"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Validation error message"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-rate-limit": {
+          "description": "Rate limited to prevent brute force attacks"
+        }
+      }
+    },
+    "/api/auth/refreshAccessToken": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Generate new access token using refresh token",
+        "description": "Creates a new access token when provided with a valid refresh token.",
+        "operationId": "refreshAccessToken",
+        "requestBody": {
+          "description": "Refresh token",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["refreshToken"],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "description": "Valid refresh token obtained during signin",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New access token generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "description": "New JWT access token",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Refresh token missing"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid or mismatched refresh token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid refresh token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/users/all": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get all users with pagination",
+        "description": "Retrieves a paginated list of all users. Requires admin permission.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Users retrieved successfully"
+                    },
+                    "currentPage": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "totalUsers": {
+                      "type": "integer",
+                      "example": 42
+                    },
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "123e4567-e89b-12d3-a456-426614174000"
+                          },
+                          "email": {
+                            "type": "string",
+                            "format": "email",
+                            "example": "user@example.com"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "example": "John"
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "example": "Doe"
+                          },
+                          "role": {
+                            "type": "string",
+                            "example": "USER"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "403": {
+            "description": "Forbidden - User does not have admin permissions"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     },
-    "/api/organizations/{organizationId}/departments/all": {
+    "/api/users/{id}": {
       "get": {
-        "tags": ["Department"],
-        "summary": "Get all active departments (paginated) for an organization",
-        "description": "Returns a paginated list of all active departments in the specified organization. Accessible by organization owners and admins only.",
+        "tags": ["User"],
+        "summary": "Get full user profile by ID",
+        "description": "Retrieves detailed information about a specific user. Requires authentication and appropriate permissions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
-            "name": "organizationId",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             },
-            "description": "ID of the organization"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 1
-            },
-            "description": "Page number for pagination"
+            "description": "User ID"
           }
         ],
         "responses": {
           "200": {
-            "description": "Departments retrieved successfully",
+            "description": "User retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "data": {
+                    "message": {
+                      "type": "string",
+                      "example": "User retrieved successfully"
+                    },
+                    "user": {
                       "type": "object",
                       "properties": {
-                        "departments": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "123e4567-e89b-12d3-a456-426614174000"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email",
+                          "example": "user@example.com"
+                        },
+                        "username": {
+                          "type": "string",
+                          "example": "johndoe"
+                        },
+                        "firstName": {
+                          "type": "string",
+                          "example": "John"
+                        },
+                        "lastName": {
+                          "type": "string",
+                          "example": "Doe"
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "USER"
+                        },
+                        "profilePic": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "https://example.com/profile.jpg"
+                        },
+                        "phoneNumber": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "+1234567890"
+                        },
+                        "jobTitle": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Software Developer"
+                        },
+                        "timezone": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "America/New_York"
+                        },
+                        "bio": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Software developer with 5 years of experience"
+                        },
+                        "preferences": {
+                          "type": "object",
+                          "nullable": true
+                        },
+                        "isActive": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "isOwner": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "lastLogin": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "lastLogout": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "department": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "organization": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "permissions": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "id": { "type": "string" },
-                              "name": { "type": "string" },
-                              "description": { "type": "string" },
-                              "createdAt": {
+                              "entityType": {
+                                "type": "string"
+                              },
+                              "entityId": {
                                 "type": "string",
-                                "format": "date-time"
+                                "format": "uuid"
                               },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "organization": {
-                                "type": "object",
-                                "properties": {
-                                  "id": { "type": "string" },
-                                  "name": { "type": "string" }
-                                }
-                              },
-                              "manager": {
-                                "type": "object",
-                                "properties": {
-                                  "id": { "type": "string" },
-                                  "firstName": { "type": "string" },
-                                  "lastName": { "type": "string" }
+                              "permissions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
                                 }
                               }
                             }
                           }
                         },
-                        "pagination": {
-                          "type": "object",
-                          "properties": {
-                            "page": { "type": "integer" },
-                            "limit": { "type": "integer" },
-                            "totalItems": { "type": "integer" },
-                            "totalPages": { "type": "integer" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - insufficient permissions"
-          },
-          "404": {
-            "description": "Organization not found"
-          }
-        },
-        "security": [{ "bearerAuth": [] }]
-      }
-    },
-    "/api/organizations/{organizationId}/departments/{departmentId}": {
-      "get": {
-        "tags": ["Department"],
-        "summary": "Get department by ID with related data",
-        "description": "Returns department details including users and teams. Accessible by organization owners, admins, or the department manager.",
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the organization"
-          },
-          {
-            "name": "departmentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the department"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Department retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "name": { "type": "string" },
-                        "description": { "type": "string" },
-                        "organization": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string" },
-                            "name": { "type": "string" }
-                          }
-                        },
-                        "manager": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string" },
-                            "firstName": { "type": "string" },
-                            "lastName": { "type": "string" },
-                            "email": { "type": "string" },
-                            "jobTitle": { "type": "string" }
-                          }
-                        },
-                        "users": {
+                        "teamMemberships": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "id": { "type": "string" },
-                              "firstName": { "type": "string" },
-                              "lastName": { "type": "string" },
-                              "email": { "type": "string" },
-                              "jobTitle": { "type": "string" }
+                              "team": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
                             }
                           }
                         },
-                        "teams": {
+                        "activityLogs": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "id": { "type": "string" },
-                              "name": { "type": "string" },
-                              "description": { "type": "string" }
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "action": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
                             }
                           }
                         }
@@ -861,37 +1322,39 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
           "403": {
-            "description": "Forbidden - insufficient permissions"
+            "description": "Forbidden - User does not have required permissions"
           },
           "404": {
-            "description": "Department not found"
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
-        },
-        "security": [{ "bearerAuth": [] }]
+        }
       },
       "put": {
-        "tags": ["Department"],
-        "summary": "Update department details",
-        "description": "Updates department information. Accessible by organization owners and admins only.",
+        "tags": ["User"],
+        "summary": "Update user account",
+        "description": "Updates user account information. Users can update their own basic information, while admins can modify additional fields.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
-            "name": "organizationId",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             },
-            "description": "ID of the organization"
-          },
-          {
-            "name": "departmentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the department to update"
+            "description": "User ID"
           }
         ],
         "requestBody": {
@@ -901,45 +1364,119 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": { "type": "string" },
-                  "description": { "type": "string" }
-                },
-                "required": ["name"]
+                  "firstName": {
+                    "type": "string",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "+1234567890"
+                  },
+                  "jobTitle": {
+                    "type": "string",
+                    "example": "Senior Developer"
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "example": "America/New_York"
+                  },
+                  "bio": {
+                    "type": "string",
+                    "example": "Software developer with extensive experience"
+                  },
+                  "role": {
+                    "type": "string",
+                    "description": "Admin only field",
+                    "example": "ADMIN"
+                  },
+                  "departmentId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Admin only field"
+                  },
+                  "organizationId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Admin only field"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Department updated successfully",
+            "description": "User account updated successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "data": {
+                    "message": {
+                      "type": "string",
+                      "example": "User account updated successfully"
+                    },
+                    "user": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string" },
-                        "name": { "type": "string" },
-                        "description": { "type": "string" },
-                        "organization": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string" },
-                            "name": { "type": "string" }
-                          }
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
                         },
-                        "manager": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string" },
-                            "firstName": { "type": "string" },
-                            "lastName": { "type": "string" },
-                            "email": { "type": "string" }
-                          }
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "phoneNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "jobTitle": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "timezone": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "bio": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "departmentId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "nullable": true
+                        },
+                        "organizationId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "nullable": true
+                        },
+                        "profilePic": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
                         }
                       }
                     }
@@ -949,324 +1486,494 @@
             }
           },
           "400": {
-            "description": "Bad request - invalid input data"
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
           },
           "403": {
-            "description": "Forbidden - insufficient permissions"
+            "description": "Forbidden - User does not have required permissions or account is not active"
           },
           "404": {
-            "description": "Department not found"
+            "description": "User not found"
           },
-          "409": {
-            "description": "Conflict - department name already exists"
+          "500": {
+            "description": "Internal Server Error"
           }
-        },
-        "security": [{ "bearerAuth": [] }]
+        }
       }
     },
-    "/api/organizations/{organizationId}/departments/created": {
-      "get": {
-        "tags": ["Department"],
-        "summary": "Get departments managed by current user",
-        "description": "Returns a paginated list of departments managed by the current user in the specified organization.",
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the organization"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 1
-            },
-            "description": "Page number for pagination"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 10
-            },
-            "description": "Number of items per page"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Managed departments retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "departments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": { "type": "string" },
-                              "name": { "type": "string" },
-                              "description": { "type": "string" },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "organization": {
-                                "type": "object",
-                                "properties": {
-                                  "id": { "type": "string" },
-                                  "name": { "type": "string" }
-                                }
-                              },
-                              "_count": {
-                                "type": "object",
-                                "properties": {
-                                  "users": { "type": "integer" },
-                                  "teams": { "type": "integer" }
-                                }
-                              }
-                            }
-                          }
-                        },
-                        "pagination": {
-                          "type": "object",
-                          "properties": {
-                            "page": { "type": "integer" },
-                            "limit": { "type": "integer" },
-                            "totalItems": { "type": "integer" },
-                            "totalPages": { "type": "integer" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Organization not found"
-          }
-        },
-        "security": [{ "bearerAuth": [] }]
-      }
-    },
-    "/api/organizations/{organizationId}/departments/create": {
-      "post": {
-        "tags": ["Department"],
-        "summary": "Create a new department",
-        "description": "Creates a new department in the specified organization. Accessible by organization owners and admins only.",
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the organization"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": { "type": "string" },
-                  "description": { "type": "string" }
-                },
-                "required": ["name"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Department created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "name": { "type": "string" },
-                        "description": { "type": "string" },
-                        "organization": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string" },
-                            "name": { "type": "string" }
-                          }
-                        },
-                        "manager": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "string" },
-                            "firstName": { "type": "string" },
-                            "lastName": { "type": "string" },
-                            "email": { "type": "string" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - invalid input data"
-          },
-          "403": {
-            "description": "Forbidden - insufficient permissions"
-          },
-          "404": {
-            "description": "Organization not found"
-          },
-          "409": {
-            "description": "Conflict - department name already exists"
-          }
-        },
-        "security": [{ "bearerAuth": [] }]
-      }
-    },
-    "/api/organizations/{organizationId}/departments/{departmentId}/delete": {
-      "delete": {
-        "tags": ["Department"],
-        "summary": "Soft delete a department",
-        "description": "Marks a department as deleted by setting its deletedAt field. Accessible by organization owners and admins only.",
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the organization"
-          },
-          {
-            "name": "departmentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the department to delete"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Department deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - department already deleted"
-          },
-          "403": {
-            "description": "Forbidden - insufficient permissions"
-          },
-          "404": {
-            "description": "Department not found"
-          }
-        },
-        "security": [{ "bearerAuth": [] }]
-      }
-    },
-    "/api/organizations/{organizationId}/departments/{departmentId}/restore": {
+    "/api/users/update-password/{id}": {
       "patch": {
-        "tags": ["Department"],
-        "summary": "Restore a soft-deleted department",
-        "description": "Restores a previously deleted department by setting its deletedAt field to null. Accessible by organization owners and admins only.",
-        "parameters": [
+        "tags": ["User"],
+        "summary": "Update user password",
+        "description": "Allows a user to update their password by providing the old and new passwords. User can only update their own password.",
+        "security": [
           {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the organization"
-          },
-          {
-            "name": "departmentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the department to restore"
+            "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "User ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["oldPassword", "newPassword"],
+                "properties": {
+                  "oldPassword": {
+                    "type": "string",
+                    "description": "User's current password",
+                    "example": "CurrentP@ssw0rd"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "description": "New password to set",
+                    "example": "NewP@ssw0rd123"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Department restored successfully",
+            "description": "Password updated successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" }
+                    "message": {
+                      "type": "string",
+                      "example": "Password updated successfully"
+                    }
                   }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad request - department not deleted"
+            "description": "Bad Request - Invalid input, validation error, incorrect old password, or new password same as old password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Incorrect old password"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
           },
           "403": {
-            "description": "Forbidden - insufficient permissions"
+            "description": "Forbidden - User does not have required permissions"
           },
           "404": {
-            "description": "Department not found"
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/delete/{id}": {
+      "delete": {
+        "tags": ["User"],
+        "summary": "Soft delete a user",
+        "description": "Soft deletes a user by setting deletedAt to current date and making them inactive. Admin permission required.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "User ID to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - User already deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User already deleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "403": {
+            "description": "Forbidden - User does not have admin permissions"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/restore/{id}": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "Restore a soft-deleted user",
+        "description": "Restores a previously soft-deleted user by clearing their deletedAt field and setting isActive to true. Requires admin permission.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "User ID to restore"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User restored successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User restored successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "403": {
+            "description": "Forbidden - User does not have admin permissions"
+          },
+          "404": {
+            "description": "User not found or not deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found or not deleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/profile-picture": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Upload a user profile picture",
+        "description": "Uploads and sets a profile picture for a user. Users can upload their own pictures or admins can upload for any user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "User ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Profile picture image file"
+                  }
+                },
+                "required": ["image"]
+              }
+            }
           }
         },
-        "security": [{ "bearerAuth": [] }]
+        "responses": {
+          "200": {
+            "description": "Profile picture uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Profile picture uploaded successfully"
+                    },
+                    "profilePicUrl": {
+                      "type": "string",
+                      "example": "https://cloudinary.com/example/profile_picture.jpg"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "profilePic": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - User ID is required or no file uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No file uploaded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "403": {
+            "description": "Forbidden - User does not have required permissions"
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete user profile picture",
+        "description": "Removes the profile picture for a user and sets the profilePic field to null. Users can delete their own pictures or admins can delete for any user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile picture deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Profile picture deleted successfully"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "profilePic": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - User ID is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User ID is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "403": {
+            "description": "Forbidden - User does not have required permissions"
+          },
+          "404": {
+            "description": "Profile picture not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Profile picture not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/organization": {
       "post": {
         "tags": ["Organization"],
-        "summary": "Create a new organization with the current user as owner",
-        "description": "Creates a new organization. If created by admin, organization is automatically approved. Otherwise, it requires email verification.",
-        "security": [{ "bearerAuth": [] }],
+        "summary": "Create a new organization",
+        "description": "Creates a new organization with the current user as the owner or a specified user as owner",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1278,12 +1985,12 @@
                   "name": {
                     "type": "string",
                     "description": "Organization name",
-                    "example": "Acme Inc"
+                    "example": "Acme Corporation"
                   },
                   "description": {
                     "type": "string",
                     "description": "Organization description",
-                    "example": "A leading tech company"
+                    "example": "A leading provider of innovative solutions"
                   },
                   "industry": {
                     "type": "string",
@@ -1293,38 +2000,41 @@
                   "sizeRange": {
                     "type": "string",
                     "description": "Size range of the organization",
-                    "example": "51-200"
+                    "example": "50-100"
                   },
                   "website": {
                     "type": "string",
+                    "format": "uri",
                     "description": "Organization website URL",
-                    "example": "https://acme.com"
+                    "example": "https://acme.example.com"
                   },
                   "logoUrl": {
                     "type": "string",
+                    "format": "uri",
                     "description": "URL to organization logo",
-                    "example": "https://acme.com/logo.png"
+                    "example": "https://example.com/logo.png"
                   },
                   "address": {
                     "type": "string",
-                    "description": "Physical address",
-                    "example": "123 Main St, City, Country"
+                    "description": "Organization address",
+                    "example": "123 Main St, Anytown, USA"
                   },
                   "contactEmail": {
                     "type": "string",
                     "format": "email",
-                    "description": "Contact email for the organization",
-                    "example": "contact@acme.com"
+                    "description": "Organization contact email",
+                    "example": "contact@acme.example.com"
                   },
                   "contactPhone": {
                     "type": "string",
-                    "description": "Contact phone number",
-                    "example": "+1234567890"
+                    "description": "Organization contact phone",
+                    "example": "+1-234-567-8900"
                   },
                   "orgOwnerId": {
                     "type": "string",
-                    "description": "Optional user ID to assign as owner (admin only)",
-                    "example": "cl1234567890"
+                    "format": "uuid",
+                    "description": "User ID to set as organization owner (optional, defaults to current user)",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                   }
                 }
               }
@@ -1345,7 +2055,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Organization created successfully. Please verify your org"
+                      "example": "Organization created successfully."
                     },
                     "data": {
                       "type": "object",
@@ -1355,19 +2065,18 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "example": "cl1234567890"
+                              "format": "uuid"
                             },
                             "name": {
-                              "type": "string",
-                              "example": "Acme Inc"
+                              "type": "string"
                             },
                             "status": {
                               "type": "string",
-                              "example": "PENDING"
+                              "example": "APPROVED"
                             },
                             "isVerified": {
                               "type": "boolean",
-                              "example": false
+                              "example": true
                             }
                           }
                         },
@@ -1376,7 +2085,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "example": "cl1234567891"
+                              "format": "uuid"
                             }
                           }
                         }
@@ -1388,7 +2097,7 @@
             }
           },
           "400": {
-            "description": "Validation error",
+            "description": "Bad Request - Invalid input data",
             "content": {
               "application/json": {
                 "schema": {
@@ -1396,15 +2105,18 @@
                   "properties": {
                     "error": {
                       "type": "string",
-                      "example": "\"name\" is required"
+                      "example": "Name is required"
                     }
                   }
                 }
               }
             }
           },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
           "409": {
-            "description": "Organization with this name or email already exists",
+            "description": "Conflict - Organization with name or email already exists",
             "content": {
               "application/json": {
                 "schema": {
@@ -1420,27 +2132,7 @@
             }
           },
           "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Failed to send verification email. Please try again later."
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Internal Server Error"
           }
         }
       }
@@ -1448,23 +2140,28 @@
     "/api/organization/resendOTP/{orgId}": {
       "post": {
         "tags": ["Organization"],
-        "summary": "Resend OTP code for organization verification",
-        "description": "Resends the verification OTP to the organization's contact email if the previous one expired",
-        "security": [{ "bearerAuth": [] }],
+        "summary": "Resend OTP verification code",
+        "description": "Generates a new OTP code and sends it to the organization's contact email for verification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
-            "name": "orgId",
             "in": "path",
+            "name": "orgId",
             "required": true,
-            "description": "ID of the organization to resend OTP for",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Organization ID"
           }
         ],
         "responses": {
           "200": {
-            "description": "OTP resent successfully",
+            "description": "OTP sent successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -1476,7 +2173,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Code sent successfully. Please check your email"
+                      "example": "Code send successfully. Please check your email"
                     }
                   }
                 }
@@ -1484,7 +2181,7 @@
             }
           },
           "400": {
-            "description": "Missing organization ID",
+            "description": "Bad Request - Missing organization ID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1502,6 +2199,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
           },
           "404": {
             "description": "Organization not found",
@@ -1524,7 +2224,7 @@
             }
           },
           "500": {
-            "description": "Failed to send verification email",
+            "description": "Internal Server Error or failed to send email",
             "content": {
               "application/json": {
                 "schema": {
@@ -1533,9 +2233,6 @@
                     "success": {
                       "type": "boolean",
                       "example": false
-                    },
-                    "error": {
-                      "type": "object"
                     },
                     "message": {
                       "type": "string",
@@ -1552,18 +2249,23 @@
     "/api/organization/verifyOrg/{orgId}": {
       "post": {
         "tags": ["Organization"],
-        "summary": "Verify organization's contact email using OTP",
-        "description": "Verifies the organization's email address using the OTP sent to the contact email",
-        "security": [{ "bearerAuth": [] }],
+        "summary": "Verify organization using OTP",
+        "description": "Verifies an organization's contact email using the provided OTP code",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
-            "name": "orgId",
             "in": "path",
+            "name": "orgId",
             "required": true,
-            "description": "ID of the organization",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Organization ID"
           }
         ],
         "requestBody": {
@@ -1576,7 +2278,7 @@
                 "properties": {
                   "otp": {
                     "type": "string",
-                    "description": "The OTP code received via email",
+                    "description": "Verification OTP code",
                     "example": "123456"
                   }
                 }
@@ -1586,7 +2288,7 @@
         },
         "responses": {
           "200": {
-            "description": "Organization verified successfully",
+            "description": "Organization verified successfully or already verified",
             "content": {
               "application/json": {
                 "schema": {
@@ -1602,7 +2304,7 @@
             }
           },
           "400": {
-            "description": "Invalid or expired OTP",
+            "description": "Bad Request - Invalid or expired OTP",
             "content": {
               "application/json": {
                 "schema": {
@@ -1617,8 +2319,27 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
           "404": {
-            "$ref": "#/components/responses/OrganizationNotFound"
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Organization not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -1626,14 +2347,16 @@
     "/api/organization/all": {
       "get": {
         "tags": ["Organization"],
-        "summary": "Get paginated list of organizations with filtering and sorting",
-        "description": "Returns a paginated list of organizations. Admins see all organizations, others see only organizations they are associated with.",
-        "security": [{ "bearerAuth": [] }],
+        "summary": "Get paginated list of organizations",
+        "description": "Returns a paginated list of organizations with filtering, sorting, and permission-based access control.",
+        "operationId": "getAllOrganizations",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "Page number",
+            "required": false,
             "schema": {
               "type": "integer",
               "default": 1
@@ -1643,6 +2366,7 @@
             "name": "limit",
             "in": "query",
             "description": "Items per page",
+            "required": false,
             "schema": {
               "type": "integer",
               "default": 10
@@ -1652,16 +2376,18 @@
             "name": "sortBy",
             "in": "query",
             "description": "Field to sort by",
+            "required": false,
             "schema": {
               "type": "string",
               "default": "createdAt",
-              "enum": ["name", "createdAt", "updatedAt", "status"]
+              "enum": ["createdAt", "name", "industry", "sizeRange", "status"]
             }
           },
           {
             "name": "sortOrder",
             "in": "query",
             "description": "Sort order",
+            "required": false,
             "schema": {
               "type": "string",
               "default": "desc",
@@ -1671,7 +2397,8 @@
           {
             "name": "name",
             "in": "query",
-            "description": "Filter by organization name (contains)",
+            "description": "Filter by organization name (contains, case-insensitive)",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -1680,6 +2407,7 @@
             "name": "industry",
             "in": "query",
             "description": "Filter by industry",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -1688,6 +2416,7 @@
             "name": "sizeRange",
             "in": "query",
             "description": "Filter by size range",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -1696,6 +2425,7 @@
             "name": "status",
             "in": "query",
             "description": "Filter by status",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -1704,6 +2434,7 @@
             "name": "isVerified",
             "in": "query",
             "description": "Filter by verification status",
+            "required": false,
             "schema": {
               "type": "boolean"
             }
@@ -1711,91 +2442,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Organizations retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedOrganizations"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/organization/{organizationId}": {
-      "get": {
-        "tags": ["Organization"],
-        "summary": "Get detailed information about a specific organization",
-        "description": "Returns detailed information about an organization including owners, departments, teams and projects. Requires admin or membership access.",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/organizationId"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Organization details retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/MissingOrgId"
-          },
-          "403": {
-            "description": "Forbidden - No permission to view this organization",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "You do not have permission to view this organization"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/OrganizationNotFound"
-          }
-        }
-      },
-      "put": {
-        "tags": ["Organization"],
-        "summary": "Update organization details",
-        "description": "Updates organization information. Admins can update all fields, owners can update most fields except verification status.",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/organizationId"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOrganization"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Organization updated successfully",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -1807,22 +2454,19 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Organization updated successfully"
+                      "example": "Organizations retrieved successfully"
                     },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "string",
-                          "example": "cl1234567890"
+                        "organizations": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/OrganizationWithStats"
+                          }
                         },
-                        "name": {
-                          "type": "string",
-                          "example": "Acme Inc"
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "A leading tech company"
+                        "pagination": {
+                          "$ref": "#/components/schemas/Pagination"
                         }
                       }
                     }
@@ -1831,46 +2475,198 @@
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden - No permission to update this organization",
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}": {
+      "get": {
+        "tags": ["Organization"],
+        "summary": "Get organization details",
+        "description": "Returns detailed information about a specific organization including related entities (departments, teams, projects) with permission checks.",
+        "operationId": "getSpecificOrganization",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
+                    "success": { "type": "boolean", "example": true },
                     "message": {
                       "type": "string",
-                      "example": "You do not have permission to update this organization"
+                      "example": "Organization retrieved successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/OrganizationDetails"
                     }
                   }
                 }
               }
             }
           },
-          "404": {
-            "$ref": "#/components/responses/OrganizationNotFound"
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
           },
-          "409": {
-            "description": "Conflict - Organization name already exists",
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Organization"],
+        "summary": "Update organization",
+        "description": "Updates organization details with validation and permission checks. Admins and organization owners can update all fields, others have restricted access.",
+        "operationId": "updateOrganization",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Organization update data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrganizationUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
+                    "success": { "type": "boolean", "example": true },
                     "message": {
                       "type": "string",
-                      "example": "Organization with this name already exists"
+                      "example": "Organization updated successfully"
+                    },
+                    "note": {
+                      "type": "string",
+                      "example": "Please verify your organization email"
+                    },
+                    "data": { "$ref": "#/components/schemas/OrganizationBasic" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Validation error"
+                    },
+                    "errors": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Organization name exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Email verification failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization updated but failed to send verification email"
                     }
                   }
                 }
@@ -1882,11 +2678,19 @@
       "delete": {
         "tags": ["Organization"],
         "summary": "Soft delete an organization",
-        "description": "Marks an organization as deleted (soft delete). Requires admin or owner permissions.",
-        "security": [{ "bearerAuth": [] }],
+        "description": "Marks an organization as deleted but retains it in the database. Only accessible to admins and organization owners.",
+        "operationId": "deleteOrganization",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
-            "$ref": "#/components/parameters/organizationId"
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization to delete",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -1897,10 +2701,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
+                    "success": { "type": "boolean", "example": true },
                     "message": {
                       "type": "string",
                       "example": "Organization deleted successfully"
@@ -1911,25 +2712,18 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/MissingOrgId"
-          },
-          "403": {
-            "description": "Forbidden - No permission to delete this organization",
+            "description": "Missing organization ID",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "You do not have permission to delete this organization"
-                    }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           },
@@ -1937,19 +2731,7 @@
             "description": "Organization not found or already deleted",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Organization not found or already deleted"
-                    }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }
@@ -1959,15 +2741,24 @@
     "/api/organization/{organizationId}/addOwner": {
       "post": {
         "tags": ["Organization"],
-        "summary": "Add one or more users as owners to an organization",
-        "description": "Adds users as owners to the organization. Requires admin or existing owner permissions.",
-        "security": [{ "bearerAuth": [] }],
+        "summary": "Add owners to an organization",
+        "description": "Adds one or more users as owners to an organization. Requires admin or existing owner permissions.",
+        "operationId": "addOwners",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
-            "$ref": "#/components/parameters/organizationId"
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
+          "description": "User IDs to add as owners",
           "required": true,
           "content": {
             "application/json": {
@@ -1978,10 +2769,11 @@
                   "userIds": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "description": "Array of user IDs to add as owners",
-                    "example": ["cl1234567890", "cl0987654321"]
+                    "example": ["123e4567-e89b-12d3-a456-426614174000"]
                   }
                 }
               }
@@ -1994,7 +2786,35 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddOwnersResponse"
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully added 2 owner(s) to the organization"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "addedOwners": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/UserBasic"
+                          }
+                        },
+                        "skippedOwners": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -2011,8 +2831,7 @@
                       "example": false
                     },
                     "message": {
-                      "type": "string",
-                      "example": "One or more specified users do not exist"
+                      "type": "string"
                     },
                     "errors": {
                       "type": "object",
@@ -2020,7 +2839,8 @@
                         "invalidUserIds": {
                           "type": "array",
                           "items": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           }
                         }
                       }
@@ -2031,27 +2851,24 @@
             }
           },
           "403": {
-            "description": "Forbidden - No permission to add owners",
+            "description": "Forbidden - insufficient permissions",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "You do not have permission to add new owners to this organization"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "404": {
-            "$ref": "#/components/responses/OrganizationNotFound"
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2061,14 +2878,21 @@
         "tags": ["Organization"],
         "summary": "Upload organization logo",
         "description": "Uploads a logo image for the organization. Requires admin or owner permissions.",
-        "security": [{ "bearerAuth": [] }],
+        "operationId": "uploadOrganizationLogo",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
-            "$ref": "#/components/parameters/organizationId"
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
@@ -2098,7 +2922,10 @@
                     },
                     "logoUrl": {
                       "type": "string",
-                      "example": "https://cloudinary.com/logo123.jpg"
+                      "format": "uri"
+                    },
+                    "organization": {
+                      "$ref": "#/components/schemas/OrganizationBasic"
                     }
                   }
                 }
@@ -2106,43 +2933,34 @@
             }
           },
           "400": {
-            "description": "No file uploaded or invalid organization ID",
+            "description": "No file uploaded or missing organization ID",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "No file uploaded"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "403": {
-            "description": "Forbidden - No permission to upload logo",
+            "description": "Forbidden - insufficient permissions",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "You do not have permission to modify this organization"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "404": {
-            "$ref": "#/components/responses/OrganizationNotFound"
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2152,10 +2970,18 @@
         "tags": ["Organization"],
         "summary": "Delete organization logo",
         "description": "Deletes the organization's logo. Requires admin or owner permissions.",
-        "security": [{ "bearerAuth": [] }],
+        "operationId": "deleteOrganizationLogo",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
-            "$ref": "#/components/parameters/organizationId"
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -2169,6 +2995,9 @@
                     "message": {
                       "type": "string",
                       "example": "Organization logo deleted successfully"
+                    },
+                    "organization": {
+                      "$ref": "#/components/schemas/OrganizationBasic"
                     }
                   }
                 }
@@ -2176,40 +3005,21 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/MissingOrgId"
-          },
-          "403": {
-            "description": "Forbidden - No permission to delete logo",
+            "description": "Missing organization ID",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "You do not have permission to modify this organization"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "404": {
-            "description": "Logo not found",
+            "description": "Organization or logo not found",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Organization logo not found"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2217,12 +3027,24 @@
         }
       }
     },
-    "/api/users/all": {
+    "/api/organizations/{organizationId}/departments/all": {
       "get": {
-        "tags": ["User"],
-        "summary": "Get all users with pagination",
-        "description": "Retrieves a paginated list of all users. Admin access required.",
+        "tags": ["Department"],
+        "summary": "Get all active departments (paginated)",
+        "description": "Returns paginated list of departments for an organization. Accessible to Admin/Owner only.",
+        "operationId": "getAllDepartments",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "description": "ID of the organization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -2236,32 +3058,32 @@
         ],
         "responses": {
           "200": {
-            "description": "Users retrieved successfully",
+            "description": "Departments retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "message": {
                       "type": "string",
-                      "example": "Users retrieved successfully"
+                      "example": "Departments retrieved successfully"
                     },
-                    "currentPage": {
-                      "type": "integer",
-                      "example": 1
-                    },
-                    "totalPages": {
-                      "type": "integer",
-                      "example": 5
-                    },
-                    "totalUsers": {
-                      "type": "integer",
-                      "example": 50
-                    },
-                    "users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/UserBasic"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "departments": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/DepartmentBasic"
+                          }
+                        },
+                        "pagination": {
+                          "$ref": "#/components/schemas/Pagination"
+                        }
                       }
                     }
                   }
@@ -2269,326 +3091,266 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "403": {
-            "description": "Forbidden - Admin access required"
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       }
     },
-    "/api/users/{id}": {
+    "/api/organizations/{organizationId}/departments/{departmentId}": {
       "get": {
-        "tags": ["User"],
-        "summary": "Get full user profile by ID",
-        "description": "Retrieves detailed information about a specific user. User or Admin access required.",
+        "tags": ["Department"],
+        "summary": "Get department by ID with related data",
+        "description": "Returns detailed department information including users and teams. Accessible to Owner/Admin or department manager.",
+        "operationId": "getDepartmentById",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
-            "name": "id",
+            "name": "organizationId",
             "in": "path",
-            "description": "User ID",
+            "description": "ID of the organization",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "description": "ID of the department",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "User retrieved successfully",
+            "description": "Department retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "User retrieved successfully"
+                    "success": {
+                      "type": "boolean",
+                      "example": true
                     },
-                    "user": {
-                      "$ref": "#/components/schemas/UserFull"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - Access denied"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      },
-      "put": {
-        "tags": ["User"],
-        "summary": "Update user account",
-        "description": "Updates user account information. User or Admin access required.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "User ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUserAccount"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User account updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
                     "message": {
                       "type": "string",
-                      "example": "User account updated successfully"
+                      "example": "Department retrieved successfully"
                     },
-                    "user": {
-                      "$ref": "#/components/schemas/UserBasic"
+                    "data": {
+                      "$ref": "#/components/schemas/DepartmentDetailed"
                     }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request - Invalid input data"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
           "403": {
-            "description": "Forbidden - Account is not active"
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "User not found"
+            "description": "Department not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      },
-      "delete": {
-        "tags": ["User"],
-        "summary": "Soft delete a user",
-        "description": "Marks a user as deleted (soft delete). Admin access required.",
+        }
+      }
+    },
+    "/api/organizations/{organizationId}/departments/created": {
+      "get": {
+        "tags": ["Department"],
+        "summary": "Get departments managed by current user",
+        "description": "Returns paginated list of departments managed by the current user in the specified organization.",
+        "operationId": "getCreatedDepartments",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
-            "name": "id",
+            "name": "organizationId",
             "in": "path",
-            "description": "User ID",
+            "description": "ID of the organization",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Items per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "User deleted successfully",
+            "description": "Managed departments retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "message": {
                       "type": "string",
-                      "example": "User deleted successfully"
+                      "example": "Managed departments retrieved successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "departments": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/DepartmentWithCounts"
+                          }
+                        },
+                        "pagination": {
+                          "$ref": "#/components/schemas/Pagination"
+                        }
+                      }
                     }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request - User already deleted"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - Admin access required"
-          },
           "404": {
-            "description": "User not found"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/users/update-password/{id}": {
-      "patch": {
-        "tags": ["User"],
-        "summary": "Update user password",
-        "description": "Updates the password for a user. User access required.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "User ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePassword"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password updated successfully",
+            "description": "Organization not found",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Password updated successfully"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
-          },
-          "400": {
-            "description": "Bad request - Invalid input or same as old password"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - User access required"
-          },
-          "404": {
-            "description": "User not found"
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       }
     },
-    "/api/users/restore/{id}": {
-      "patch": {
-        "tags": ["User"],
-        "summary": "Restore a soft-deleted user",
-        "description": "Restores a previously soft-deleted user. Admin access required.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "User ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User restored successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "User restored successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - Admin access required"
-          },
-          "404": {
-            "description": "User not found or not deleted"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/users/{id}/profile-picture": {
+    "/api/organizations/{organizationId}/departments/create": {
       "post": {
-        "tags": ["User"],
-        "summary": "Upload a profile picture for a user",
-        "description": "Uploads and sets a profile picture for a user. User or Admin access required.",
+        "tags": ["Department"],
+        "summary": "Create a new department",
+        "description": "Creates a department within the specified organization. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
-            "name": "id",
+            "name": "organizationId",
             "in": "path",
-            "description": "User ID",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "image": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "Image file to upload"
-                  }
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Department created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Unauthorized action"
+          },
+          "409": {
+            "description": "Duplicate department name"
+          }
+        }
+      }
+    },
+    "/api/organizations/{organizationId}/departments/{departmentId}/": {
+      "put": {
+        "tags": ["Department"],
+        "summary": "Update department details",
+        "description": "Updates a department’s name or description. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
                 }
               }
             }
@@ -2596,97 +3358,78 @@
         },
         "responses": {
           "200": {
-            "description": "Profile picture uploaded successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Profile picture uploaded successfully"
-                    },
-                    "profilePicUrl": {
-                      "type": "string",
-                      "example": "https://cloudinary.com/image.jpg"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/UserBasic"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Department updated successfully"
           },
           "400": {
-            "description": "Bad request - No file uploaded"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - Access denied"
+            "description": "Validation error"
           },
           "404": {
-            "description": "User not found"
+            "description": "Department or organization not found"
+          },
+          "409": {
+            "description": "Duplicate department name"
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      },
+        }
+      }
+    },
+    "/api/organizations/{organizationId}/departments/{departmentId}/delete": {
       "delete": {
-        "tags": ["User"],
-        "summary": "Delete user profile picture",
-        "description": "Deletes the profile picture of a user. User or Admin access required.",
+        "tags": ["Department"],
+        "summary": "Soft delete department",
+        "description": "Soft deletes a department by setting deletedAt timestamp. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
-            "name": "id",
+            "name": "organizationId",
             "in": "path",
-            "description": "User ID",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Profile picture deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Profile picture deleted successfully"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/UserBasic"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - Access denied"
+            "description": "Department deleted successfully"
           },
           "404": {
-            "description": "Profile picture not found"
+            "description": "Department or organization not found"
           }
-        },
-        "security": [
+        }
+      }
+    },
+    "/api/organizations/{organizationId}/departments/{departmentId}/restore": {
+      "patch": {
+        "tags": ["Department"],
+        "summary": "Restore department",
+        "description": "Restores a soft-deleted department. Requires Admin or Owner permissions.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
           {
-            "bearerAuth": []
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "Department restored successfully"
+          },
+          "404": {
+            "description": "Department or organization not found"
+          }
+        }
       }
     },
     "/api/organization/{organizationId}/team": {
@@ -6660,95 +7403,19 @@
   },
 
   "components": {
-    "parameters": {
-      "orgId": {
-        "name": "orgId",
-        "in": "path",
-        "required": true,
-        "description": "ID of the organization",
-        "schema": {
-          "type": "string"
-        }
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refreshToken",
+        "description": "Refresh token cookie for authentication"
       },
-      "organizationId": {
-        "name": "organizationId",
-        "in": "path",
-        "required": true,
-        "description": "ID of the organization",
-        "schema": {
-          "type": "string"
-        }
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     },
-    "responses": {
-      "MissingOrgId": {
-        "description": "Missing organization ID",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "message": {
-                  "type": "string",
-                  "example": "Organization ID is required"
-                }
-              }
-            }
-          }
-        }
-      },
-      "OrganizationNotFound": {
-        "description": "Organization not found",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "message": {
-                  "type": "string",
-                  "example": "Organization not found"
-                }
-              }
-            }
-          }
-        }
-      },
-      "ValidationError": {
-        "description": "Validation error",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "message": {
-                  "type": "string",
-                  "example": "Validation error occurred"
-                },
-                "errors": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-
     "schemas": {
       "User": {
         "type": "object",
@@ -6772,79 +7439,90 @@
           },
           "role": {
             "type": "string",
-            "enum": ["MEMBER", "ADMIN", "SUPER_ADMIN"]
+            "enum": ["MEMBER", "ADMIN", "SUPER_ADMIN"],
+            "default": "MEMBER"
           },
           "isActive": {
+            "type": "boolean",
+            "default": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrganizationWithStats": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "sizeRange": {
+            "type": "array",
+            "enum": ["1-10", "11-50", "51-200", "201-500", "501-1000", "1001+"]
+          },
+          "website": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "isVerified": {
             "type": "boolean"
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "AddOwnersResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
+          "statistics": {
+            "type": "object",
+            "properties": {
+              "usersCount": {
+                "type": "integer"
+              },
+              "departmentsCount": {
+                "type": "integer"
+              },
+              "teamsCount": {
+                "type": "integer"
+              },
+              "projectsCount": {
+                "type": "integer"
+              }
+            }
           },
-          "message": {
-            "type": "string",
-            "example": "Owners added successfully"
-          },
-          "addedOwners": {
+          "owners": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                }
+              }
             }
-          }
-        }
-      },
-      "UpdateOrganization": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Organization name"
-          },
-          "description": {
-            "type": "string",
-            "description": "Organization description"
-          },
-          "industry": {
-            "type": "string",
-            "description": "Industry sector"
-          },
-          "sizeRange": {
-            "type": "string",
-            "description": "Size range of the organization"
-          },
-          "website": {
-            "type": "string",
-            "description": "Organization website URL"
-          },
-          "logoUrl": {
-            "type": "string",
-            "description": "URL to organization logo"
-          },
-          "address": {
-            "type": "string",
-            "description": "Physical address"
-          },
-          "contactEmail": {
-            "type": "string",
-            "format": "email",
-            "description": "Contact email for the organization"
-          },
-          "contactPhone": {
-            "type": "string",
-            "description": "Contact phone number"
           }
         }
       },
@@ -6861,12 +7539,34 @@
           "description": {
             "type": "string"
           },
+          "industry": {
+            "type": "string"
+          },
+          "sizeRange": {
+            "type": "array",
+            "enum": ["1-10", "11-50", "51-200", "201-500", "501-1000", "1001+"]
+          },
+          "website": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
           "status": {
-            "type": "string",
-            "enum": ["ACTIVE", "INACTIVE", "PENDING"]
+            "type": "string"
           },
           "isVerified": {
             "type": "boolean"
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "contactPhone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
           },
           "createdAt": {
             "type": "string",
@@ -6876,10 +7576,46 @@
             "type": "string",
             "format": "date-time"
           },
+          "statistics": {
+            "type": "object",
+            "properties": {
+              "usersCount": {
+                "type": "integer"
+              },
+              "departmentsCount": {
+                "type": "integer"
+              },
+              "teamsCount": {
+                "type": "integer"
+              },
+              "projectsCount": {
+                "type": "integer"
+              },
+              "templatesCount": {
+                "type": "integer"
+              }
+            }
+          },
           "owners": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "profileImage": {
+                  "type": "string"
+                }
+              }
             }
           },
           "departments": {
@@ -6888,52 +7624,215 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "name": {
                   "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "usersCount": {
+                  "type": "integer"
+                },
+                "teamsCount": {
+                  "type": "integer"
                 }
               }
             }
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "usersCount": {
+                  "type": "integer"
+                },
+                "projectsCount": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "startDate": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "endDate": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "hasMoreDepartments": {
+            "type": "boolean"
+          },
+          "hasMoreTeams": {
+            "type": "boolean"
+          },
+          "hasMoreProjects": {
+            "type": "boolean"
           }
         }
       },
-      "PaginatedOrganizations": {
+      "OrganizationUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "industry": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "sizeRange": {
+            "type": "array",
+            "enum": ["1-10", "11-50", "51-200", "201-500", "501-1000", "1001+"]
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 100
+          },
+          "logoUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 255
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 100
+          },
+          "contactPhone": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "PENDING", "SUSPENDED"]
+          }
+        }
+      },
+      "OrganizationBasic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "sizeRange": {
+            "type": "array",
+            "enum": ["1-10", "11-50", "51-200", "201-500", "501-1000", "1001+"]
+          },
+          "website": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "contactPhone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "pages": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "example": true
+            "example": false
           },
           "message": {
             "type": "string",
-            "example": "Organizations retrieved successfully"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "organizations": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": { "type": "string" },
-                    "name": { "type": "string" },
-                    "status": { "type": "string" },
-                    "isVerified": { "type": "boolean" }
-                  }
-                }
-              },
-              "pagination": {
-                "type": "object",
-                "properties": {
-                  "page": { "type": "integer" },
-                  "limit": { "type": "integer" },
-                  "totalItems": { "type": "integer" },
-                  "totalPages": { "type": "integer" }
-                }
-              }
-            }
+            "example": "Error message"
           }
         }
       },
@@ -6941,41 +7840,31 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Combined first and last name"
           },
           "email": {
             "type": "string",
             "format": "email"
+          }
+        }
+      },
+      "DepartmentBasic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "firstName": {
+          "name": {
             "type": "string"
           },
-          "lastName": {
+          "description": {
             "type": "string"
-          },
-          "role": {
-            "type": "string",
-            "enum": ["USER", "ADMIN", "SUPER_ADMIN"]
-          },
-          "profilePic": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "jobTitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "timezone": {
-            "type": "string",
-            "nullable": true
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
           },
           "createdAt": {
             "type": "string",
@@ -6984,181 +7873,160 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "organization": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "manager": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              }
+            }
           }
         }
       },
-      "UserFull": {
+      "DepartmentDetailed": {
         "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/UserBasic"
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
           },
-          {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "organization": {
             "type": "object",
             "properties": {
-              "username": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "manager": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "firstName": {
                 "type": "string"
               },
-              "preferences": {
-                "type": "object"
+              "lastName": {
+                "type": "string"
               },
-              "isActive": {
-                "type": "boolean"
-              },
-              "isOwner": {
-                "type": "boolean"
-              },
-              "lastLogin": {
+              "email": {
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "email"
               },
-              "lastLogout": {
-                "type": "string",
-                "format": "date-time",
-                "nullable": true
-              },
-              "department": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                }
-              },
-              "organization": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                }
-              },
-              "permissions": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "entityType": {
-                      "type": "string"
-                    },
-                    "entityId": {
-                      "type": "string"
-                    },
-                    "permissions": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              },
-              "teamMemberships": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "team": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "activityLogs": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "action": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  }
+              "jobTitle": {
+                "type": "string"
+              }
+            }
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserBasic"
+            }
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
                 }
               }
             }
           }
-        ]
-      },
-      "UpdateUserAccount": {
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string",
-            "nullable": true
-          },
-          "lastName": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "jobTitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "timezone": {
-            "type": "string",
-            "nullable": true
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
-          "role": {
-            "type": "string",
-            "enum": ["USER", "ADMIN", "SUPER_ADMIN"],
-            "nullable": true,
-            "description": "Admin only field"
-          },
-          "departmentId": {
-            "type": "string",
-            "nullable": true,
-            "description": "Admin only field"
-          },
-          "organizationId": {
-            "type": "string",
-            "nullable": true,
-            "description": "Admin only field"
-          }
         }
       },
-      "UpdatePassword": {
+      "DepartmentWithCounts": {
         "type": "object",
-        "required": ["oldPassword", "newPassword"],
         "properties": {
-          "oldPassword": {
+          "id": {
             "type": "string",
-            "format": "password",
-            "minLength": 6
+            "format": "uuid"
           },
-          "newPassword": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
             "type": "string",
-            "format": "password",
-            "minLength": 6
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "organization": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "_count": {
+            "type": "object",
+            "properties": {
+              "users": {
+                "type": "integer"
+              },
+              "teams": {
+                "type": "integer"
+              }
+            }
           }
         }
       },
@@ -8172,13 +9040,6 @@
           },
           "lastModifiedBy": { "type": "string" }
         }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
       }
     }
   }

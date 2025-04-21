@@ -294,6 +294,105 @@
         },
         "security": []
       }
+    },
+    "/api/auth/verifyEmail": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verify user's email address using OTP",
+        "description": "Validates the OTP sent to user's email and activates their account if verification is successful.",
+        "operationId": "verifyEmail",
+        "requestBody": {
+          "description": "Email and OTP for verification",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "description": "6-digit verification code",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Email verified successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error, invalid OTP, or email already verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid or expired OTP"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Too many requests, please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
     }
   },
 

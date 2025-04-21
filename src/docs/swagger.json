@@ -641,6 +641,113 @@
         },
         "security": []
       }
+    },
+    "/api/auth/resetPassword": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset user password using OTP",
+        "description": "Allows users to reset their password by providing a valid OTP sent to their email.",
+        "operationId": "resetPassword",
+        "requestBody": {
+          "description": "Password reset details",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "description": "One-time password received via email"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "New password to set",
+                    "minLength": 6
+                  }
+                },
+                "required": ["email", "otp", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid or expired reset token"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Validation error message"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [],
+        "x-rate-limit": {
+          "description": "Rate limited to prevent brute force attacks"
+        }
+      }
     }
   },
 

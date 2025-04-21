@@ -1963,6 +1963,386 @@
           }
         }
       }
+    },
+    "/api/organization": {
+      "post": {
+        "tags": ["Organization"],
+        "summary": "Create a new organization",
+        "description": "Creates a new organization with the current user as the owner or a specified user as owner",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "contactEmail"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Organization name",
+                    "example": "Acme Corporation"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Organization description",
+                    "example": "A leading provider of innovative solutions"
+                  },
+                  "industry": {
+                    "type": "string",
+                    "description": "Industry sector",
+                    "example": "Technology"
+                  },
+                  "sizeRange": {
+                    "type": "string",
+                    "description": "Size range of the organization",
+                    "example": "50-100"
+                  },
+                  "website": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Organization website URL",
+                    "example": "https://acme.example.com"
+                  },
+                  "logoUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL to organization logo",
+                    "example": "https://example.com/logo.png"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Organization address",
+                    "example": "123 Main St, Anytown, USA"
+                  },
+                  "contactEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Organization contact email",
+                    "example": "contact@acme.example.com"
+                  },
+                  "contactPhone": {
+                    "type": "string",
+                    "description": "Organization contact phone",
+                    "example": "+1-234-567-8900"
+                  },
+                  "orgOwnerId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "User ID to set as organization owner (optional, defaults to current user)",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Organization created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization created successfully."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "organization": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "example": "APPROVED"
+                            },
+                            "isVerified": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          }
+                        },
+                        "organizationOwner": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Name is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "409": {
+            "description": "Conflict - Organization with name or email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Organization with this name or email already exists"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/organization/resendOTP/{orgId}": {
+      "post": {
+        "tags": ["Organization"],
+        "summary": "Resend OTP verification code",
+        "description": "Generates a new OTP code and sends it to the organization's contact email for verification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Organization ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Code send successfully. Please check your email"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing organization ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization ID is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error or failed to send email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to send verification email. Please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/verifyOrg/{orgId}": {
+      "post": {
+        "tags": ["Organization"],
+        "summary": "Verify organization using OTP",
+        "description": "Verifies an organization's contact email using the provided OTP code",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Organization ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["otp"],
+                "properties": {
+                  "otp": {
+                    "type": "string",
+                    "description": "Verification OTP code",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Organization verified successfully or already verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Organization verified successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid or expired OTP",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid or expired OTP"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "404": {
+            "description": "Organization not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Organization not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
     }
   },
 

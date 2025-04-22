@@ -91,7 +91,7 @@ app.use(activitylogRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   /* eslint no-console:off */
   console.log(
     `Server is running in ${process.env.NODE_ENV} enviroment on port ${PORT}`,

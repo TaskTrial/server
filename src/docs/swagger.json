@@ -5284,7 +5284,7 @@
     },
     "/api/organization/{organizationId}/projects": {
       "get": {
-        "tags": ["Organization"],
+        "tags": ["Project"],
         "summary": "Get projects in a specific organization",
         "description": "Retrieves paginated list of projects in an organization with filtering options. Includes active and archived projects (if user has permission). Can optionally include tasks for each project.",
         "operationId": "getProjectsInSpecificOrg",

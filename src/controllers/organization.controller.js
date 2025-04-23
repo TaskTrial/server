@@ -721,7 +721,7 @@ export const updateOrganization = async (req, res, next) => {
       }
     }
 
-    const updatedOrganization = await prisma.organization.update({
+    const updatedOrganization = await prisma.organization.findUnique({
       where: { id: organizationId },
     });
 

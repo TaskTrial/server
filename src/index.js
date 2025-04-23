@@ -110,21 +110,7 @@ io.use(verifySocketToken);
 app.use(notFound);
 app.use(errorHandler);
 
-// Socket.IO connection handler
-io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.user.id}`);
-
-  // Set up chat handlers for this socket
-  const chatHandlers = setupChatHandlers(io, socket, socket.user);
-
-  // Cleanup on disconnect
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.user.id}`);
-    chatHandlers.disconnect();
-  });
-});
-
-server.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   /* eslint no-console:off */
   console.log(
     `Server is running in ${process.env.NODE_ENV} enviroment on port ${PORT}`,

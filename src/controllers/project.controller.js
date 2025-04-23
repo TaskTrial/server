@@ -1534,3 +1534,443 @@ export const getSpecificProject = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc   Get projects in a specific organization
+ * @route  /api/organization/:organizationId/projects
+ * @method GET
+ * @access private
+ */
+export const getProjectsInSpecificOrg = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+    const {
+      teamId,
+      teamName,
+      status,
+      page = 1,
+      limit = 10,
+      includeTasks = 'true',
+    } = req.query;
+
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    // Check if organization exists
+    const organization = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            departments: true,
+            teams: true,
+            projects: true,
+            templates: true,
+          },
+        },
+        users: {
+          where: {
+            id: req.user.id,
+          },
+          take: 1,
+        },
+        owners: {
+          select: {
+            user: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check permissions for non-admin users
+    if (req.user.role !== 'ADMIN') {
+      // Check if user is an owner
+      const isOwner = organization.owners.some(
+        (owner) => owner.user.id === req.user.id,
+      );
+
+      // Check if user is a member
+      const isMember = organization.users.length > 0;
+
+      if (!isOwner && !isMember) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to view this organization',
+        });
+      }
+    }
+
+    // Build the where clause for projects query
+    const whereClause = {
+      organizationId,
+    };
+
+    // Add team filter if teamId or teamName is provided
+    if (teamId || teamName) {
+      // Find the team
+      const teamWhereClause = {
+        organizationId,
+        deletedAt: null,
+      };
+
+      if (teamId) {
+        teamWhereClause.id = teamId;
+      } else if (teamName) {
+        teamWhereClause.name = {
+          contains: teamName,
+          mode: 'insensitive',
+        };
+      }
+
+      const team = await prisma.team.findFirst({
+        where: teamWhereClause,
+        select: {
+          id: true,
+        },
+      });
+
+      if (!team) {
+        return res.status(404).json({
+          success: false,
+          message: teamId
+            ? 'Team not found'
+            : 'No team matching the provided name',
+        });
+      }
+
+      whereClause.teamId = team.id;
+    }
+
+    // Add status filter if provided
+    if (status) {
+      whereClause.status = status;
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build the include object for the projects query
+    const includeObj = {
+      team: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      ProjectMember: {
+        where: {
+          leftAt: null,
+        },
+        select: {
+          userId: true,
+          role: true,
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profilePic: true,
+            },
+          },
+        },
+        take: 5,
+      },
+      _count: {
+        select: {
+          tasks: {
+            where: {
+              deletedAt: null,
+            },
+          },
+          ProjectMember: {
+            where: {
+              leftAt: null,
+            },
+          },
+        },
+      },
+    };
+
+    // Include tasks if requested
+    if (includeTasks === 'true') {
+      includeObj.tasks = {
+        where: {
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          priority: true,
+          status: true,
+          dueDate: true,
+          createdAt: true,
+          updatedAt: true,
+          estimatedTime: true,
+          actualTime: true,
+          labels: true,
+          assignedTo: true,
+          assignee: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePic: true,
+            },
+          },
+          _count: {
+            select: {
+              subtasks: true,
+              comments: true,
+              attachments: true,
+            },
+          },
+        },
+        orderBy: [{ priority: 'desc' }, { dueDate: 'asc' }],
+        take: 10, // Limit to 10 tasks per project
+      };
+    }
+
+    // Get active projects (not deleted)
+    const activeProjects = await prisma.project.findMany({
+      where: {
+        ...whereClause,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+        updatedAt: true,
+        priority: true,
+        progress: true,
+        budget: true,
+        ...includeObj,
+      },
+      orderBy: [{ priority: 'desc' }, { updatedAt: 'desc' }],
+      skip,
+      take: parseInt(limit),
+    });
+
+    // Count total active projects for pagination
+    const totalActiveProjects = await prisma.project.count({
+      where: {
+        ...whereClause,
+        deletedAt: null,
+      },
+    });
+
+    // Get archived/deleted projects (if admin or owner)
+    let archivedProjects = [];
+    let totalArchivedProjects = 0;
+
+    if (
+      req.user.role === 'ADMIN' ||
+      organization.owners.some((owner) => owner.user.id === req.user.id)
+    ) {
+      archivedProjects = await prisma.project.findMany({
+        where: {
+          ...whereClause,
+          deletedAt: {
+            not: null,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          deletedAt: true,
+          priority: true,
+          progress: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          _count: {
+            select: {
+              tasks: true,
+              ProjectMember: true,
+            },
+          },
+        },
+        orderBy: {
+          deletedAt: 'desc',
+        },
+        take: 5,
+      });
+
+      totalArchivedProjects = await prisma.project.count({
+        where: {
+          ...whereClause,
+          deletedAt: {
+            not: null,
+          },
+        },
+      });
+    }
+
+    // Format active projects
+    const formattedActiveProjects = activeProjects.map((project) => {
+      // Check if user is a member of this project
+      const userMembership = project.ProjectMember.find(
+        (member) => member.userId === req.user.id,
+      );
+
+      // Calculate task statistics
+      const taskStats = {
+        total: project._count.tasks,
+        notStarted: 0,
+        inProgress: 0,
+        completed: 0,
+        overdue: 0,
+      };
+
+      let formattedTasks = [];
+
+      if (includeTasks === 'true' && project.tasks) {
+        // Count tasks by status
+        project.tasks.forEach((task) => {
+          if (task.status === 'NOT_STARTED') {
+            taskStats.notStarted++;
+          } else if (task.status === 'IN_PROGRESS') {
+            taskStats.inProgress++;
+          } else if (task.status === 'COMPLETED') {
+            taskStats.completed++;
+          }
+
+          // Check for overdue tasks
+          if (task.dueDate < new Date() && task.status !== 'COMPLETED') {
+            taskStats.overdue++;
+          }
+        });
+
+        // Format tasks
+        formattedTasks = project.tasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: task.status,
+          dueDate: task.dueDate,
+          estimatedTime: task.estimatedTime,
+          actualTime: task.actualTime,
+          labels: task.labels,
+          subtaskCount: task._count.subtasks,
+          commentCount: task._count.comments,
+          attachmentCount: task._count.attachments,
+          assignee: task.assignee
+            ? {
+                id: task.assignee.id,
+                firstName: task.assignee.firstName,
+                lastName: task.assignee.lastName,
+                profilePic: task.assignee.profilePic,
+              }
+            : null,
+          isOverdue: task.dueDate < new Date() && task.status !== 'COMPLETED',
+        }));
+      }
+
+      // Calculate completion percentage
+      const completionPercentage =
+        taskStats.total > 0
+          ? Math.round((taskStats.completed / taskStats.total) * 100)
+          : 0;
+
+      return {
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        status: project.status,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        priority: project.priority,
+        progress: project.progress || completionPercentage, // Use calculated percentage if progress is not set
+        budget: project.budget,
+        team: project.team,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        memberCount: project._count.ProjectMember,
+        members: project.ProjectMember.map((member) => ({
+          userId: member.userId,
+          role: member.role,
+          firstName: member.user.firstName,
+          lastName: member.user.lastName,
+          profilePic: member.user.profilePic,
+        })),
+        hasMoreMembers: project._count.ProjectMember > 5,
+        userRole: userMembership?.role || null,
+        taskStats,
+        tasks: includeTasks === 'true' ? formattedTasks : undefined,
+        hasMoreTasks: project._count.tasks > (formattedTasks?.length || 0),
+      };
+    });
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(totalActiveProjects / parseInt(limit));
+
+    // Format and return response
+    return res.status(200).json({
+      success: true,
+      message: `Organization's projects retrieved successfully`,
+      data: {
+        activeProjects: formattedActiveProjects,
+        archivedProjects: archivedProjects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          status: project.status,
+          startDate: project.startDate,
+          endDate: project.endDate,
+          deletedAt: project.deletedAt,
+          priority: project.priority,
+          progress: project.progress,
+          team: project.team,
+          taskCount: project._count.tasks,
+          memberCount: project._count.ProjectMember,
+        })),
+        statistics: {
+          totalActiveProjects,
+          totalArchivedProjects,
+          totalProjects: totalActiveProjects + totalArchivedProjects,
+        },
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages,
+          totalItems: totalActiveProjects,
+          hasNextPage: parseInt(page) < totalPages,
+          hasPrevPage: parseInt(page) > 1,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

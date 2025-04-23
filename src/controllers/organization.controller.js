@@ -15,7 +15,6 @@ import {
   createActivityLog,
   generateActivityDetails,
 } from '../utils/activityLogs.utils.js';
-import { onOrganizationCreated } from '../hooks/entityHooks.js';
 
 /**
  * @desc   Create a new organization with the current user as owner
@@ -135,7 +134,7 @@ export const createOrganization = async (req, res, next) => {
     });
 
     // hook to create chat room for the organization
-    await onOrganizationCreated(result.org, req.user.id);
+    // await onOrganizationCreated(result.org, req.user.id);
 
     return res.status(201).json({
       success: true,

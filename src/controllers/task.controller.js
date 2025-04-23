@@ -811,7 +811,7 @@ export const updateTaskStatus = async (req, res, next) => {
     const user = req.user;
 
     // Validate status
-    const validStatuses = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
+    const validStatuses = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -1574,6 +1574,480 @@ export const restoreTask = async (req, res, next) => {
       success: true,
       message: `Task restored successfully${restoreSubtasks ? ' with its subtasks' : ''}`,
       task: restoredTask,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Get tasks in a specific organization
+ * @route  /api/organization/:organizationId/tasks
+ * @method GET
+ * @access private
+ */
+export const getTasksInSpecificOrg = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+    const {
+      projectId,
+      projectName,
+      assignedTo,
+      status,
+      priority,
+      page = 1,
+      limit = 10,
+      includeSubtasks = 'true',
+    } = req.query;
+
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID is required',
+      });
+    }
+
+    // Check if organization exists
+    const organization = await prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        deletedAt: null,
+      },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            departments: true,
+            teams: true,
+            projects: true,
+            templates: true,
+          },
+        },
+        users: {
+          where: {
+            id: req.user.id,
+          },
+          take: 1,
+        },
+        owners: {
+          select: {
+            user: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Check permissions for non-admin users
+    if (req.user.role !== 'ADMIN') {
+      // Check if user is an owner
+      const isOwner = organization.owners.some(
+        (owner) => owner.user.id === req.user.id,
+      );
+
+      // Check if user is a member
+      const isMember = organization.users.length > 0;
+
+      if (!isOwner && !isMember) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to view this organization',
+        });
+      }
+    }
+
+    // Build the where clause for tasks query
+    const whereClause = {
+      project: {
+        organizationId,
+      },
+      deletedAt: null,
+    };
+
+    // Add project filter if projectId or projectName is provided
+    if (projectId || projectName) {
+      // Find the project
+      const projectWhereClause = {
+        organizationId,
+        deletedAt: null,
+      };
+
+      if (projectId) {
+        projectWhereClause.id = projectId;
+      } else if (projectName) {
+        projectWhereClause.name = {
+          contains: projectName,
+          mode: 'insensitive',
+        };
+      }
+
+      const project = await prisma.project.findFirst({
+        where: projectWhereClause,
+        select: {
+          id: true,
+        },
+      });
+
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message: projectId
+            ? 'Project not found'
+            : 'No project matching the provided name',
+        });
+      }
+
+      whereClause.projectId = project.id;
+    }
+
+    // Add assignedTo filter if provided
+    if (assignedTo) {
+      if (assignedTo === 'me') {
+        whereClause.assignedTo = req.user.id;
+      } else if (assignedTo === 'unassigned') {
+        whereClause.assignedTo = null;
+      } else {
+        whereClause.assignedTo = assignedTo;
+      }
+    }
+
+    // Add status filter if provided - ensure it matches the TaskStatus enum in Prisma
+    if (status) {
+      // Make sure status is one of the valid enum values
+      const validStatuses = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+      if (validStatuses.includes(status)) {
+        whereClause.status = status;
+      } else {
+        // If invalid status is provided, return a helpful error
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status value. Expected one of: ${validStatuses.join(', ')}`,
+        });
+      }
+    }
+
+    // Add priority filter if provided
+    if (priority) {
+      // Make sure priority is one of the valid enum values
+      const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
+      if (validPriorities.includes(priority)) {
+        whereClause.priority = priority;
+      } else {
+        // If invalid priority is provided, return a helpful error
+        return res.status(400).json({
+          success: false,
+          message: `Invalid priority value. Expected one of: ${validPriorities.join(', ')}`,
+        });
+      }
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Filter for parent tasks (non-subtasks)
+    if (includeSubtasks !== 'true') {
+      whereClause.parentId = null;
+    }
+
+    // Build the include object for the tasks query
+    const includeObj = {
+      project: {
+        select: {
+          id: true,
+          name: true,
+          status: true,
+        },
+      },
+      creator: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profilePic: true,
+        },
+      },
+      assignee: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profilePic: true,
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+          attachments: true,
+          subtasks: {
+            where: {
+              deletedAt: null,
+            },
+          },
+          timelogs: true,
+        },
+      },
+    };
+
+    // Include subtasks if requested
+    if (includeSubtasks === 'true') {
+      includeObj.subtasks = {
+        where: {
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          priority: true,
+          status: true,
+          dueDate: true,
+          estimatedTime: true,
+          actualTime: true,
+          labels: true,
+          assignedTo: true,
+          assignee: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePic: true,
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+              attachments: true,
+            },
+          },
+        },
+        orderBy: [{ priority: 'desc' }, { dueDate: 'asc' }],
+        take: 5, // Limit to 5 subtasks per task
+      };
+    }
+
+    // Get active tasks (not deleted)
+    const activeTasks = await prisma.task.findMany({
+      where: whereClause,
+      include: includeObj,
+      orderBy: [
+        { priority: 'desc' },
+        { dueDate: 'asc' },
+        { updatedAt: 'desc' },
+      ],
+      skip,
+      take: parseInt(limit),
+    });
+
+    // Count total active tasks for pagination
+    const totalActiveTasks = await prisma.task.count({
+      where: whereClause,
+    });
+
+    // Format tasks
+    const formattedTasks = activeTasks.map((task) => {
+      // Calculate completion status for subtasks
+      const subtaskStats = {
+        total: task._count.subtasks,
+        completed: 0,
+        inProgress: 0,
+        notStarted: 0,
+        overdue: 0,
+      };
+
+      let formattedSubtasks = [];
+
+      if (includeSubtasks === 'true' && task.subtasks) {
+        // Format subtasks and calculate statistics
+        formattedSubtasks = task.subtasks.map((subtask) => {
+          // Track subtask status
+          if (subtask.status === 'DONE') {
+            subtaskStats.done++;
+          } else if (subtask.status === 'IN_PROGRESS') {
+            subtaskStats.inProgress++;
+          } else if (subtask.status === 'TODO') {
+            subtaskStats.todo++;
+          } else if (subtask.status === 'REVIEW') {
+            subtaskStats.review++;
+          }
+
+          // Check for overdue subtasks
+          const isOverdue =
+            subtask.dueDate < new Date() && subtask.status !== 'DONE';
+          if (isOverdue) {
+            subtaskStats.overdue++;
+          }
+
+          return {
+            id: subtask.id,
+            title: subtask.title,
+            description: subtask.description,
+            priority: subtask.priority,
+            status: subtask.status,
+            dueDate: subtask.dueDate,
+            estimatedTime: subtask.estimatedTime,
+            actualTime: subtask.actualTime,
+            labels: subtask.labels,
+            commentCount: subtask._count.comments,
+            attachmentCount: subtask._count.attachments,
+            assignee: subtask.assignee
+              ? {
+                  id: subtask.assignee.id,
+                  firstName: subtask.assignee.firstName,
+                  lastName: subtask.assignee.lastName,
+                  profilePic: subtask.assignee.profilePic,
+                }
+              : null,
+            isOverdue,
+          };
+        });
+      }
+
+      // Calculate completion percentage
+      const completionPercentage =
+        subtaskStats.total > 0
+          ? Math.round((subtaskStats.completed / subtaskStats.total) * 100)
+          : task.status === 'DONE'
+            ? 100
+            : task.status === 'IN_PROGRESS'
+              ? 50
+              : 0;
+
+      // Calculate if task is overdue
+      const isOverdue = task.dueDate < new Date() && task.status !== 'DONE';
+
+      // Calculate time tracking stats
+      const estimatedTime = task.estimatedTime || 0;
+      const actualTime = task.actualTime || 0;
+      const timeRemaining = Math.max(0, estimatedTime - actualTime);
+      const timeProgress =
+        estimatedTime > 0 ? (actualTime / estimatedTime) * 100 : 0;
+
+      return {
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        status: task.status,
+        dueDate: task.dueDate,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        estimatedTime,
+        actualTime,
+        timeRemaining,
+        timeProgress: Math.min(100, timeProgress),
+        labels: task.labels,
+        project: task.project,
+        creator: task.creator,
+        assignee: task.assignee,
+        commentCount: task._count.comments,
+        attachmentCount: task._count.attachments,
+        timelogCount: task._count.timelogs,
+        isOverdue,
+        progress: completionPercentage,
+        subtaskStats,
+        subtasks: includeSubtasks === 'true' ? formattedSubtasks : undefined,
+        hasMoreSubtasks:
+          task._count.subtasks > (formattedSubtasks?.length || 0),
+      };
+    });
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(totalActiveTasks / parseInt(limit));
+
+    // Get task counts by status
+    const taskCountsByStatus = {
+      todo: await prisma.task.count({
+        where: {
+          ...whereClause,
+          status: 'TODO',
+        },
+      }),
+      inProgress: await prisma.task.count({
+        where: {
+          ...whereClause,
+          status: 'IN_PROGRESS',
+        },
+      }),
+      review: await prisma.task.count({
+        where: {
+          ...whereClause,
+          status: 'REVIEW',
+        },
+      }),
+      done: await prisma.task.count({
+        where: {
+          ...whereClause,
+          status: 'DONE',
+        },
+      }),
+    };
+
+    // Get task counts by priority
+    const taskCountsByPriority = {
+      low: await prisma.task.count({
+        where: {
+          ...whereClause,
+          priority: 'LOW',
+        },
+      }),
+      medium: await prisma.task.count({
+        where: {
+          ...whereClause,
+          priority: 'MEDIUM',
+        },
+      }),
+      high: await prisma.task.count({
+        where: {
+          ...whereClause,
+          priority: 'HIGH',
+        },
+      }),
+    };
+
+    // Count overdue tasks
+    const overdueTasks = await prisma.task.count({
+      where: {
+        ...whereClause,
+        dueDate: {
+          lt: new Date(),
+        },
+        status: {
+          not: 'DONE',
+        },
+      },
+    });
+
+    // Format and return response
+    return res.status(200).json({
+      success: true,
+      message: `Organization's tasks retrieved successfully`,
+      data: {
+        tasks: formattedTasks,
+        statistics: {
+          totalTasks: totalActiveTasks,
+          byStatus: taskCountsByStatus,
+          byPriority: taskCountsByPriority,
+          overdue: overdueTasks,
+        },
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages,
+          totalItems: totalActiveTasks,
+          hasNextPage: parseInt(page) < totalPages,
+          hasPrevPage: parseInt(page) > 1,
+        },
+      },
     });
   } catch (error) {
     next(error);

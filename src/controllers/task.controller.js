@@ -408,6 +408,7 @@ export const updateTask = async (req, res, next) => {
     const {
       title,
       description,
+      status,
       priority,
       sprintId,
       assignedTo,
@@ -561,6 +562,7 @@ export const updateTask = async (req, res, next) => {
       data: {
         title: title !== undefined ? title : task.title,
         description: description !== undefined ? description : task.description,
+        status: status !== undefined ? status : task.status,
         priority: priority !== undefined ? priority : task.priority,
         sprintId: sprintId !== undefined ? sprintId : task.sprintId,
         assignedTo: assignedTo !== undefined ? assignedTo : task.assignedTo,

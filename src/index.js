@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { createServer } from 'http';
 // import bodyParser from 'body-parser';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
@@ -20,18 +21,25 @@ import projectRoutes from './routes/project.routes.js';
 import sprintRoutes from './routes/sprint.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import activitylogRoutes from './routes/activitylog.routes.js';
+import chatRoutes from './routes/chat.routes.js';
+import videoRoutes from './routes/video.routes.js';
 import {
   errorHandler,
   notFound,
 } from './middlewares/errorHandler.middleware.js';
 import departmentRoutes from './routes/department.routes.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
+import { initializeSocketServer } from './socket/socketServer.js';
 
 /* eslint no-undef: off */
 const PORT = process.env.PORT;
 
 const app = express();
+const httpServer = createServer(app);
 // app.use(bodyParser.json());
+
+// Initialize Socket.IO server
+initializeSocketServer(httpServer);
 
 const swaggerDocument = JSON.parse(
   fs.readFileSync(path.resolve('./src/docs/swagger.json'), 'utf8'),
@@ -86,12 +94,14 @@ app.use(projectRoutes);
 app.use(sprintRoutes);
 app.use(taskRoutes);
 app.use(activitylogRoutes);
+app.use(chatRoutes);
+app.use(videoRoutes);
 
 // Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   /* eslint no-console:off */
   console.log(
     `Server is running in ${process.env.NODE_ENV} enviroment on port ${PORT}`,

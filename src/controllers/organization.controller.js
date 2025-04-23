@@ -15,6 +15,7 @@ import {
   createActivityLog,
   generateActivityDetails,
 } from '../utils/activityLogs.utils.js';
+import { onOrganizationCreated } from '../hooks/entityHooks.js';
 
 /**
  * @desc   Create a new organization with the current user as owner
@@ -132,6 +133,9 @@ export const createOrganization = async (req, res, next) => {
         createdAt: result.org.createdAt,
       }),
     });
+
+    // hook to create chat room for the organization
+    await onOrganizationCreated(result.org, req.user.id);
 
     return res.status(201).json({
       success: true,
@@ -1134,6 +1138,46 @@ export const deleteOrganizationLogo = async (req, res, next) => {
     res.status(200).json({
       message: 'Organization logo deleted successfully',
       organization: updatedOrganization,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get all users within an organization
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ */
+export const getAllOrganizationUsers = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required field: id',
+      });
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId: id,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: users,
     });
   } catch (error) {
     next(error);

@@ -1,25 +1,18 @@
-import { prisma } from '../config/prismaClient.js';
-import { emitToRoom } from '../socket/socketServer.js';
+import prisma from '../config/prismaClient.js';
+/* eslint no-console: off */
 
-/**
- * Create a new chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
 export const createChatRoom = async (req, res) => {
   try {
     const { name, description, type, entityType, entityId } = req.body;
     const userId = req.user.id;
 
-    // Validate required fields
-    if (!name || !type || !entityType || !entityId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: name, type, entityType, or entityId',
-      });
+    // Verify entity exists
+    const entity = await verifyEntity(entityType, entityId);
+    if (!entity) {
+      return res.status(404).json({ message: `${entityType} not found` });
     }
 
-    // Check if a chat room already exists for this entity
+    // Check if chat room already exists for this entity
     const existingChatRoom = await prisma.chatRoom.findUnique({
       where: {
         entityType_entityId: {
@@ -30,24 +23,24 @@ export const createChatRoom = async (req, res) => {
     });
 
     if (existingChatRoom) {
-      return res.status(400).json({
-        success: false,
-        message: 'A chat room for this entity already exists',
-      });
+      return res
+        .status(409)
+        .json({ message: `Chat room already exists for this ${entityType}` });
     }
 
-    // Create the chat room
+    // Create new chat room
     const chatRoom = await prisma.chatRoom.create({
       data: {
-        name,
+        name: name || `${entityType} Chat`,
         description,
         type,
         entityType,
         entityId,
+        lastMessageAt: new Date(),
       },
     });
 
-    // Add the creator as an admin participant
+    // Add the current user as a participant and admin
     await prisma.chatParticipant.create({
       data: {
         chatRoomId: chatRoom.id,
@@ -56,170 +49,16 @@ export const createChatRoom = async (req, res) => {
       },
     });
 
-    // Add participants based on the entity type
-    let participants = [];
-
-    switch (entityType) {
-      case 'ORGANIZATION':
-        // Add all organization members
-        participants = await prisma.user.findMany({
-          where: {
-            organizationId: entityId,
-            isActive: true,
-          },
-          select: {
-            id: true,
-          },
-        });
-        break;
-
-      case 'DEPARTMENT':
-        // Add all department members
-        participants = await prisma.user.findMany({
-          where: {
-            departmentId: entityId,
-            isActive: true,
-          },
-          select: {
-            id: true,
-          },
-        });
-        break;
-
-      case 'TEAM':
-        // Add all team members
-        const teamMembers = await prisma.teamMember.findMany({
-          where: {
-            teamId: entityId,
-            isActive: true,
-          },
-          select: {
-            userId: true,
-          },
-        });
-        participants = teamMembers.map((member) => ({ id: member.userId }));
-        break;
-
-      case 'PROJECT':
-        // Add all project members
-        const projectMembers = await prisma.projectMember.findMany({
-          where: {
-            projectId: entityId,
-            isActive: true,
-          },
-          select: {
-            userId: true,
-          },
-        });
-        participants = projectMembers.map((member) => ({ id: member.userId }));
-        break;
-
-      case 'TASK':
-        // Add task creator and assignee
-        const task = await prisma.task.findUnique({
-          where: { id: entityId },
-          select: {
-            createdBy: true,
-            assignedTo: true,
-            projectId: true,
-          },
-        });
-
-        if (task) {
-          // Add task creator
-          participants.push({ id: task.createdBy });
-
-          // Add task assignee if exists
-          if (task.assignedTo) {
-            participants.push({ id: task.assignedTo });
-          }
-
-          // Add project manager
-          const project = await prisma.project.findUnique({
-            where: { id: task.projectId },
-            select: { createdBy: true },
-          });
-
-          if (project) {
-            participants.push({ id: project.createdBy });
-          }
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    // Create participant records for all users
-    // Filter out duplicates and the creator (who is already added)
-    const uniqueParticipantIds = [
-      ...new Set(participants.map((p) => p.id)),
-    ].filter((id) => id !== userId);
-
-    if (uniqueParticipantIds.length > 0) {
-      await prisma.chatParticipant.createMany({
-        data: uniqueParticipantIds.map((participantId) => ({
-          chatRoomId: chatRoom.id,
-          userId: participantId,
-          isAdmin: false,
-        })),
-        skipDuplicates: true,
-      });
-    }
-
-    // Create welcome system message
-    await prisma.chatMessage.create({
-      data: {
-        chatRoomId: chatRoom.id,
-        senderId: userId,
-        content: `Welcome to ${chatRoom.name}!`,
-        contentType: 'SYSTEM',
-        metadata: {
-          action: 'room_created',
-        },
-      },
-    });
-
-    // Return the created chat room
-    const createdRoom = await prisma.chatRoom.findUnique({
-      where: { id: chatRoom.id },
-      include: {
-        participants: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                firstName: true,
-                lastName: true,
-                profilePic: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return res.status(201).json({
-      success: true,
-      data: createdRoom,
-    });
+    return res.status(201).json(chatRoom);
   } catch (error) {
-    // console.error('Error creating chat room:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to create chat room',
-      error: error.message,
-    });
+    console.error('Error creating chat room:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to create chat room', error: error.message });
   }
 };
 
-/**
- * Get all chat rooms for a user
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
-export const getUserChatRooms = async (req, res) => {
+export const getChatRooms = async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -229,7 +68,6 @@ export const getUserChatRooms = async (req, res) => {
         participants: {
           some: {
             userId,
-            status: 'ACTIVE',
           },
         },
         isActive: true,
@@ -244,6 +82,26 @@ export const getUserChatRooms = async (req, res) => {
                 firstName: true,
                 lastName: true,
                 profilePic: true,
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+          select: {
+            id: true,
+            content: true,
+            contentType: true,
+            createdAt: true,
+            sender: {
+              select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
               },
             },
           },
@@ -259,42 +117,62 @@ export const getUserChatRooms = async (req, res) => {
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      data: chatRooms,
-    });
+    // Get unread message counts for each chat room
+    const chatRoomsWithUnread = await Promise.all(
+      chatRooms.map(async (room) => {
+        const participant = room.participants.find((p) => p.userId === userId);
+
+        const unreadCount = await prisma.chatMessage.count({
+          where: {
+            chatRoomId: room.id,
+            createdAt: {
+              gt: participant.lastReadAt || new Date(0),
+            },
+            senderId: {
+              not: userId,
+            },
+          },
+        });
+
+        return {
+          ...room,
+          unreadCount,
+        };
+      }),
+    );
+
+    return res.status(200).json(chatRoomsWithUnread);
   } catch (error) {
-    // console.error('Error getting user chat rooms:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to get user chat rooms',
-      error: error.message,
-    });
+    console.error('Error fetching chat rooms:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to fetch chat rooms', error: error.message });
   }
 };
 
-/**
- * Get a specific chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
-export const getChatRoom = async (req, res) => {
+export const getChatRoomById = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // Check if the user is a participant in this chat room
-    const chatRoom = await prisma.chatRoom.findFirst({
+    // Check if user is a participant
+    const participant = await prisma.chatParticipant.findUnique({
       where: {
-        id,
-        isActive: true,
-        participants: {
-          some: {
-            userId,
-            status: 'ACTIVE',
-          },
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId,
         },
       },
+    });
+
+    if (!participant) {
+      return res
+        .status(403)
+        .json({ message: 'You are not a participant in this chat room' });
+    }
+
+    const chatRoom = await prisma.chatRoom.findUnique({
+      where: { id },
       include: {
         participants: {
           include: {
@@ -313,39 +191,26 @@ export const getChatRoom = async (req, res) => {
     });
 
     if (!chatRoom) {
-      return res.status(404).json({
-        success: false,
-        message: 'Chat room not found or you do not have access',
-      });
+      return res.status(404).json({ message: 'Chat room not found' });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: chatRoom,
-    });
+    return res.status(200).json(chatRoom);
   } catch (error) {
-    // console.error('Error getting chat room:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to get chat room',
-      error: error.message,
-    });
+    console.error('Error fetching chat room:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to fetch chat room', error: error.message });
   }
 };
 
-/**
- * Get messages for a chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
-export const getChatMessages = async (req, res) => {
+export const updateChatRoom = async (req, res) => {
   try {
     const { id } = req.params;
+    const { name, description, isArchived } = req.body;
     const userId = req.user.id;
-    const { limit = 50, before } = req.query;
 
-    // Check if the user is a participant in this chat room
-    const isParticipant = await prisma.chatParticipant.findUnique({
+    // Check if user is an admin participant
+    const participant = await prisma.chatParticipant.findUnique({
       where: {
         chatRoomId_userId: {
           chatRoomId: id,
@@ -354,28 +219,73 @@ export const getChatMessages = async (req, res) => {
       },
     });
 
-    if (!isParticipant) {
+    if (!participant || !participant.isAdmin) {
       return res.status(403).json({
-        success: false,
-        message: 'You do not have access to this chat room',
+        message: 'You do not have permission to update this chat room',
       });
     }
 
-    // Query conditions
-    const whereConditions = {
-      chatRoomId: id,
+    const updatedData = {
+      ...(name && { name }),
+      ...(description !== undefined && { description }),
+      ...(isArchived !== undefined && {
+        isArchived,
+        ...(isArchived && { archivedAt: new Date() }),
+      }),
+      updatedAt: new Date(),
     };
 
-    // Add pagination condition if 'before' parameter is provided
-    if (before) {
-      whereConditions.createdAt = {
-        lt: new Date(before),
-      };
+    const chatRoom = await prisma.chatRoom.update({
+      where: { id },
+      data: updatedData,
+    });
+
+    return res.status(200).json(chatRoom);
+  } catch (error) {
+    console.error('Error updating chat room:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to update chat room', error: error.message });
+  }
+};
+
+export const getMessages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Check if user is a participant
+    const participant = await prisma.chatParticipant.findUnique({
+      where: {
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId,
+        },
+      },
+    });
+
+    if (!participant) {
+      return res
+        .status(403)
+        .json({ message: 'You are not a participant in this chat room' });
     }
 
     // Get messages with pagination
     const messages = await prisma.chatMessage.findMany({
-      where: whereConditions,
+      where: {
+        chatRoomId: id,
+        isDeleted: false,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: limitNumber,
       include: {
         sender: {
           select: {
@@ -386,9 +296,9 @@ export const getChatMessages = async (req, res) => {
             profilePic: true,
           },
         },
-        replyTo: {
+        reactions: {
           include: {
-            sender: {
+            user: {
               select: {
                 id: true,
                 username: true,
@@ -399,34 +309,31 @@ export const getChatMessages = async (req, res) => {
           },
         },
         attachments: true,
-        reactions: {
-          include: {
-            user: {
+        replyTo: {
+          select: {
+            id: true,
+            content: true,
+            sender: {
               select: {
                 id: true,
                 username: true,
                 firstName: true,
                 lastName: true,
-                profilePic: true,
               },
             },
           },
         },
-        pinnedIn: {
-          select: {
-            id: true,
-            pinnedBy: true,
-            pinnedAt: true,
-          },
-        },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: parseInt(limit),
     });
 
-    // Update user's last read message
+    const total = await prisma.chatMessage.count({
+      where: {
+        chatRoomId: id,
+        isDeleted: false,
+      },
+    });
+
+    // Update last read status for the user
     if (messages.length > 0) {
       await prisma.chatParticipant.update({
         where: {
@@ -443,318 +350,366 @@ export const getChatMessages = async (req, res) => {
     }
 
     return res.status(200).json({
-      success: true,
-      data: messages.reverse(), // Return in chronological order
+      messages,
+      pagination: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        pages: Math.ceil(total / limitNumber),
+      },
     });
   } catch (error) {
-    // console.error('Error getting chat messages:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to get chat messages',
-      error: error.message,
-    });
+    console.error('Error fetching messages:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to fetch messages', error: error.message });
   }
 };
 
-/**
- * Add a participant to a chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
-export const addParticipant = async (req, res) => {
+export const addParticipants = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userId } = req.body;
-    const currentUserId = req.user.id;
+    const { userIds } = req.body; // Array of user IDs to add
+    const requestingUserId = req.user.id;
 
-    // Check if the current user is an admin in this chat room
-    const currentUserParticipant = await prisma.chatParticipant.findUnique({
+    // Check if requesting user is an admin
+    const requestingParticipant = await prisma.chatParticipant.findUnique({
       where: {
         chatRoomId_userId: {
           chatRoomId: id,
-          userId: currentUserId,
+          userId: requestingUserId,
         },
       },
     });
 
-    if (!currentUserParticipant || !currentUserParticipant.isAdmin) {
+    if (!requestingParticipant || !requestingParticipant.isAdmin) {
       return res.status(403).json({
-        success: false,
         message:
           'You do not have permission to add participants to this chat room',
       });
     }
 
-    // Check if the user to add exists
-    const userToAdd = await prisma.user.findUnique({
-      where: { id: userId, isActive: true },
+    // Get current participants to avoid duplicates
+    const currentParticipants = await prisma.chatParticipant.findMany({
+      where: {
+        chatRoomId: id,
+      },
       select: {
-        id: true,
-        username: true,
-        firstName: true,
-        lastName: true,
+        userId: true,
       },
     });
 
-    if (!userToAdd) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found or inactive',
+    const currentParticipantIds = currentParticipants.map((p) => p.userId);
+    const newParticipantIds = userIds.filter(
+      (userId) => !currentParticipantIds.includes(userId),
+    );
+
+    if (newParticipantIds.length === 0) {
+      return res.status(400).json({
+        message: 'All users are already participants in this chat room',
       });
     }
 
-    // Check if the user is already a participant
-    const existingParticipant = await prisma.chatParticipant.findUnique({
-      where: {
-        chatRoomId_userId: {
-          chatRoomId: id,
-          userId,
-        },
-      },
-    });
-
-    if (existingParticipant) {
-      // If participant exists but was previously removed, reactivate them
-      if (existingParticipant.status !== 'ACTIVE') {
-        await prisma.chatParticipant.update({
-          where: { id: existingParticipant.id },
-          data: { status: 'ACTIVE' },
-        });
-
-        // Create system message about user rejoining
-        await prisma.chatMessage.create({
+    // Add new participants
+    const newParticipants = await prisma.$transaction(
+      newParticipantIds.map((userId) =>
+        prisma.chatParticipant.create({
           data: {
             chatRoomId: id,
-            senderId: currentUserId,
-            content: `${userToAdd.firstName} ${userToAdd.lastName} was added back to the chat`,
-            contentType: 'SYSTEM',
-            metadata: {
-              action: 'user_readded',
-              targetUserId: userId,
-            },
+            userId,
+            isAdmin: false,
           },
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: 'User is already an active participant in this chat room',
-        });
-      }
-    } else {
-      // Add new participant
-      await prisma.chatParticipant.create({
-        data: {
-          chatRoomId: id,
-          userId,
-          isAdmin: false, // New participants are not admins by default
-        },
-      });
+        }),
+      ),
+    );
 
-      // Create system message about new user
-      await prisma.chatMessage.create({
-        data: {
-          chatRoomId: id,
-          senderId: currentUserId,
-          content: `${userToAdd.firstName} ${userToAdd.lastName} was added to the chat`,
-          contentType: 'SYSTEM',
-          metadata: {
-            action: 'user_added',
-            targetUserId: userId,
-          },
-        },
-      });
-    }
-
-    // Get updated participant list
-    const chatRoom = await prisma.chatRoom.findUnique({
-      where: { id },
-      include: {
-        participants: {
-          where: { status: 'ACTIVE' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                firstName: true,
-                lastName: true,
-                profilePic: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    // Notify chat room about the new participant
-    emitToRoom(`chat:${id}`, 'chat:participant-added', {
-      chatRoomId: id,
-      participant: {
-        userId,
-        username: userToAdd.username,
-        firstName: userToAdd.firstName,
-        lastName: userToAdd.lastName,
-      },
-      addedBy: {
-        id: currentUserId,
-        username: req.user.username,
-      },
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: 'Participant added successfully',
-      data: chatRoom,
-    });
-  } catch (error) {
-    // console.error('Error adding participant:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to add participant',
-      error: error.message,
-    });
-  }
-};
-
-/**
- * Remove a participant from a chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
-export const removeParticipant = async (req, res) => {
-  try {
-    const { id, userId } = req.params;
-    const currentUserId = req.user.id;
-
-    // Check if the current user is an admin or the participant being removed is self
-    const currentUserParticipant = await prisma.chatParticipant.findUnique({
+    // Create a system message about new participants
+    const newUsernames = await prisma.user.findMany({
       where: {
-        chatRoomId_userId: {
-          chatRoomId: id,
-          userId: currentUserId,
+        id: {
+          in: newParticipantIds,
         },
       },
-    });
-
-    const userToRemove = await prisma.user.findUnique({
-      where: { id: userId },
       select: {
-        id: true,
-        username: true,
         firstName: true,
         lastName: true,
       },
     });
 
-    // User can remove themselves, or admins can remove others
-    const isSelfRemoval = userId === currentUserId;
-    if (
-      !isSelfRemoval &&
-      (!currentUserParticipant || !currentUserParticipant.isAdmin)
-    ) {
-      return res.status(403).json({
-        success: false,
-        message:
-          'You do not have permission to remove participants from this chat room',
-      });
-    }
-
-    // Check if the participant to remove exists
-    const participantToRemove = await prisma.chatParticipant.findUnique({
-      where: {
-        chatRoomId_userId: {
-          chatRoomId: id,
-          userId,
-        },
-      },
-    });
-
-    if (!participantToRemove) {
-      return res.status(404).json({
-        success: false,
-        message: 'Participant not found in this chat room',
-      });
-    }
-
-    // Cannot remove the last admin
-    if (participantToRemove.isAdmin) {
-      const adminCount = await prisma.chatParticipant.count({
-        where: {
-          chatRoomId: id,
-          isAdmin: true,
-        },
-      });
-
-      if (adminCount <= 1) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cannot remove the last admin from the chat room',
-        });
-      }
-    }
-
-    // Update participant status to LEFT instead of deleting
-    await prisma.chatParticipant.update({
-      where: { id: participantToRemove.id },
-      data: { status: 'LEFT' },
-    });
-
-    // Create system message
-    const action = isSelfRemoval ? 'user_left' : 'user_removed';
-    const content = isSelfRemoval
-      ? `${userToRemove.firstName} ${userToRemove.lastName} left the chat`
-      : `${userToRemove.firstName} ${userToRemove.lastName} was removed from the chat`;
+    const newUserNamesList = newUsernames
+      .map((u) => `${u.firstName} ${u.lastName}`)
+      .join(', ');
 
     await prisma.chatMessage.create({
       data: {
         chatRoomId: id,
-        senderId: currentUserId,
-        content,
+        senderId: requestingUserId,
+        content: `Added ${newUserNamesList} to the chat`,
         contentType: 'SYSTEM',
-        metadata: {
-          action,
-          targetUserId: userId,
+      },
+    });
+
+    // Update last message timestamp
+    await prisma.chatRoom.update({
+      where: { id },
+      data: {
+        lastMessageAt: new Date(),
+      },
+    });
+
+    return res.status(200).json({ addedParticipants: newParticipants.length });
+  } catch (error) {
+    console.error('Error adding participants:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to add participants', error: error.message });
+  }
+};
+
+export const removeParticipant = async (req, res) => {
+  try {
+    const { id, userId } = req.params;
+    const requestingUserId = req.user.id;
+
+    // Check if requesting user is an admin or the user themselves
+    const requestingParticipant = await prisma.chatParticipant.findUnique({
+      where: {
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId: requestingUserId,
         },
       },
     });
 
-    // Notify chat room about the removed participant
-    emitToRoom(`chat:${id}`, 'chat:participant-removed', {
-      chatRoomId: id,
-      userId,
-      removedBy: isSelfRemoval
-        ? null
-        : {
-            id: currentUserId,
-            username: req.user.username,
-          },
+    if (!requestingParticipant) {
+      return res
+        .status(403)
+        .json({ message: 'You are not a participant in this chat room' });
+    }
+
+    // Only admins can remove others, but users can remove themselves
+    if (requestingUserId !== userId && !requestingParticipant.isAdmin) {
+      return res.status(403).json({
+        message: 'You do not have permission to remove this participant',
+      });
+    }
+
+    // Get the user being removed
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Participant removed successfully',
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Remove the participant
+    await prisma.chatParticipant.delete({
+      where: {
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId,
+        },
+      },
     });
+
+    // Add system message if someone is removed (not if they leave)
+    if (requestingUserId !== userId) {
+      await prisma.chatMessage.create({
+        data: {
+          chatRoomId: id,
+          senderId: requestingUserId,
+          content: `Removed ${user.firstName} ${user.lastName} from the chat`,
+          contentType: 'SYSTEM',
+        },
+      });
+    } else {
+      await prisma.chatMessage.create({
+        data: {
+          chatRoomId: id,
+          senderId: requestingUserId,
+          content: `${user.firstName} ${user.lastName} left the chat`,
+          contentType: 'SYSTEM',
+        },
+      });
+    }
+
+    // Update last message timestamp
+    await prisma.chatRoom.update({
+      where: { id },
+      data: {
+        lastMessageAt: new Date(),
+      },
+    });
+
+    return res
+      .status(200)
+      .json({ message: 'Participant removed successfully' });
   } catch (error) {
-    // console.error('Error removing participant:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to remove participant',
-      error: error.message,
-    });
+    console.error('Error removing participant:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to remove participant', error: error.message });
   }
 };
 
-/**
- * Pin a message in a chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+export const makeAdmin = async (req, res) => {
+  try {
+    const { id, userId } = req.params;
+    const requestingUserId = req.user.id;
+
+    // Check if requesting user is an admin
+    const requestingParticipant = await prisma.chatParticipant.findUnique({
+      where: {
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId: requestingUserId,
+        },
+      },
+    });
+
+    if (!requestingParticipant || !requestingParticipant.isAdmin) {
+      return res.status(403).json({
+        message:
+          'You do not have permission to manage admins in this chat room',
+      });
+    }
+
+    // Update participant to admin
+    await prisma.chatParticipant.update({
+      where: {
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId,
+        },
+      },
+      data: {
+        isAdmin: true,
+      },
+    });
+
+    // Get the user who was made admin
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+
+    // Create system message
+    await prisma.chatMessage.create({
+      data: {
+        chatRoomId: id,
+        senderId: requestingUserId,
+        content: `${user.firstName} ${user.lastName} is now an admin`,
+        contentType: 'SYSTEM',
+      },
+    });
+
+    // Update last message timestamp
+    await prisma.chatRoom.update({
+      where: { id },
+      data: {
+        lastMessageAt: new Date(),
+      },
+    });
+
+    return res.status(200).json({ message: 'User is now an admin' });
+  } catch (error) {
+    console.error('Error making admin:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to update admin status', error: error.message });
+  }
+};
+
+export const removeAdmin = async (req, res) => {
+  try {
+    const { id, userId } = req.params;
+    const requestingUserId = req.user.id;
+
+    // Check if requesting user is an admin
+    const requestingParticipant = await prisma.chatParticipant.findUnique({
+      where: {
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId: requestingUserId,
+        },
+      },
+    });
+
+    if (!requestingParticipant || !requestingParticipant.isAdmin) {
+      return res.status(403).json({
+        message:
+          'You do not have permission to manage admins in this chat room',
+      });
+    }
+
+    // Count admins to ensure at least one admin remains
+    const adminCount = await prisma.chatParticipant.count({
+      where: {
+        chatRoomId: id,
+        isAdmin: true,
+      },
+    });
+
+    if (adminCount <= 1 && userId === requestingUserId) {
+      return res
+        .status(400)
+        .json({ message: 'Cannot remove the last admin from the chat room' });
+    }
+
+    // Update participant to remove admin status
+    await prisma.chatParticipant.update({
+      where: {
+        chatRoomId_userId: {
+          chatRoomId: id,
+          userId,
+        },
+      },
+      data: {
+        isAdmin: false,
+      },
+    });
+
+    // Get the user who was removed as admin
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+
+    // Create system message
+    await prisma.chatMessage.create({
+      data: {
+        chatRoomId: id,
+        senderId: requestingUserId,
+        content: `${user.firstName} ${user.lastName} is no longer an admin`,
+        contentType: 'SYSTEM',
+      },
+    });
+
+    // Update last message timestamp
+    await prisma.chatRoom.update({
+      where: { id },
+      data: {
+        lastMessageAt: new Date(),
+      },
+    });
+
+    return res.status(200).json({ message: 'Admin status removed' });
+  } catch (error) {
+    console.error('Error removing admin status:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to update admin status', error: error.message });
+  }
+};
+
 export const pinMessage = async (req, res) => {
   try {
-    const { chatRoomId, messageId } = req.body;
+    const { chatRoomId, messageId } = req.params;
     const userId = req.user.id;
 
-    // Check if the user is a participant in this chat room
+    // Check if user is an admin
     const participant = await prisma.chatParticipant.findUnique({
       where: {
         chatRoomId_userId: {
@@ -764,14 +719,13 @@ export const pinMessage = async (req, res) => {
       },
     });
 
-    if (!participant) {
+    if (!participant || !participant.isAdmin) {
       return res.status(403).json({
-        success: false,
-        message: 'You do not have access to this chat room',
+        message: 'You do not have permission to pin messages in this chat room',
       });
     }
 
-    // Check if the message exists in this chat room
+    // Check if message exists and belongs to this chat room
     const message = await prisma.chatMessage.findFirst({
       where: {
         id: messageId,
@@ -780,13 +734,12 @@ export const pinMessage = async (req, res) => {
     });
 
     if (!message) {
-      return res.status(404).json({
-        success: false,
-        message: 'Message not found in this chat room',
-      });
+      return res
+        .status(404)
+        .json({ message: 'Message not found in this chat room' });
     }
 
-    // Check if the message is already pinned
+    // Check if already pinned
     const existingPin = await prisma.pinnedMessage.findUnique({
       where: {
         chatRoomId_messageId: {
@@ -797,13 +750,10 @@ export const pinMessage = async (req, res) => {
     });
 
     if (existingPin) {
-      return res.status(400).json({
-        success: false,
-        message: 'This message is already pinned',
-      });
+      return res.status(409).json({ message: 'Message is already pinned' });
     }
 
-    // Create the pinned message
+    // Pin the message
     const pinnedMessage = await prisma.pinnedMessage.create({
       data: {
         chatRoomId,
@@ -823,128 +773,66 @@ export const pinMessage = async (req, res) => {
             },
           },
         },
-        user: {
-          select: {
-            id: true,
-            username: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
       },
     });
 
-    // Notify chat room
-    emitToRoom(`chat:${chatRoomId}`, 'chat:message-pinned', {
-      chatRoomId,
-      messageId,
-      pinnedBy: {
-        id: userId,
-        username: req.user.username,
-      },
-      pinnedAt: pinnedMessage.pinnedAt,
-    });
-
-    return res.status(200).json({
-      success: true,
-      data: pinnedMessage,
-    });
+    return res.status(201).json(pinnedMessage);
   } catch (error) {
-    // console.error('Error pinning message:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to pin message',
-      error: error.message,
-    });
+    console.error('Error pinning message:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to pin message', error: error.message });
   }
 };
 
-/**
- * Unpin a message from a chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
 export const unpinMessage = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { chatRoomId, messageId } = req.params;
     const userId = req.user.id;
 
-    // Find the pinned message
-    const pinnedMessage = await prisma.pinnedMessage.findUnique({
-      where: { id },
-      include: {
-        message: true,
-      },
-    });
-
-    if (!pinnedMessage) {
-      return res.status(404).json({
-        success: false,
-        message: 'Pinned message not found',
-      });
-    }
-
-    // Check if the user is an admin or the one who pinned the message
+    // Check if user is an admin
     const participant = await prisma.chatParticipant.findUnique({
       where: {
         chatRoomId_userId: {
-          chatRoomId: pinnedMessage.chatRoomId,
+          chatRoomId,
           userId,
         },
       },
     });
 
-    if (
-      !participant ||
-      (!participant.isAdmin && pinnedMessage.pinnedBy !== userId)
-    ) {
+    if (!participant || !participant.isAdmin) {
       return res.status(403).json({
-        success: false,
-        message: 'You do not have permission to unpin this message',
+        message:
+          'You do not have permission to unpin messages in this chat room',
       });
     }
 
-    // Delete the pinned message
+    // Unpin the message
     await prisma.pinnedMessage.delete({
-      where: { id },
-    });
-
-    // Notify chat room
-    emitToRoom(`chat:${pinnedMessage.chatRoomId}`, 'chat:message-unpinned', {
-      chatRoomId: pinnedMessage.chatRoomId,
-      messageId: pinnedMessage.messageId,
-      unpinnedBy: {
-        id: userId,
-        username: req.user.username,
+      where: {
+        chatRoomId_messageId: {
+          chatRoomId,
+          messageId,
+        },
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Message unpinned successfully',
-    });
+    return res.status(200).json({ message: 'Message unpinned successfully' });
   } catch (error) {
-    // console.error('Error unpinning message:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to unpin message',
-      error: error.message,
-    });
+    console.error('Error unpinning message:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to unpin message', error: error.message });
   }
 };
 
-/**
- * Get all pinned messages for a chat room
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
 export const getPinnedMessages = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // Check if the user is a participant in this chat room
-    const isParticipant = await prisma.chatParticipant.findUnique({
+    // Check if user is a participant
+    const participant = await prisma.chatParticipant.findUnique({
       where: {
         chatRoomId_userId: {
           chatRoomId: id,
@@ -953,16 +841,17 @@ export const getPinnedMessages = async (req, res) => {
       },
     });
 
-    if (!isParticipant) {
-      return res.status(403).json({
-        success: false,
-        message: 'You do not have access to this chat room',
-      });
+    if (!participant) {
+      return res
+        .status(403)
+        .json({ message: 'You are not a participant in this chat room' });
     }
 
-    // Get all pinned messages
+    // Get pinned messages
     const pinnedMessages = await prisma.pinnedMessage.findMany({
-      where: { chatRoomId: id },
+      where: {
+        chatRoomId: id,
+      },
       include: {
         message: {
           include: {
@@ -991,184 +880,30 @@ export const getPinnedMessages = async (req, res) => {
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      data: pinnedMessages,
-    });
+    return res.status(200).json(pinnedMessages);
   } catch (error) {
-    // console.error('Error getting pinned messages:', error);
+    console.error('Error fetching pinned messages:', error);
     return res.status(500).json({
-      success: false,
-      message: 'Failed to get pinned messages',
+      message: 'Failed to fetch pinned messages',
       error: error.message,
     });
   }
 };
 
-/**
- * Generate a chat room when a new entity is created
- * @param {string} entityType - Type of entity (ORGANIZATION, DEPARTMENT, TEAM, PROJECT, TASK)
- * @param {string} entityId - ID of the entity
- * @param {string} name - Name for the chat room
- * @param {string} description - Description for the chat room
- * @param {string} creatorId - ID of the user creating the entity
- * @returns {Promise<Object>} Created chat room
- */
-export const generateChatRoom = async (
-  entityType,
-  entityId,
-  name,
-  description,
-  creatorId,
-) => {
-  try {
-    // Create the chat room
-    const chatRoom = await prisma.chatRoom.create({
-      data: {
-        name: `${name} Chat`,
-        description: description || `Chat room for ${name}`,
-        type: entityType, // Chat type matches entity type
-        entityType,
-        entityId,
-      },
-    });
-
-    // Add the creator as an admin participant
-    await prisma.chatParticipant.create({
-      data: {
-        chatRoomId: chatRoom.id,
-        userId: creatorId,
-        isAdmin: true,
-      },
-    });
-
-    // Add participants based on the entity type
-    let participants = [];
-
-    switch (entityType) {
-      case 'ORGANIZATION':
-        // Add all organization members
-        participants = await prisma.user.findMany({
-          where: {
-            organizationId: entityId,
-            isActive: true,
-            id: { not: creatorId }, // Exclude creator who is already added
-          },
-          select: {
-            id: true,
-          },
-        });
-        break;
-
-      case 'DEPARTMENT':
-        // Add all department members
-        participants = await prisma.user.findMany({
-          where: {
-            departmentId: entityId,
-            isActive: true,
-            id: { not: creatorId }, // Exclude creator who is already added
-          },
-          select: {
-            id: true,
-          },
-        });
-        break;
-
-      case 'TEAM':
-        // Add all team members
-        const teamMembers = await prisma.teamMember.findMany({
-          where: {
-            teamId: entityId,
-            isActive: true,
-            userId: { not: creatorId }, // Exclude creator who is already added
-          },
-          select: {
-            userId: true,
-          },
-        });
-        participants = teamMembers.map((member) => ({ id: member.userId }));
-        break;
-
-      case 'PROJECT':
-        // Add all project members
-        const projectMembers = await prisma.projectMember.findMany({
-          where: {
-            projectId: entityId,
-            isActive: true,
-            userId: { not: creatorId }, // Exclude creator who is already added
-          },
-          select: {
-            userId: true,
-          },
-        });
-        participants = projectMembers.map((member) => ({ id: member.userId }));
-        break;
-
-      case 'TASK':
-        // Add task creator and assignee
-        const task = await prisma.task.findUnique({
-          where: { id: entityId },
-          select: {
-            createdBy: true,
-            assignedTo: true,
-            projectId: true,
-          },
-        });
-
-        if (task) {
-          // Add assignee if exists and is not the creator
-          if (task.assignedTo && task.assignedTo !== creatorId) {
-            participants.push({ id: task.assignedTo });
-          }
-
-          // Add project manager if not the creator
-          const project = await prisma.project.findUnique({
-            where: { id: task.projectId },
-            select: { createdBy: true },
-          });
-
-          if (project && project.createdBy !== creatorId) {
-            participants.push({ id: project.createdBy });
-          }
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    // Create participant records for all users
-    // Filter out duplicates
-    const uniqueParticipantIds = [...new Set(participants.map((p) => p.id))];
-
-    if (uniqueParticipantIds.length > 0) {
-      await prisma.chatParticipant.createMany({
-        data: uniqueParticipantIds.map((participantId) => ({
-          chatRoomId: chatRoom.id,
-          userId: participantId,
-          isAdmin: false,
-        })),
-        skipDuplicates: true,
-      });
-    }
-
-    // Create welcome system message
-    await prisma.chatMessage.create({
-      data: {
-        chatRoomId: chatRoom.id,
-        senderId: creatorId,
-        content: `Welcome to ${chatRoom.name}!`,
-        contentType: 'SYSTEM',
-        metadata: {
-          action: 'room_created',
-        },
-      },
-    });
-
-    // console.log(`Chat room created for ${entityType} ${entityId}`);
-    return chatRoom;
-  } catch (error) {
-    /* eslint no-useless-catch: off */
-    throw error;
+// Helper function to verify entity exists
+const verifyEntity = async (entityType, entityId) => {
+  switch (entityType) {
+    case 'ORGANIZATION':
+      return await prisma.organization.findUnique({ where: { id: entityId } });
+    case 'DEPARTMENT':
+      return await prisma.department.findUnique({ where: { id: entityId } });
+    case 'TEAM':
+      return await prisma.team.findUnique({ where: { id: entityId } });
+    case 'PROJECT':
+      return await prisma.project.findUnique({ where: { id: entityId } });
+    case 'TASK':
+      return await prisma.task.findUnique({ where: { id: entityId } });
+    default:
+      return null;
   }
 };

@@ -5885,94 +5885,58 @@
       "put": {
         "tags": ["Task"],
         "summary": "Update a task",
-        "description": "Updates an existing task within a specific project, team, and organization. Requires appropriate permissions.",
-        "security": [{ "BearerAuth": [] }],
+        "description": "Updates an existing task within a specific project, team, and organization. Requires appropriate permissions. Automatically logs activity for changes like assignment, status updates, and sprint changes.",
+        "operationId": "updateTask",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "organizationId",
             "in": "path",
             "required": true,
-            "description": "ID of the organization",
-            "schema": { "type": "string" }
+            "description": "ID of the organization containing the task",
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "teamId",
             "in": "path",
             "required": true,
-            "description": "ID of the team",
-            "schema": { "type": "string" }
+            "description": "ID of the team containing the task",
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "projectId",
             "in": "path",
             "required": true,
-            "description": "ID of the project",
-            "schema": { "type": "string" }
+            "description": "ID of the project containing the task",
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "taskId",
             "in": "path",
             "required": true,
             "description": "ID of the task to update",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
+          "description": "Task update payload (all fields optional - only included fields will be updated)",
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "title": {
-                    "type": "string",
-                    "description": "Updated title of the task",
-                    "example": "Updated: Implement user authentication"
-                  },
-                  "description": {
-                    "type": "string",
-                    "description": "Updated description of the task",
-                    "example": "Updated: Implement JWT based authentication for the API"
-                  },
-                  "priority": {
-                    "type": "string",
-                    "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-                    "description": "Updated priority level of the task",
-                    "example": "MEDIUM"
-                  },
-                  "sprintId": {
-                    "type": "string",
-                    "description": "Updated ID of the sprint this task belongs to",
-                    "example": "cln3k7vxp0000v2k0q2q3k4k5"
-                  },
-                  "assignedTo": {
-                    "type": "string",
-                    "description": "Updated ID of the user this task is assigned to",
-                    "example": "cln3k7vxp0000v2k0q2q3k4k5"
-                  },
-                  "dueDate": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "Updated due date for the task",
-                    "example": "2024-01-15T23:59:59Z"
-                  },
-                  "estimatedTime": {
-                    "type": "number",
-                    "description": "Updated estimated time to complete the task in hours",
-                    "example": 12
-                  },
-                  "parentId": {
-                    "type": "string",
-                    "description": "Updated ID of the parent task if this is a subtask",
-                    "example": "cln3k7vxp0000v2k0q2q3k4k5"
-                  },
-                  "labels": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Updated array of labels for the task",
-                    "example": ["backend", "authentication", "security"]
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateTaskRequest"
               }
             }
           }
@@ -5983,44 +5947,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": {
-                      "type": "string",
-                      "example": "Task updated successfully"
-                    },
-                    "task": { "$ref": "#/components/schemas/Task" }
-                  }
+                  "$ref": "#/components/schemas/UpdateTaskResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error or circular dependency detected",
+            "description": "Bad request",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": false },
-                    "message": {
-                      "oneOf": [
-                        {
-                          "type": "string",
-                          "example": "\"priority\" must be one of [LOW, MEDIUM, HIGH, CRITICAL]"
-                        },
-                        {
-                          "type": "string",
-                          "example": "A task cannot be its own parent"
-                        },
-                        {
-                          "type": "string",
-                          "example": "Circular dependency detected in task hierarchy"
-                        }
-                      ]
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CircularDependencyError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SelfParentError"
                     }
-                  }
+                  ]
                 }
               }
             }
@@ -6030,47 +5977,36 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": false },
-                    "message": {
-                      "type": "string",
-                      "example": "You don't have permission to update tasks in this project"
-                    }
-                  }
+                  "$ref": "#/components/schemas/PermissionErrorResponse"
                 }
               }
             }
           },
           "404": {
-            "description": "Not found - organization, team, project, task, sprint or parent task not found",
+            "description": "Not found",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": false },
-                    "message": {
-                      "oneOf": [
-                        {
-                          "type": "string",
-                          "example": "Organization not found"
-                        },
-                        {
-                          "type": "string",
-                          "example": "Task not found or does not belong to the specified project"
-                        },
-                        {
-                          "type": "string",
-                          "example": "Sprint not found or does not belong to the specified project"
-                        },
-                        {
-                          "type": "string",
-                          "example": "Parent task not found or does not belong to the specified project"
-                        }
-                      ]
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OrganizationNotFoundError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TeamNotFoundError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProjectNotFoundError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TaskNotFoundError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SprintNotFoundError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ParentTaskNotFoundError"
                     }
-                  }
+                  ]
                 }
               }
             }
@@ -6080,14 +6016,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": false },
-                    "message": {
-                      "type": "string",
-                      "example": "Internal server error"
-                    }
-                  }
+                  "$ref": "#/components/schemas/InternalServerError"
                 }
               }
             }
@@ -7263,6 +7192,495 @@
                       "example": "Internal server error"
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/organization/{organizationId}/tasks": {
+      "get": {
+        "tags": ["Task"],
+        "summary": "Get tasks in a specific organization",
+        "description": "Retrieves paginated list of tasks in an organization with filtering options. Includes subtasks if requested.",
+        "operationId": "getTasksInSpecificOrg",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the organization",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by project ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by project name (case-insensitive contains)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assignedTo",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by assignee. Use 'me' for current user or 'unassigned' for unassigned tasks",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by status",
+            "schema": {
+              "type": "string",
+              "enum": ["TODO", "IN_PROGRESS", "REVIEW", "DONE"]
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by priority",
+            "schema": {
+              "type": "string",
+              "enum": ["LOW", "MEDIUM", "HIGH"]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number for pagination (default: 1)",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Number of items per page (default: 10)",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "includeSubtasks",
+            "in": "query",
+            "required": false,
+            "description": "Include subtasks for each task (default: true)",
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "true"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization's tasks retrieved successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tasks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "priority": {
+                                "type": "string",
+                                "enum": ["LOW", "MEDIUM", "HIGH"]
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "TODO",
+                                  "IN_PROGRESS",
+                                  "REVIEW",
+                                  "DONE"
+                                ]
+                              },
+                              "dueDate": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "estimatedTime": {
+                                "type": "number",
+                                "description": "Estimated time in hours"
+                              },
+                              "actualTime": {
+                                "type": "number",
+                                "description": "Actual time spent in hours"
+                              },
+                              "timeRemaining": {
+                                "type": "number",
+                                "description": "Remaining time in hours"
+                              },
+                              "timeProgress": {
+                                "type": "number",
+                                "description": "Time progress percentage (0-100)"
+                              },
+                              "labels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "project": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "creator": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "firstName": {
+                                    "type": "string"
+                                  },
+                                  "lastName": {
+                                    "type": "string"
+                                  },
+                                  "profilePic": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "assignee": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "firstName": {
+                                    "type": "string"
+                                  },
+                                  "lastName": {
+                                    "type": "string"
+                                  },
+                                  "profilePic": {
+                                    "type": "string"
+                                  }
+                                },
+                                "nullable": true
+                              },
+                              "commentCount": {
+                                "type": "integer"
+                              },
+                              "attachmentCount": {
+                                "type": "integer"
+                              },
+                              "timelogCount": {
+                                "type": "integer"
+                              },
+                              "isOverdue": {
+                                "type": "boolean"
+                              },
+                              "progress": {
+                                "type": "integer",
+                                "description": "Completion percentage (0-100)"
+                              },
+                              "subtaskStats": {
+                                "type": "object",
+                                "properties": {
+                                  "total": {
+                                    "type": "integer"
+                                  },
+                                  "completed": {
+                                    "type": "integer"
+                                  },
+                                  "inProgress": {
+                                    "type": "integer"
+                                  },
+                                  "notStarted": {
+                                    "type": "integer"
+                                  },
+                                  "overdue": {
+                                    "type": "integer"
+                                  }
+                                }
+                              },
+                              "subtasks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "title": {
+                                      "type": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "priority": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string"
+                                    },
+                                    "dueDate": {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    },
+                                    "estimatedTime": {
+                                      "type": "number"
+                                    },
+                                    "actualTime": {
+                                      "type": "number"
+                                    },
+                                    "labels": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "commentCount": {
+                                      "type": "integer"
+                                    },
+                                    "attachmentCount": {
+                                      "type": "integer"
+                                    },
+                                    "assignee": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "firstName": {
+                                          "type": "string"
+                                        },
+                                        "lastName": {
+                                          "type": "string"
+                                        },
+                                        "profilePic": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "nullable": true
+                                    },
+                                    "isOverdue": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                }
+                              },
+                              "hasMoreSubtasks": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        },
+                        "statistics": {
+                          "type": "object",
+                          "properties": {
+                            "totalTasks": {
+                              "type": "integer"
+                            },
+                            "byStatus": {
+                              "type": "object",
+                              "properties": {
+                                "todo": {
+                                  "type": "integer"
+                                },
+                                "inProgress": {
+                                  "type": "integer"
+                                },
+                                "review": {
+                                  "type": "integer"
+                                },
+                                "done": {
+                                  "type": "integer"
+                                }
+                              }
+                            },
+                            "byPriority": {
+                              "type": "object",
+                              "properties": {
+                                "low": {
+                                  "type": "integer"
+                                },
+                                "medium": {
+                                  "type": "integer"
+                                },
+                                "high": {
+                                  "type": "integer"
+                                }
+                              }
+                            },
+                            "overdue": {
+                              "type": "integer"
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer"
+                            },
+                            "limit": {
+                              "type": "integer"
+                            },
+                            "totalPages": {
+                              "type": "integer"
+                            },
+                            "totalItems": {
+                              "type": "integer"
+                            },
+                            "hasNextPage": {
+                              "type": "boolean"
+                            },
+                            "hasPrevPage": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing organization ID or invalid filter values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Organization ID is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User doesn't have permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to view this organization"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Organization or project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Organization not found"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Project not found"
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -9503,6 +9921,228 @@
             "items": { "type": "string" }
           },
           "lastModifiedBy": { "type": "string" }
+        }
+      },
+      "UpdateTaskRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Updated title of the task",
+            "example": "Implement user authentication"
+          },
+          "description": {
+            "type": "string",
+            "description": "Updated description of the task",
+            "example": "Implement JWT based authentication for the API"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["TODO", "IN_PROGRESS", "REVIEW", "DONE"],
+            "description": "Updated status of the task",
+            "example": "IN_PROGRESS"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+            "description": "Updated priority of the task",
+            "example": "HIGH"
+          },
+          "sprintId": {
+            "type": "string",
+            "description": "ID of the sprint to move this task to",
+            "example": "cln3k7vxp0000v2k0q2q3k4k5"
+          },
+          "assignedTo": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of user to assign this task to (set to null to unassign)",
+            "example": "cln3k7vxp0000v2k0q2q3k4k5"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Updated due date for the task",
+            "example": "2024-01-15T23:59:59Z"
+          },
+          "estimatedTime": {
+            "type": "number",
+            "description": "Updated estimated time to complete (in hours)",
+            "example": 8
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of parent task (set to null to make this a top-level task)",
+            "example": "cln3k7vxp0000v2k0q2q3k4k5"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated labels for the task",
+            "example": ["backend", "authentication"]
+          }
+        }
+      },
+      "UpdateTaskResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Task updated successfully"
+          },
+          "task": {
+            "$ref": "#/components/schemas/Task"
+          }
+        }
+      },
+      "ValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "\"priority\" must be one of [LOW, MEDIUM, HIGH, CRITICAL]"
+          }
+        }
+      },
+      "CircularDependencyError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Circular dependency detected in task hierarchy"
+          }
+        }
+      },
+      "SelfParentError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "A task cannot be its own parent"
+          }
+        }
+      },
+      "PermissionErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "You don't have permission to update tasks in this project"
+          }
+        }
+      },
+      "OrganizationNotFoundError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Organization not found"
+          }
+        }
+      },
+      "TeamNotFoundError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Team not found"
+          }
+        }
+      },
+      "ProjectNotFoundError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Project not found"
+          }
+        }
+      },
+      "TaskNotFoundError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Task not found or does not belong to the specified project"
+          }
+        }
+      },
+      "SprintNotFoundError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Sprint not found or does not belong to the specified project"
+          }
+        }
+      },
+      "ParentTaskNotFoundError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Parent task not found or does not belong to the specified project"
+          }
+        }
+      },
+      "InternalServerError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Internal server error"
+          }
         }
       }
     }

@@ -5,6 +5,7 @@ import {
   deleteTask,
   getAllTasks,
   getSpecificTask,
+  getTasksInSpecificOrg,
   restoreTask,
   updateTask,
   updateTaskPriority,
@@ -59,6 +60,12 @@ router.patch(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/restore',
   verifyAccessToken,
   restoreTask,
+);
+
+router.get(
+  '/api/organization/:organizationId/tasks',
+  verifyAccessToken,
+  getTasksInSpecificOrg,
 );
 
 export default router;

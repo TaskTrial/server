@@ -70,6 +70,13 @@ export const updateTaskValidation = (obj) => {
       'string.base': 'Task description must be a string',
       'string.max': 'Task description cannot exceed 5000 characters',
     }),
+    status: Joi.string()
+      .valid('TODO', 'IN_PROGRESS', 'REVIEW', 'DONE')
+      .optional()
+      .messages({
+        'string.base': 'Status must be a string',
+        'any.only': 'Status must be one of: TODO, IN_PROGRESS, REVIEW, DONE',
+      }),
     priority: Joi.string().valid('HIGH', 'MEDIUM', 'LOW').optional().messages({
       'string.base': 'Priority must be a string',
       'any.only': 'Priority must be one of: HIGH, MEDIUM, LOW',

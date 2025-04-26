@@ -829,6 +829,9 @@ export const updateOrganization = async (req, res, next) => {
       updateData.isVerified = false;
     }
 
+    updateData.isVerified = true;
+    updateData.status = 'APPROVAL';
+
     // Update the organization
     const updatedOrg = await prisma.organization.update({
       where: { id: organizationId },
@@ -854,8 +857,8 @@ export const updateOrganization = async (req, res, next) => {
           data: {
             emailVerificationOTP: hashedOTP,
             emailVerificationExpires: new Date(Date.now() + 10 * 60 * 1000),
-            isVerified: false,
-            status: 'PENDING',
+            isVerified: true,
+            status: 'APPROVAL',
           },
         });
 

@@ -6852,6 +6852,7 @@ export namespace Prisma {
     logoUrl: string | null
     isVerified: boolean | null
     status: string | null
+    joinCode: string | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -6873,6 +6874,7 @@ export namespace Prisma {
     logoUrl: string | null
     isVerified: boolean | null
     status: string | null
+    joinCode: string | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -6894,6 +6896,7 @@ export namespace Prisma {
     logoUrl: number
     isVerified: number
     status: number
+    joinCode: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -6917,6 +6920,7 @@ export namespace Prisma {
     logoUrl?: true
     isVerified?: true
     status?: true
+    joinCode?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -6938,6 +6942,7 @@ export namespace Prisma {
     logoUrl?: true
     isVerified?: true
     status?: true
+    joinCode?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -6959,6 +6964,7 @@ export namespace Prisma {
     logoUrl?: true
     isVerified?: true
     status?: true
+    joinCode?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -7053,6 +7059,7 @@ export namespace Prisma {
     logoUrl: string | null
     isVerified: boolean
     status: string
+    joinCode: string | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -7091,6 +7098,7 @@ export namespace Prisma {
     logoUrl?: boolean
     isVerified?: boolean
     status?: boolean
+    joinCode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7122,6 +7130,7 @@ export namespace Prisma {
     logoUrl?: boolean
     isVerified?: boolean
     status?: boolean
+    joinCode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7144,6 +7153,7 @@ export namespace Prisma {
     logoUrl?: boolean
     isVerified?: boolean
     status?: boolean
+    joinCode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7166,6 +7176,7 @@ export namespace Prisma {
     logoUrl?: boolean
     isVerified?: boolean
     status?: boolean
+    joinCode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7177,7 +7188,7 @@ export namespace Prisma {
     emailVerificationExpires?: boolean
   }
 
-  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "industry" | "sizeRange" | "website" | "logoUrl" | "isVerified" | "status" | "createdAt" | "updatedAt" | "deletedAt" | "createdBy" | "address" | "contactEmail" | "contactPhone" | "emailVerificationOTP" | "emailVerificationExpires", ExtArgs["result"]["organization"]>
+  export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "industry" | "sizeRange" | "website" | "logoUrl" | "isVerified" | "status" | "joinCode" | "createdAt" | "updatedAt" | "deletedAt" | "createdBy" | "address" | "contactEmail" | "contactPhone" | "emailVerificationOTP" | "emailVerificationExpires", ExtArgs["result"]["organization"]>
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     creator?: boolean | UserDefaultArgs<ExtArgs>
     departments?: boolean | Organization$departmentsArgs<ExtArgs>
@@ -7220,6 +7231,7 @@ export namespace Prisma {
       logoUrl: string | null
       isVerified: boolean
       status: string
+      joinCode: string | null
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -7670,6 +7682,7 @@ export namespace Prisma {
     readonly logoUrl: FieldRef<"Organization", 'String'>
     readonly isVerified: FieldRef<"Organization", 'Boolean'>
     readonly status: FieldRef<"Organization", 'String'>
+    readonly joinCode: FieldRef<"Organization", 'String'>
     readonly createdAt: FieldRef<"Organization", 'DateTime'>
     readonly updatedAt: FieldRef<"Organization", 'DateTime'>
     readonly deletedAt: FieldRef<"Organization", 'DateTime'>
@@ -41560,6 +41573,7 @@ export namespace Prisma {
     logoUrl: 'logoUrl',
     isVerified: 'isVerified',
     status: 'status',
+    joinCode: 'joinCode',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt',
@@ -42637,6 +42651,7 @@ export namespace Prisma {
     logoUrl?: StringNullableFilter<"Organization"> | string | null
     isVerified?: BoolFilter<"Organization"> | boolean
     status?: StringFilter<"Organization"> | string
+    joinCode?: StringNullableFilter<"Organization"> | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
@@ -42667,6 +42682,7 @@ export namespace Prisma {
     logoUrl?: SortOrderInput | SortOrder
     isVerified?: SortOrder
     status?: SortOrder
+    joinCode?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -42690,6 +42706,7 @@ export namespace Prisma {
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     name?: string
+    joinCode?: string
     AND?: OrganizationWhereInput | OrganizationWhereInput[]
     OR?: OrganizationWhereInput[]
     NOT?: OrganizationWhereInput | OrganizationWhereInput[]
@@ -42718,7 +42735,7 @@ export namespace Prisma {
     owners?: OrganizationOwnerListRelationFilter
     templates?: TaskTemplateListRelationFilter
     activityLogs?: ActivityLogListRelationFilter
-  }, "id" | "name">
+  }, "id" | "joinCode" | "name">
 
   export type OrganizationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -42730,6 +42747,7 @@ export namespace Prisma {
     logoUrl?: SortOrderInput | SortOrder
     isVerified?: SortOrder
     status?: SortOrder
+    joinCode?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -42757,6 +42775,7 @@ export namespace Prisma {
     logoUrl?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     isVerified?: BoolWithAggregatesFilter<"Organization"> | boolean
     status?: StringWithAggregatesFilter<"Organization"> | string
+    joinCode?: StringNullableWithAggregatesFilter<"Organization"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Organization"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
@@ -45548,6 +45567,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -45577,6 +45597,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -45606,6 +45627,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -45635,6 +45657,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -45664,6 +45687,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -45685,6 +45709,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -45705,6 +45730,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -48894,6 +48920,7 @@ export namespace Prisma {
     logoUrl?: SortOrder
     isVerified?: SortOrder
     status?: SortOrder
+    joinCode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -48915,6 +48942,7 @@ export namespace Prisma {
     logoUrl?: SortOrder
     isVerified?: SortOrder
     status?: SortOrder
+    joinCode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -48936,6 +48964,7 @@ export namespace Prisma {
     logoUrl?: SortOrder
     isVerified?: SortOrder
     status?: SortOrder
+    joinCode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -55305,6 +55334,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -55333,6 +55363,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -55366,6 +55397,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -55394,6 +55426,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -56530,6 +56563,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -56558,6 +56592,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -56605,6 +56640,7 @@ export namespace Prisma {
     logoUrl?: StringNullableFilter<"Organization"> | string | null
     isVerified?: BoolFilter<"Organization"> | boolean
     status?: StringFilter<"Organization"> | string
+    joinCode?: StringNullableFilter<"Organization"> | string | null
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Organization"> | Date | string | null
@@ -58234,6 +58270,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -58262,6 +58299,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -58425,6 +58463,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -58453,6 +58492,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -58606,6 +58646,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -58634,6 +58675,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -59061,6 +59103,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -59089,6 +59132,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -59425,6 +59469,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -59453,6 +59498,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -59837,6 +59883,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -59865,6 +59912,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -60558,6 +60606,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -60586,6 +60635,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -61149,6 +61199,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -61177,6 +61228,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -63984,6 +64036,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -64012,6 +64065,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -64056,6 +64110,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -64084,6 +64139,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -64983,6 +65039,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -65011,6 +65068,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -65395,6 +65453,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -65423,6 +65482,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -66059,6 +66119,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -66087,6 +66148,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -66541,6 +66603,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -66569,6 +66632,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -70846,6 +70910,7 @@ export namespace Prisma {
     logoUrl?: string | null
     isVerified?: boolean
     status: string
+    joinCode?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -71212,6 +71277,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71240,6 +71306,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -71268,6 +71335,7 @@ export namespace Prisma {
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
+    joinCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

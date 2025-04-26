@@ -158,6 +158,7 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   logoUrl: 'logoUrl',
   isVerified: 'isVerified',
   status: 'status',
+  joinCode: 'joinCode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',

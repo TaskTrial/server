@@ -8684,6 +8684,9 @@
                 "type": "string",
                 "enum": ["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]
               },
+              "joinCode": {
+                "type": "string"
+              },
               "isVerified": {
                 "type": "boolean"
               },

@@ -1968,7 +1968,8 @@
       "post": {
         "tags": ["Organization"],
         "summary": "Create a new organization",
-        "description": "Creates a new organization with the current user as the owner or a specified user as owner",
+        "description": "Creates a new organization with the current user as owner by default. Generates a join code and sets up the organization structure.",
+        "operationId": "createOrganization",
         "security": [
           {
             "bearerAuth": []
@@ -1979,64 +1980,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["name", "contactEmail"],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Organization name",
-                    "example": "Acme Corporation"
-                  },
-                  "description": {
-                    "type": "string",
-                    "description": "Organization description",
-                    "example": "A leading provider of innovative solutions"
-                  },
-                  "industry": {
-                    "type": "string",
-                    "description": "Industry sector",
-                    "example": "Technology"
-                  },
-                  "sizeRange": {
-                    "type": "string",
-                    "description": "Size range of the organization",
-                    "example": "50-100"
-                  },
-                  "website": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "Organization website URL",
-                    "example": "https://acme.example.com"
-                  },
-                  "logoUrl": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "URL to organization logo",
-                    "example": "https://example.com/logo.png"
-                  },
-                  "address": {
-                    "type": "string",
-                    "description": "Organization address",
-                    "example": "123 Main St, Anytown, USA"
-                  },
-                  "contactEmail": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "Organization contact email",
-                    "example": "contact@acme.example.com"
-                  },
-                  "contactPhone": {
-                    "type": "string",
-                    "description": "Organization contact phone",
-                    "example": "+1-234-567-8900"
-                  },
-                  "orgOwnerId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "description": "User ID to set as organization owner (optional, defaults to current user)",
-                    "example": "123e4567-e89b-12d3-a456-426614174000"
-                  }
-                }
+                "$ref": "#/components/schemas/CreateOrganizationRequest"
               }
             }
           }
@@ -2047,92 +1991,40 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Organization created successfully."
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "organization": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "uuid"
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "status": {
-                              "type": "string",
-                              "example": "APPROVED"
-                            },
-                            "isVerified": {
-                              "type": "boolean",
-                              "example": true
-                            }
-                          }
-                        },
-                        "organizationOwner": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "uuid"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/CreateOrganizationResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input data",
+            "description": "Validation error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string",
-                      "example": "Name is required"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ValidationError"
                 }
               }
             }
           },
-          "401": {
-            "description": "Unauthorized - Invalid or missing token"
-          },
           "409": {
-            "description": "Conflict - Organization with name or email already exists",
+            "description": "Conflict - Organization already exists",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Organization with this name or email already exists"
-                    }
-                  }
+                  "$ref": "#/components/schemas/OrganizationExistsError"
                 }
               }
             }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                }
+              }
+            }
           }
         }
       }
@@ -2650,55 +2542,52 @@
       "get": {
         "tags": ["Organization"],
         "summary": "Get organization details",
-        "description": "Returns detailed information about a specific organization including related entities (departments, teams, projects) with permission checks.",
+        "description": "Retrieves detailed information about a specific organization including owners, departments, teams, projects, and statistics. Requires organization membership or admin privileges.",
         "operationId": "getSpecificOrganization",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "organizationId",
             "in": "path",
-            "description": "ID of the organization",
             "required": true,
+            "description": "ID of the organization to retrieve",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful operation",
+            "description": "Organization details retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": {
-                      "type": "string",
-                      "example": "Organization retrieved successfully"
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/OrganizationDetails"
-                    }
-                  }
+                  "$ref": "#/components/schemas/OrganizationDetailsResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad request",
+            "description": "Bad request - missing organization ID",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
               }
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "Forbidden - user doesn't have permission",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionError"
+                }
               }
             }
           },
@@ -2706,180 +2595,9 @@
             "description": "Organization not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Organization"],
-        "summary": "Update organization",
-        "description": "Updates organization details with validation and permission checks. Admins and organization owners can update all fields, others have restricted access.",
-        "operationId": "updateOrganization",
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "description": "ID of the organization",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "description": "Organization update data",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/OrganizationUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": {
-                      "type": "string",
-                      "example": "Organization updated successfully"
-                    },
-                    "note": {
-                      "type": "string",
-                      "example": "Please verify your organization email"
-                    },
-                    "data": { "$ref": "#/components/schemas/OrganizationBasic" }
-                  }
+                  "$ref": "#/components/schemas/OrganizationNotFoundError"
                 }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": false },
-                    "message": {
-                      "type": "string",
-                      "example": "Validation error"
-                    },
-                    "errors": { "type": "array", "items": { "type": "string" } }
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "404": {
-            "description": "Organization not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict - Organization name exists",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "500": {
-            "description": "Email verification failed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": false },
-                    "message": {
-                      "type": "string",
-                      "example": "Organization updated but failed to send verification email"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Organization"],
-        "summary": "Soft delete an organization",
-        "description": "Marks an organization as deleted but retains it in the database. Only accessible to admins and organization owners.",
-        "operationId": "deleteOrganization",
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "description": "ID of the organization to delete",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Organization deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": {
-                      "type": "string",
-                      "example": "Organization deleted successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing organization ID",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - insufficient permissions",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "404": {
-            "description": "Organization not found or already deleted",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }
@@ -8482,6 +8200,140 @@
           }
         }
       },
+      "CreateOrganizationRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the organization",
+            "example": "Acme Corp"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the organization",
+            "example": "A leading provider of innovative solutions",
+            "nullable": true
+          },
+          "industry": {
+            "type": "string",
+            "description": "Industry sector",
+            "example": "Technology",
+            "nullable": true
+          },
+          "sizeRange": {
+            "type": "string",
+            "description": "Size range of the organization",
+            "example": "51-200",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "description": "Organization website URL",
+            "example": "https://acme.com",
+            "nullable": true
+          },
+          "logoUrl": {
+            "type": "string",
+            "description": "URL of the organization logo",
+            "example": "https://acme.com/logo.png",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "description": "Physical address",
+            "example": "123 Main St, Anytown, USA",
+            "nullable": true
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email",
+            "description": "Contact email address",
+            "example": "contact@acme.com"
+          },
+          "contactPhone": {
+            "type": "string",
+            "description": "Contact phone number",
+            "example": "+1 555-123-4567",
+            "nullable": true
+          },
+          "orgOwnerId": {
+            "type": "string",
+            "description": "Optional - ID of user to set as owner (defaults to current user)",
+            "example": "cln3k7vxp0000v2k0q2q3k4k5",
+            "nullable": true
+          }
+        },
+        "required": ["name", "contactEmail"]
+      },
+      "CreateOrganizationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Organization created successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["PENDING", "APPROVED", "REJECTED", "SUSPENDED"],
+                    "example": "APPROVED"
+                  },
+                  "isVerified": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "joinCode": {
+                    "type": "string",
+                    "description": "Unique join code for the organization",
+                    "example": "ABCD-1234"
+                  }
+                }
+              },
+              "organizationOwner": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "\"name\" is required"
+          }
+        }
+      },
+      "OrganizationExistsError": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Organization with this name or email already exists"
+          }
+        }
+      },
       "OrganizationWithStats": {
         "type": "object",
         "properties": {
@@ -8770,6 +8622,287 @@
           },
           "hasMoreProjects": {
             "type": "boolean"
+          }
+        }
+      },
+      "OrganizationDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Organization retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Organization ID"
+              },
+              "name": {
+                "type": "string",
+                "description": "Organization name"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true
+              },
+              "industry": {
+                "type": "string",
+                "nullable": true
+              },
+              "sizeRange": {
+                "type": "string",
+                "nullable": true
+              },
+              "website": {
+                "type": "string",
+                "nullable": true
+              },
+              "logoUrl": {
+                "type": "string",
+                "nullable": true
+              },
+              "address": {
+                "type": "string",
+                "nullable": true
+              },
+              "contactEmail": {
+                "type": "string",
+                "format": "email",
+                "nullable": true
+              },
+              "contactPhone": {
+                "type": "string",
+                "nullable": true
+              },
+              "status": {
+                "type": "string",
+                "enum": ["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]
+              },
+              "isVerified": {
+                "type": "boolean"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "statistics": {
+                "type": "object",
+                "properties": {
+                  "usersCount": {
+                    "type": "integer"
+                  },
+                  "departmentsCount": {
+                    "type": "integer"
+                  },
+                  "teamsCount": {
+                    "type": "integer"
+                  },
+                  "projectsCount": {
+                    "type": "integer"
+                  },
+                  "templatesCount": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "owners": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "profileImage": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              },
+              "departments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "_count": {
+                      "type": "object",
+                      "properties": {
+                        "teams": {
+                          "type": "integer"
+                        },
+                        "users": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "teams": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "usersCount": {
+                      "type": "integer"
+                    },
+                    "projectsCount": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              },
+              "projects": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "endDate": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  }
+                }
+              },
+              "users": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "firstName": {
+                      "type": "string"
+                    },
+                    "lastName": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "profilePic": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "jobTitle": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "isOwner": {
+                      "type": "boolean"
+                    },
+                    "department": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "nullable": true
+                    }
+                  }
+                }
+              },
+              "hasMoreDepartments": {
+                "type": "boolean",
+                "description": "Indicates if there are more departments than returned"
+              },
+              "hasMoreTeams": {
+                "type": "boolean",
+                "description": "Indicates if there are more teams than returned"
+              },
+              "hasMoreProjects": {
+                "type": "boolean",
+                "description": "Indicates if there are more projects than returned"
+              }
+            }
+          }
+        }
+      },
+      "BadRequestError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Organization ID is required"
+          }
+        }
+      },
+      "PermissionError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "You do not have permission to view this organization"
           }
         }
       },

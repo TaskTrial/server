@@ -52,6 +52,8 @@ base url: `http://localhost:3000`
 ### Organization
 
 - Create an Organization: `POST /api/organization`
+- Join to an Organization: `POST /api/organization/join`
+- User organization status: `GET /api/organization/status`
 - Resend OTP: `POST /api/organization/resendOTP/:orgId`
 - Verify an Organization: `POST /api/organization/verifyOrg/:orgId`
 - Get all Organizations: `GET /api/organization/all`

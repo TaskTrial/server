@@ -21,6 +21,14 @@ const checkOrganization = async (organizationId) => {
           userId: true,
         },
       },
+      users: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profilePic: true,
+        },
+      },
     },
   });
 
@@ -84,14 +92,17 @@ export const getAllDepartments = async (req, res, next) => {
     }
     const organization = orgResult.organization;
 
-    // Check permission (Owner/Admin only)
+    // Check permission
     const permission = await checkDepartmentPermissions(
       req.user,
       organization,
       'view',
     );
 
-    if (!permission.success) {
+    // Check if user is a member
+    const isMember = organization.users.some((user) => user.id === req.user.id);
+
+    if (!permission.success && !isMember) {
       return res.status(403).json(permission);
     }
 
@@ -204,8 +215,9 @@ export const getDepartmentById = async (req, res, next) => {
       organization,
       'view',
     );
+    const isMember = organization.users.some((user) => user.id === req.user.id);
 
-    if (!permission.success && !isManager) {
+    if (!permission.success && !isManager && !isMember) {
       return res.status(403).json(permission);
     }
 

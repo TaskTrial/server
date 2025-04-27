@@ -48,6 +48,14 @@ const checkOrganization = async (organizationId) => {
           userId: true,
         },
       },
+      users: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profilePic: true,
+        },
+      },
     },
   });
 
@@ -1068,6 +1076,8 @@ export const getAllTeams = async (req, res, next) => {
         .json({ success: false, message: orgCheck.message });
     }
 
+    const organization = orgCheck.organization;
+
     // Check permissions
     const permissionCheck = checkTeamPermissions(
       req.user,
@@ -1075,7 +1085,9 @@ export const getAllTeams = async (req, res, next) => {
       { createdBy: null },
       'view',
     );
-    if (!permissionCheck.success) {
+    const isMember = organization.users.some((user) => user.id === req.user.id);
+
+    if (!permissionCheck.success && !isMember) {
       return res
         .status(403)
         .json({ success: false, message: permissionCheck.message });
@@ -1193,6 +1205,8 @@ export const getSpecificTeam = async (req, res, next) => {
         .json({ success: false, message: orgCheck.message });
     }
 
+    const organization = orgCheck.organization;
+
     // Check if team exists with additional fields needed for the view
     const teamCheck = await checkTeam(teamId, organizationId, null, {
       select: {
@@ -1239,7 +1253,9 @@ export const getSpecificTeam = async (req, res, next) => {
       teamCheck.team,
       'view',
     );
-    if (!permissionCheck.success) {
+    const isMember = organization.users.some((user) => user.id === req.user.id);
+
+    if (!permissionCheck.success && !isMember) {
       return res
         .status(403)
         .json({ success: false, message: permissionCheck.message });

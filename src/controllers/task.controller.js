@@ -1658,7 +1658,9 @@ export const getTasksInSpecificOrg = async (req, res, next) => {
       );
 
       // Check if user is a member
-      const isMember = organization.users.length > 0;
+      const isMember = organization.users.some(
+        (user) => user.id === req.user.id,
+      );
 
       if (!isOwner && !isMember) {
         return res.status(403).json({

@@ -17,6 +17,21 @@ import {
 } from '../utils/activityLogs.utils.js';
 
 /**
+ * Helper function to generate a unique join code
+ */
+function generateJoinCode() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+
+  for (let i = 0; i < 8; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    code += characters.charAt(randomIndex);
+  }
+
+  return code;
+}
+
+/**
  * @desc   Create a new organization with the current user as owner
  * @route  /api/organization
  * @method POST
@@ -59,6 +74,9 @@ export const createOrganization = async (req, res, next) => {
     const hashedOTP = await hashOTP(verificationOTP);
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
+    // Generate a unique join code for the organization
+    const joinCode = generateJoinCode();
+
     // Use a transaction to ensure both organization and owner are created
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create the organization
@@ -74,6 +92,7 @@ export const createOrganization = async (req, res, next) => {
           contactEmail,
           contactPhone,
           status: 'APPROVED',
+          joinCode,
           isVerified: true,
           createdBy: req.user.id,
           emailVerificationOTP: hashedOTP,
@@ -145,12 +164,133 @@ export const createOrganization = async (req, res, next) => {
           name: result.org.name,
           status: result.org.status,
           isVerified: result.org.isVerified,
+          joinCode,
         },
         organizationOwner: {
           id: result.orgOwner.id,
         },
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Join to an organization
+ * @route  /api/organization/join
+ * @method POST
+ * @access private
+ */
+export const joinToOrg = async (req, res, next) => {
+  try {
+    const { joinCode } = req.body;
+    const userId = req.user.id;
+
+    if (!joinCode) {
+      return res.status(400).json({ message: 'Join code is required' });
+    }
+
+    // Find organization by join code
+    const organization = await prisma.organization.findFirst({
+      where: { joinCode, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        createdBy: true,
+        industry: true,
+        sizeRange: true,
+        logoUrl: true,
+      },
+    });
+
+    if (!organization) {
+      return res
+        .status(404)
+        .json({ message: 'Invalid join code or organization not found' });
+    }
+
+    // Check if user is already a member of this organization
+    const existingMember = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        organizationId: organization.id,
+      },
+    });
+
+    if (existingMember) {
+      return res
+        .status(400)
+        .json({ message: 'You are already a member of this organization' });
+    }
+
+    // Add user to organization
+    await prisma.user.update({
+      where: { id: userId },
+      data: { organizationId: organization.id },
+    });
+
+    // Create activity log
+    await prisma.activityLog.create({
+      data: {
+        entityType: 'ORGANIZATION',
+        action: 'MEMBER_ADDED',
+        userId,
+        organizationId: organization.id,
+        details: { joinedVia: 'joinCode' },
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Successfully joined organization',
+      organization,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc   Check user organization status (useful for redirection logic)
+ * @route  /api/organization/status
+ * @method GET
+ * @access private
+ */
+export const userOrgStatus = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        organizationId: true,
+        isOwner: true,
+      },
+    });
+
+    if (user.organizationId) {
+      const organization = await prisma.organization.findUnique({
+        where: { id: user.organizationId },
+        select: {
+          id: true,
+          name: true,
+          createdAt: true,
+          createdBy: true,
+          industry: true,
+          sizeRange: true,
+          logoUrl: true,
+        },
+      });
+
+      return res.status(200).json({
+        hasOrganization: true,
+        isOwner: user.isOwner,
+        organization,
+      });
+    }
+
+    return res.status(200).json({ hasOrganization: false });
   } catch (error) {
     next(error);
   }
@@ -506,9 +646,25 @@ export const getSpecificOrganization = async (req, res, next) => {
         },
         users: {
           where: {
-            id: req.user.id,
+            isActive: true,
+            deletedAt: null,
           },
-          take: 1,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+            jobTitle: true,
+            role: true,
+            isOwner: true,
+            department: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
         },
       },
     });
@@ -569,7 +725,7 @@ export const getSpecificOrganization = async (req, res, next) => {
         hasMoreTeams: organization._count.teams > 5,
         hasMoreProjects: organization._count.projects > 5,
         _count: undefined,
-        users: undefined,
+        // users: undefined,
       },
     });
   } catch (error) {
@@ -676,6 +832,9 @@ export const updateOrganization = async (req, res, next) => {
       updateData.isVerified = false;
     }
 
+    updateData.isVerified = true;
+    updateData.status = 'APPROVAL';
+
     // Update the organization
     const updatedOrg = await prisma.organization.update({
       where: { id: organizationId },
@@ -701,8 +860,8 @@ export const updateOrganization = async (req, res, next) => {
           data: {
             emailVerificationOTP: hashedOTP,
             emailVerificationExpires: new Date(Date.now() + 10 * 60 * 1000),
-            isVerified: false,
-            status: 'PENDING',
+            isVerified: true,
+            status: 'APPROVAL',
           },
         });
 

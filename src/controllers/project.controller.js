@@ -43,6 +43,14 @@ const checkOrganization = async (organizationId) => {
           userId: true,
         },
       },
+      users: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profilePic: true,
+        },
+      },
     },
   });
 
@@ -1309,6 +1317,7 @@ export const getAllProjects = async (req, res, next) => {
     if (!orgResult.success) {
       return res.status(404).json({ message: orgResult.message });
     }
+    const organization = orgResult.organization;
 
     // Check if team exists
     const teamResult = await checkTeam(teamId, organizationId);
@@ -1323,6 +1332,9 @@ export const getAllProjects = async (req, res, next) => {
       teamResult.team,
       'view projects in',
     );
+    const isOrgMember = organization.users.some(
+      (user) => user.id === req.user.id,
+    );
 
     // Define base query conditions
     const whereConditions = {
@@ -1331,7 +1343,7 @@ export const getAllProjects = async (req, res, next) => {
     };
 
     // If user is not admin, owner, or team manager, only show projects they are a member of
-    if (!permissionResult.success) {
+    if (!permissionResult.success && !isOrgMember) {
       // Get all projects where user is a member
       const projects = await prisma.project.findMany({
         where: whereConditions,
@@ -1435,6 +1447,7 @@ export const getSpecificProject = async (req, res, next) => {
     if (!orgResult.success) {
       return res.status(404).json({ message: orgResult.message });
     }
+    const organization = orgResult.organization;
 
     // Check if team exists
     const teamResult = await checkTeam(teamId, organizationId);
@@ -1501,8 +1514,11 @@ export const getSpecificProject = async (req, res, next) => {
       teamResult.team,
       'view',
     );
+    const isOrgMember = organization.users.some(
+      (user) => user.id === req.user.id,
+    );
 
-    if (!isMember && !permissionResult.success) {
+    if (!isMember && !permissionResult.success && !isOrgMember) {
       return res
         .status(403)
         .json({ message: 'You do not have permission to view this project' });
@@ -1577,10 +1593,12 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
           },
         },
         users: {
-          where: {
-            id: req.user.id,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePic: true,
           },
-          take: 1,
         },
         owners: {
           select: {
@@ -1609,7 +1627,9 @@ export const getProjectsInSpecificOrg = async (req, res, next) => {
       );
 
       // Check if user is a member
-      const isMember = organization.users.length > 0;
+      const isMember = organization.users.some(
+        (user) => user.id === req.user.id,
+      );
 
       if (!isOwner && !isMember) {
         return res.status(403).json({

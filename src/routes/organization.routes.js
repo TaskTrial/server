@@ -6,9 +6,11 @@ import {
   deleteOrganizationLogo,
   getAllOrganizations,
   getSpecificOrganization,
+  joinToOrg,
   resendOTP,
   updateOrganization,
   uploadOrganizationLogo,
+  userOrgStatus,
   verifyOrganization,
 } from '../controllers/organization.controller.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -18,6 +20,8 @@ import upload from '../middlewares/upload.middleware.js';
 const router = Router();
 
 router.post('/api/organization', verifyAccessToken, createOrganization);
+router.post('/api/organization/join', verifyAccessToken, joinToOrg);
+router.get('/api/organization/status', verifyAccessToken, userOrgStatus);
 router.post('/api/organization/resendOTP/:orgId', verifyAccessToken, resendOTP);
 router.post(
   '/api/organization/verifyOrg/:orgId',

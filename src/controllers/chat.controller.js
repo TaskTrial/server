@@ -3,6 +3,8 @@ import prisma from '../config/prismaClient.js';
 
 export const createChatRoom = async (req, res) => {
   try {
+    // TODO: Joi validation
+
     const { name, description, type, entityType, entityId } = req.body;
     const userId = req.user.id;
 
@@ -890,19 +892,33 @@ export const getPinnedMessages = async (req, res) => {
   }
 };
 
+// TODO: Message Reactions
+
+// TODO: Message Attachments
+
 // Helper function to verify entity exists
 const verifyEntity = async (entityType, entityId) => {
   switch (entityType) {
     case 'ORGANIZATION':
-      return await prisma.organization.findUnique({ where: { id: entityId } });
+      return await prisma.organization.findUnique({
+        where: { id: entityId, deletedAt: null },
+      });
     case 'DEPARTMENT':
-      return await prisma.department.findUnique({ where: { id: entityId } });
+      return await prisma.department.findUnique({
+        where: { id: entityId, deletedAt: null },
+      });
     case 'TEAM':
-      return await prisma.team.findUnique({ where: { id: entityId } });
+      return await prisma.team.findUnique({
+        where: { id: entityId, deletedAt: null },
+      });
     case 'PROJECT':
-      return await prisma.project.findUnique({ where: { id: entityId } });
+      return await prisma.project.findUnique({
+        where: { id: entityId, deletedAt: null },
+      });
     case 'TASK':
-      return await prisma.task.findUnique({ where: { id: entityId } });
+      return await prisma.task.findUnique({
+        where: { id: entityId, deletedAt: null },
+      });
     default:
       return null;
   }

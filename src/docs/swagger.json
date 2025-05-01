@@ -8392,6 +8392,101 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": ["Chat"],
+        "summary": "Update a chat room",
+        "description": "Updates chat room details. Only chat room admins can perform updates.",
+        "operationId": "updateChatRoom",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the chat room to update",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Chat room update data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "New name for the chat room",
+                    "example": "Engineering Team Chat v2"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "New description for the chat room",
+                    "example": "Updated chat room for engineering team discussions"
+                  },
+                  "isArchived": {
+                    "type": "boolean",
+                    "description": "Whether to archive the chat room",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat room updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRoom"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not an admin of the chat room",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to update this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to update chat room"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },

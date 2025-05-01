@@ -223,6 +223,12 @@ export const getChatRoomById = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Get a chat room by id
+ * @route  /api/chat/:id
+ * @method PUT
+ * @access private
+ */
 export const updateChatRoom = async (req, res) => {
   try {
     const { id } = req.params;

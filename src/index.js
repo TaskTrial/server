@@ -101,7 +101,7 @@ app.use(projectRoutes);
 app.use(sprintRoutes);
 app.use(taskRoutes);
 app.use(activitylogRoutes);
-app.use('/api/chat', chatRoutes);
+app.use(chatRoutes);
 
 // Socket.IO middleware for authentication
 io.use(verifySocketToken);

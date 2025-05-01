@@ -8308,6 +8308,91 @@
           }
         }
       }
+    },
+    "/api/chat/{id}": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get chat room by ID",
+        "description": "Returns detailed information about a specific chat room. User must be a participant to access.",
+        "operationId": "getChatRoomById",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the chat room",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat room retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRoomWithParticipants"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a participant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You are not a participant in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chat room not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Chat room not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to fetch chat room"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -10777,6 +10862,54 @@
           },
           "sender": {
             "$ref": "#/components/schemas/UserBasic"
+          }
+        }
+      },
+      "ChatRoomWithParticipants": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PUBLIC", "PRIVATE"]
+          },
+          "entityType": {
+            "type": "string",
+            "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"]
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatParticipantWithUser"
+            }
           }
         }
       }

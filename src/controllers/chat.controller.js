@@ -164,6 +164,12 @@ export const getChatRooms = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Get a chat room by id
+ * @route  /api/chat/:id
+ * @method GET
+ * @access private
+ */
 export const getChatRoomById = async (req, res) => {
   try {
     const { id } = req.params;

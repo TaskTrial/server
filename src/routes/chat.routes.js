@@ -22,21 +22,21 @@ const router = Router();
 router.use(verifyAccessToken);
 
 // Chat room routes
-router.post('/', createChatRoom);
-router.get('/', getChatRooms);
-router.get('/:id', getChatRoomById);
-router.put('/:id', updateChatRoom);
-router.get('/:id/messages', getMessages);
+router.post('/api/chat', createChatRoom);
+router.get('/api/chat', getChatRooms);
+router.get('/api/chat/:id', getChatRoomById);
+router.put('/api/chat/:id', updateChatRoom);
+router.get('/api/chat/:id/messages', getMessages);
 
 // Participant management
-router.post('/:id/participants', addParticipants);
-router.delete('/:id/participants/:userId', removeParticipant);
-router.put('/:id/admins/:userId', makeAdmin);
-router.delete('/:id/admins/:userId', removeAdmin);
+router.post('/api/chat/:id/participants', addParticipants);
+router.delete('/api/chat/:id/participants/:userId', removeParticipant);
+router.put('/api/chat/:id/admins/:userId', makeAdmin);
+router.delete('/api/chat/:id/admins/:userId', removeAdmin);
 
 // Pinned messages
-router.post('/:chatRoomId/pin/:messageId', pinMessage);
-router.delete('/:chatRoomId/pin/:messageId', unpinMessage);
-router.get('/:id/pinned', getPinnedMessages);
+router.post('/api/chat/:chatRoomId/pin/:messageId', pinMessage);
+router.delete('/api/chat/:chatRoomId/pin/:messageId', unpinMessage);
+router.get('/api/chat/:id/pinned', getPinnedMessages);
 
 export default router;

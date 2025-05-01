@@ -8488,6 +8488,107 @@
           }
         }
       }
+    },
+    "/api/chat/{id}/messages": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get messages in a chat room",
+        "description": "Retrieves paginated messages from a specific chat room. User must be a participant. Updates the user's last read status.",
+        "operationId": "getMessages",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the chat room",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of messages per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Messages retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "messages": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatMessageWithDetails"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a participant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You are not a participant in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to fetch messages"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -8506,6 +8607,109 @@
       }
     },
     "schemas": {
+      "ChatMessageWithDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["TEXT", "IMAGE", "FILE", "SYSTEM"]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserBasic"
+          },
+          "reactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageReaction"
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageAttachment"
+            }
+          },
+          "replyTo": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "content": {
+                "type": "string"
+              },
+              "sender": {
+                "$ref": "#/components/schemas/UserBasic"
+              }
+            }
+          }
+        }
+      },
+      "MessageReaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserBasic"
+          }
+        }
+      },
+      "MessageAttachment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["IMAGE", "FILE", "VIDEO", "AUDIO"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "User": {
         "type": "object",
         "properties": {

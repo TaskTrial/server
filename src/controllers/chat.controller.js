@@ -275,6 +275,12 @@ export const updateChatRoom = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Get all messages in specific chat room
+ * @route  /api/chat/:id/messages
+ * @method GET
+ * @access private
+ */
 export const getMessages = async (req, res) => {
   try {
     const { id } = req.params;

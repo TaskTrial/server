@@ -1,6 +1,12 @@
 import prisma from '../config/prismaClient.js';
 /* eslint no-console: off */
 
+/**
+ * @desc   Creates a new chat room
+ * @route  /api/chat
+ * @method POST
+ * @access private
+ */
 export const createChatRoom = async (req, res) => {
   try {
     // TODO: Joi validation

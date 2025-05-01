@@ -8147,6 +8147,121 @@
           }
         }
       }
+    },
+    "/api/chat": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Create a new chat room",
+        "description": "Creates a new chat room associated with a specific entity (organization, department, team, etc.) and adds the creator as an admin participant.",
+        "operationId": "createChatRoom",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "description": "Chat room creation data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "entityType", "entityId"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the chat room (defaults to '[EntityType] Chat' if not provided)",
+                    "example": "Engineering Team Chat"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the chat room",
+                    "example": "Chat for the engineering team members"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Type of chat room",
+                    "enum": ["PUBLIC", "PRIVATE"],
+                    "example": "PUBLIC"
+                  },
+                  "entityType": {
+                    "type": "string",
+                    "description": "Type of entity this chat is associated with",
+                    "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"],
+                    "example": "TEAM"
+                  },
+                  "entityId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "ID of the associated entity",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chat room created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRoom"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Associated entity not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "TEAM not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Chat room already exists for this entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Chat room already exists for this TEAM"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to create chat room"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -10463,6 +10578,45 @@
           "message": {
             "type": "string",
             "example": "Internal server error"
+          }
+        }
+      },
+      "ChatRoom": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PUBLIC", "PRIVATE"]
+          },
+          "entityType": {
+            "type": "string",
+            "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"]
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }

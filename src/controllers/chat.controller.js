@@ -398,6 +398,12 @@ export const getMessages = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Add new participants
+ * @route  /api/chat/:id/participants
+ * @method POST
+ * @access private
+ */
 export const addParticipants = async (req, res) => {
   try {
     const { id } = req.params;

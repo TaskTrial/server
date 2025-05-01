@@ -504,6 +504,12 @@ export const addParticipants = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Add new participants
+ * @route  /api/chat/:id/participants/:userId
+ * @method DELETE
+ * @access private
+ */
 export const removeParticipant = async (req, res) => {
   try {
     const { id, userId } = req.params;
@@ -592,6 +598,12 @@ export const removeParticipant = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Make user admin in chat room
+ * @route  /api/chat/:id/admins/:userId
+ * @method PUT
+ * @access private
+ */
 export const makeAdmin = async (req, res) => {
   try {
     const { id, userId } = req.params;
@@ -660,6 +672,12 @@ export const makeAdmin = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Delete user admin status from chat room
+ * @route  /api/chat/:id/admins/:userId
+ * @method DELETE
+ * @access private
+ */
 export const removeAdmin = async (req, res) => {
   try {
     const { id, userId } = req.params;
@@ -742,6 +760,12 @@ export const removeAdmin = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Pin message in chat room
+ * @route  /api/chat/:chatRoomId/pin/:messageId
+ * @method POST
+ * @access private
+ */
 export const pinMessage = async (req, res) => {
   try {
     const { chatRoomId, messageId } = req.params;
@@ -823,6 +847,12 @@ export const pinMessage = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Unpin message in chat room
+ * @route  /api/chat/:chatRoomId/pin/:messageId
+ * @method DELETE
+ * @access private
+ */
 export const unpinMessage = async (req, res) => {
   try {
     const { chatRoomId, messageId } = req.params;
@@ -864,6 +894,12 @@ export const unpinMessage = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Get pinned messages in chat room
+ * @route  /api/chat/:id/pinned
+ * @method GET
+ * @access private
+ */
 export const getPinnedMessages = async (req, res) => {
   try {
     const { id } = req.params;

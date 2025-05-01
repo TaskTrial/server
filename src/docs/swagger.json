@@ -53,6 +53,10 @@
     {
       "name": "Activity Logs",
       "description": "Activity Logs management"
+    },
+    {
+      "name": "Chat",
+      "description": "Chat management"
     }
   ],
   "paths": {
@@ -8261,6 +8265,48 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get all chat rooms for current user",
+        "description": "Returns all active chat rooms where the user is a participant, including participant details, last message, and unread message count.",
+        "operationId": "getChatRooms",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Chat rooms retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatRoomWithDetails"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to fetch chat rooms"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -10617,6 +10663,120 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "ChatRoomWithDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PUBLIC", "PRIVATE"]
+          },
+          "entityType": {
+            "type": "string",
+            "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"]
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatParticipantWithUser"
+            }
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LastMessage"
+            },
+            "maxItems": 1
+          },
+          "_count": {
+            "type": "object",
+            "properties": {
+              "messages": {
+                "type": "integer"
+              }
+            }
+          },
+          "unreadCount": {
+            "type": "integer",
+            "description": "Number of unread messages for the current user"
+          }
+        }
+      },
+      "ChatParticipantWithUser": {
+        "type": "object",
+        "properties": {
+          "chatRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "lastReadAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserBasic"
+          }
+        }
+      },
+      "LastMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["TEXT", "IMAGE", "FILE", "SYSTEM"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserBasic"
           }
         }
       }

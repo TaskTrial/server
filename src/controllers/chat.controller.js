@@ -66,6 +66,12 @@ export const createChatRoom = async (req, res) => {
   }
 };
 
+/**
+ * @desc   Creates all chat rooms
+ * @route  /api/chat
+ * @method GET
+ * @access private
+ */
 export const getChatRooms = async (req, res) => {
   try {
     const userId = req.user.id;

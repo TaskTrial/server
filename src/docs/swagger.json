@@ -3890,14 +3890,20 @@
     "/api/organization/{organizationId}/teams/{teamId}": {
       "get": {
         "tags": ["Team"],
-        "summary": "Get specific team details",
-        "description": "Retrieves detailed information about a specific team. Admin, organization owner or team member access required.",
+        "summary": "Get team details",
+        "description": "Retrieves detailed information about a specific team including members, projects, reports, and statistics. Requires organization membership, admin privileges, or team membership.",
+        "operationId": "getSpecificTeam",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "organizationId",
             "in": "path",
-            "description": "Organization ID",
             "required": true,
+            "description": "ID of the organization containing the team",
             "schema": {
               "type": "string"
             }
@@ -3905,8 +3911,8 @@
           {
             "name": "teamId",
             "in": "path",
-            "description": "Team ID",
             "required": true,
+            "description": "ID of the team to retrieve",
             "schema": {
               "type": "string"
             }
@@ -3918,26 +3924,49 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TeamFullResponse"
+                  "$ref": "#/components/schemas/TeamDetailsResponse"
                 }
               }
             }
           },
-          "401": {
-            "description": "Unauthorized"
+          "400": {
+            "description": "Bad request - missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden - Admin, organization owner or team member access required"
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionError"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Organization or team not found"
+            "description": "Not found - organization or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OrganizationNotFoundError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TeamNotFoundError"
+                    }
+                  ]
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       }
     },
     "/api/organization/{organizationId}/team/{teamId}/project": {
@@ -10913,6 +10942,205 @@
                     "type": "integer"
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      "TeamDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "team": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "avatar": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "createdBy": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "creator": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "firstName": {
+                        "type": "string"
+                      },
+                      "lastName": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                      },
+                      "profilePic": {
+                        "type": "string",
+                        "nullable": true
+                      }
+                    }
+                  },
+                  "department": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "nullable": true
+                  }
+                }
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamMember"
+                }
+              },
+              "projects": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamProject"
+                }
+              },
+              "recentReports": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamReport"
+                }
+              },
+              "statistics": {
+                "type": "object",
+                "properties": {
+                  "activeMembers": {
+                    "type": "integer"
+                  },
+                  "totalProjects": {
+                    "type": "integer"
+                  },
+                  "projectsInProgress": {
+                    "type": "integer"
+                  },
+                  "completedProjects": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TeamProject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TeamReport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TeamMember": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "teamId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "profilePic": {
+                "type": "string",
+                "nullable": true
               }
             }
           }

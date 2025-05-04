@@ -53,6 +53,10 @@
     {
       "name": "Activity Logs",
       "description": "Activity Logs management"
+    },
+    {
+      "name": "Chat",
+      "description": "Chat management"
     }
   ],
   "paths": {
@@ -8176,6 +8180,1043 @@
           }
         }
       }
+    },
+    "/api/chat": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Create a new chat room",
+        "description": "Creates a new chat room associated with a specific entity (organization, department, team, etc.) and adds the creator as an admin participant.",
+        "operationId": "createChatRoom",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "description": "Chat room creation data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "entityType", "entityId"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the chat room (defaults to '[EntityType] Chat' if not provided)",
+                    "example": "Engineering Team Chat"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the chat room",
+                    "example": "Chat for the engineering team members"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Type of chat room",
+                    "enum": ["PUBLIC", "PRIVATE"],
+                    "example": "PUBLIC"
+                  },
+                  "entityType": {
+                    "type": "string",
+                    "description": "Type of entity this chat is associated with",
+                    "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"],
+                    "example": "TEAM"
+                  },
+                  "entityId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "ID of the associated entity",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chat room created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRoom"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Associated entity not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "TEAM not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Chat room already exists for this entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Chat room already exists for this TEAM"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to create chat room"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get all chat rooms for current user",
+        "description": "Returns all active chat rooms where the user is a participant, including participant details, last message, and unread message count.",
+        "operationId": "getChatRooms",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Chat rooms retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatRoomWithDetails"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to fetch chat rooms"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/{id}": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get chat room by ID",
+        "description": "Returns detailed information about a specific chat room. User must be a participant to access.",
+        "operationId": "getChatRoomById",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the chat room",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat room retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRoomWithParticipants"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a participant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You are not a participant in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chat room not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Chat room not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to fetch chat room"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Chat"],
+        "summary": "Update a chat room",
+        "description": "Updates chat room details. Only chat room admins can perform updates.",
+        "operationId": "updateChatRoom",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the chat room to update",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Chat room update data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "New name for the chat room",
+                    "example": "Engineering Team Chat v2"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "New description for the chat room",
+                    "example": "Updated chat room for engineering team discussions"
+                  },
+                  "isArchived": {
+                    "type": "boolean",
+                    "description": "Whether to archive the chat room",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat room updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRoom"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not an admin of the chat room",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to update this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to update chat room"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/{id}/messages": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get messages in a chat room",
+        "description": "Retrieves paginated messages from a specific chat room. User must be a participant. Updates the user's last read status.",
+        "operationId": "getMessages",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the chat room",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of messages per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Messages retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "messages": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatMessageWithDetails"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a participant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You are not a participant in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to fetch messages"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/{id}/participants": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Add participants to a chat room",
+        "description": "Adds new participants to a chat room. Only chat room admins can add participants. Creates a system message about the addition.",
+        "operationId": "addParticipants",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the chat room",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "User IDs to add as participants",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userIds"],
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "description": "Array of user IDs to add as participants",
+                    "example": [
+                      "123e4567-e89b-12d3-a456-426614174000",
+                      "223e4567-e89b-12d3-a456-426614174000"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Participants added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "addedParticipants": {
+                      "type": "integer",
+                      "description": "Number of participants successfully added",
+                      "example": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - all users are already participants",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "All users are already participants in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not an admin of the chat room",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to add participants to this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to add participants"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error details"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/{id}/admins/{userId}": {
+      "delete": {
+        "tags": ["Chat"],
+        "summary": "Remove admin status from a user in a chat room",
+        "description": "Removes administrator privileges from a user in the specified chat room. Only existing admins can remove admin status from other users. Cannot remove the last admin from a chat room.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat room ID"
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID to remove admin status from"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin status removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Admin status removed"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot remove the last admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Cannot remove the last admin from the chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to manage admins in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to update admin status"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/{chatRoomId}/pin/{messageId}": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Pin a message in a chat room",
+        "description": "Pins a message in the specified chat room. Only chat admins can pin messages.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatRoomId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat room ID"
+          },
+          {
+            "in": "path",
+            "name": "messageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Message ID to pin"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Message pinned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "chatRoomId": {
+                      "type": "string"
+                    },
+                    "messageId": {
+                      "type": "string"
+                    },
+                    "pinnedBy": {
+                      "type": "string"
+                    },
+                    "pinnedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "message": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "content": {
+                          "type": "string"
+                        },
+                        "sender": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "firstName": {
+                              "type": "string"
+                            },
+                            "lastName": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to pin messages in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Message not found in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Message already pinned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Message is already pinned"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to pin message"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Chat"],
+        "summary": "Unpin a message in a chat room",
+        "description": "Removes a pinned message in the specified chat room. Only chat admins can unpin messages.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatRoomId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat room ID"
+          },
+          {
+            "in": "path",
+            "name": "messageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Message ID to unpin"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message unpinned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Message unpinned successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You do not have permission to unpin messages in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to unpin message"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/{id}/pinned": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get all pinned messages in a chat room",
+        "description": "Retrieves all pinned messages in the specified chat room. User must be a participant in the chat room.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat room ID"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pinned messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "chatRoomId": {
+                        "type": "string"
+                      },
+                      "messageId": {
+                        "type": "string"
+                      },
+                      "pinnedBy": {
+                        "type": "string"
+                      },
+                      "pinnedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "message": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "content": {
+                            "type": "string"
+                          },
+                          "sender": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "username": {
+                                "type": "string"
+                              },
+                              "firstName": {
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "type": "string"
+                              },
+                              "profilePic": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "user": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          },
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a participant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "You are not a participant in this chat room"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to fetch pinned messages"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -8194,6 +9235,109 @@
       }
     },
     "schemas": {
+      "ChatMessageWithDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["TEXT", "IMAGE", "FILE", "SYSTEM"]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserBasic"
+          },
+          "reactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageReaction"
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageAttachment"
+            }
+          },
+          "replyTo": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "content": {
+                "type": "string"
+              },
+              "sender": {
+                "$ref": "#/components/schemas/UserBasic"
+              }
+            }
+          }
+        }
+      },
+      "MessageReaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserBasic"
+          }
+        }
+      },
+      "MessageAttachment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["IMAGE", "FILE", "VIDEO", "AUDIO"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "User": {
         "type": "object",
         "properties": {
@@ -10691,6 +11835,207 @@
           "message": {
             "type": "string",
             "example": "Internal server error"
+          }
+        }
+      },
+      "ChatRoom": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PUBLIC", "PRIVATE"]
+          },
+          "entityType": {
+            "type": "string",
+            "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"]
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ChatRoomWithDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PUBLIC", "PRIVATE"]
+          },
+          "entityType": {
+            "type": "string",
+            "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"]
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatParticipantWithUser"
+            }
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LastMessage"
+            },
+            "maxItems": 1
+          },
+          "_count": {
+            "type": "object",
+            "properties": {
+              "messages": {
+                "type": "integer"
+              }
+            }
+          },
+          "unreadCount": {
+            "type": "integer",
+            "description": "Number of unread messages for the current user"
+          }
+        }
+      },
+      "ChatParticipantWithUser": {
+        "type": "object",
+        "properties": {
+          "chatRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "lastReadAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserBasic"
+          }
+        }
+      },
+      "LastMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["TEXT", "IMAGE", "FILE", "SYSTEM"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserBasic"
+          }
+        }
+      },
+      "ChatRoomWithParticipants": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PUBLIC", "PRIVATE"]
+          },
+          "entityType": {
+            "type": "string",
+            "enum": ["ORGANIZATION", "DEPARTMENT", "TEAM", "PROJECT"]
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatParticipantWithUser"
+            }
           }
         }
       }

@@ -1262,6 +1262,27 @@ export const getSpecificTeam = async (req, res, next) => {
     }
 
     const { team } = teamCheck;
+    const teamMembers = await prisma.teamMember.findMany({
+      where: {
+        teamId: team.id,
+        deletedAt: null,
+        role: 'MEMBER',
+      },
+      select: {
+        id: true,
+        teamId: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profilePic: true,
+          },
+        },
+      },
+    });
 
     // Calculate team statistics
     const activeMembers = team.members ? team.members.length : 0;
@@ -1294,14 +1315,7 @@ export const getSpecificTeam = async (req, res, next) => {
           },
           department: team.department,
         },
-        members: team.members
-          ? team.members.map((member) => ({
-              id: member.id,
-              role: member.role,
-              user: member.user,
-              joinedAt: member.joinedAt,
-            }))
-          : [],
+        members: teamMembers,
         projects: team.projects || [],
         recentReports: team.reports || [],
         statistics: {

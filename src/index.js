@@ -23,7 +23,7 @@ import sprintRoutes from './routes/sprint.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import activitylogRoutes from './routes/activitylog.routes.js';
 import chatRoutes from './routes/chat.routes.js';
-// import videoRoutes from './routes/video.routes.js';
+import videoRoutes from './routes/videoConference.routes.js';
 import {
   errorHandler,
   notFound,
@@ -31,6 +31,7 @@ import {
 import departmentRoutes from './routes/department.routes.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
 import setupChatHandlers from './socket/chatHandlers.js';
+import setupVideoHandlers from './socket/videoHandlers.js';
 import { verifySocketToken } from './middlewares/auth.middleware.js';
 
 /* eslint no-undef: off */
@@ -102,6 +103,7 @@ app.use(sprintRoutes);
 app.use(taskRoutes);
 app.use(activitylogRoutes);
 app.use(chatRoutes);
+app.use(videoRoutes);
 
 // Socket.IO middleware for authentication
 io.use(verifySocketToken);
@@ -117,10 +119,14 @@ io.on('connection', (socket) => {
   // Set up chat handlers for this socket
   const chatHandlers = setupChatHandlers(io, socket, socket.user);
 
+  // Set up video handlers for this socket
+  const videoHandlers = setupVideoHandlers(io, socket, socket.user);
+
   // Cleanup on disconnect
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.user.id}`);
     chatHandlers.disconnect();
+    videoHandlers.disconnect();
   });
 });
 

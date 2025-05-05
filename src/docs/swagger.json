@@ -57,6 +57,18 @@
     {
       "name": "Chat",
       "description": "Chat management"
+    },
+    {
+      "name": "Sessions",
+      "description": "Video conference session management"
+    },
+    {
+      "name": "Participants",
+      "description": "Video conference participant management"
+    },
+    {
+      "name": "Recordings",
+      "description": "Video conference recording management"
     }
   ],
   "paths": {
@@ -9217,6 +9229,699 @@
           }
         }
       }
+    },
+    "/api/video/sessions": {
+      "post": {
+        "tags": ["Sessions"],
+        "summary": "Create a new video conference session",
+        "description": "Creates a new video conference session in a chat room. User must be a participant in the chat room.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chatRoomId": {
+                    "type": "string",
+                    "description": "ID of the chat room where the session will be created"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Title of the video session"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the video session"
+                  },
+                  "settings": {
+                    "type": "object",
+                    "description": "Additional settings for the video session"
+                  }
+                },
+                "required": ["chatRoomId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Video session created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoSession"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not authorized to create a session in this chat room"
+          },
+          "409": {
+            "description": "An active session already exists in this chat room"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/chat/{chatRoomId}/sessions": {
+      "get": {
+        "tags": ["Sessions"],
+        "summary": "Get all video sessions for a chat room",
+        "description": "Retrieves all video sessions for a specific chat room with pagination support.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "chatRoomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the chat room"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["ACTIVE", "SCHEDULED", "ENDED", "CANCELLED"]
+            },
+            "description": "Filter by session status"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Number of items per page"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of video sessions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/VideoSession"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not authorized to view sessions in this chat room"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/sessions/{id}": {
+      "get": {
+        "tags": ["Sessions"],
+        "summary": "Get a specific video session",
+        "description": "Retrieves details of a specific video session including participants.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the video session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Video session details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoSessionWithDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not authorized to view this session"
+          },
+          "404": {
+            "description": "Video session not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Sessions"],
+        "summary": "Update a video session",
+        "description": "Updates a video session. Only the host or co-host can update the session.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the video session"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "New title for the session"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "New description for the session"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["ACTIVE", "SCHEDULED", "ENDED", "CANCELLED"],
+                    "description": "New status for the session"
+                  },
+                  "settings": {
+                    "type": "object",
+                    "description": "Updated settings for the session"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Video session updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot update a session that has ended or been cancelled"
+          },
+          "403": {
+            "description": "Only the host or co-host can update the session"
+          },
+          "404": {
+            "description": "Video session not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/sessions/{id}/join": {
+      "post": {
+        "tags": ["Participants"],
+        "summary": "Join a video session",
+        "description": "Joins an existing video session. User must be a participant in the chat room.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the video session"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deviceInfo": {
+                    "type": "object",
+                    "description": "Information about the participant's device"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully joined the session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "participant": {
+                      "$ref": "#/components/schemas/VideoParticipant"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot join a session that has ended or been cancelled"
+          },
+          "403": {
+            "description": "User is not authorized to join this session"
+          },
+          "404": {
+            "description": "Video session not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/sessions/{id}/leave": {
+      "post": {
+        "tags": ["Participants"],
+        "summary": "Leave a video session",
+        "description": "Leaves an active video session.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the video session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully left the session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "participant": {
+                      "$ref": "#/components/schemas/VideoParticipant"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a participant in this session"
+          },
+          "404": {
+            "description": "Video session not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/sessions/{id}/participants/{participantId}/role": {
+      "put": {
+        "tags": ["Participants"],
+        "summary": "Change participant role",
+        "description": "Changes the role of a participant in a video session. Only host or co-host can change roles.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the video session"
+          },
+          {
+            "name": "participantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the participant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": ["HOST", "COHOST", "PRESENTER", "ATTENDEE"],
+                    "description": "New role for the participant"
+                  }
+                },
+                "required": ["role"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Participant role updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "participant": {
+                      "$ref": "#/components/schemas/VideoParticipantWithUser"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid role specified or cannot change roles in inactive session"
+          },
+          "403": {
+            "description": "Only the host or co-host can change participant roles"
+          },
+          "404": {
+            "description": "Video session or participant not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/sessions/{id}/recordings": {
+      "post": {
+        "tags": ["Recordings"],
+        "summary": "Start recording a video session",
+        "description": "Starts recording an active video session. Only host or co-host can start recording.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the video session"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "storageProvider": {
+                    "type": "string",
+                    "default": "LOCAL",
+                    "description": "Storage provider for the recording"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recording started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "recording": {
+                      "$ref": "#/components/schemas/VideoRecording"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot start recording a session that is not active"
+          },
+          "403": {
+            "description": "Only the host or co-host can start recording"
+          },
+          "404": {
+            "description": "Video session not found"
+          },
+          "409": {
+            "description": "A recording is already in progress for this session"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Recordings"],
+        "summary": "Get recordings for a session",
+        "description": "Retrieves all recordings for a specific video session.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the video session"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recordings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VideoRecordingWithRecorder"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have permission to view these recordings"
+          },
+          "404": {
+            "description": "Video session not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/recordings/{recordingId}/stop": {
+      "put": {
+        "tags": ["Recordings"],
+        "summary": "Stop recording a video session",
+        "description": "Stops an active recording. Only host, co-host, or the person who started the recording can stop it.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "recordingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the recording"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileSize": {
+                    "type": "integer",
+                    "description": "Size of the recording file in bytes"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "description": "Duration of the recording in seconds"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recording stopped successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "recording": {
+                      "$ref": "#/components/schemas/VideoRecording"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Recording has already been stopped"
+          },
+          "403": {
+            "description": "User does not have permission to stop this recording"
+          },
+          "404": {
+            "description": "Recording not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/video/recordings/{id}/visibility": {
+      "put": {
+        "tags": ["Recordings"],
+        "summary": "Update recording visibility",
+        "description": "Updates the visibility of a recording. Only host or the person who recorded can update visibility.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the recording"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "PRIVATE",
+                      "PARTICIPANTS_ONLY",
+                      "ORGANIZATION",
+                      "PUBLIC"
+                    ],
+                    "description": "New visibility setting for the recording"
+                  }
+                },
+                "required": ["visibility"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recording visibility updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "recording": {
+                      "$ref": "#/components/schemas/VideoRecording"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid visibility setting"
+          },
+          "403": {
+            "description": "Only the host or the person who recorded can update visibility"
+          },
+          "404": {
+            "description": "Recording not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
     }
   },
 
@@ -12036,6 +12741,277 @@
             "items": {
               "$ref": "#/components/schemas/ChatParticipantWithUser"
             }
+          }
+        }
+      },
+      "VideoSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the session"
+          },
+          "chatRoomId": {
+            "type": "string",
+            "description": "ID of the associated chat room"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the session"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the session"
+          },
+          "hostId": {
+            "type": "string",
+            "description": "ID of the host user"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "URL for joining the session"
+          },
+          "settings": {
+            "type": "object",
+            "description": "Session settings"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "SCHEDULED", "ENDED", "CANCELLED"],
+            "description": "Current status of the session"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the session started"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the session ended"
+          },
+          "recordingUrl": {
+            "type": "string",
+            "description": "URL for the session recording"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the session was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the session was last updated"
+          }
+        }
+      },
+      "VideoSessionWithDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/VideoSession"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "host": {
+                "$ref": "#/components/schemas/UserBasicInfo"
+              },
+              "participants": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/VideoParticipantWithUser"
+                }
+              },
+              "chatRoom": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "entityType": {
+                    "type": "string"
+                  },
+                  "entityId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "VideoParticipant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the participant record"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "ID of the video session"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID of the user"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["HOST", "COHOST", "PRESENTER", "ATTENDEE"],
+            "description": "Role in the session"
+          },
+          "deviceInfo": {
+            "type": "object",
+            "description": "Information about the participant's device"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the participant joined"
+          },
+          "leftAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the participant left"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the participant record was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the participant record was last updated"
+          }
+        }
+      },
+      "VideoParticipantWithUser": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/VideoParticipant"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/UserBasicInfo"
+              }
+            }
+          }
+        ]
+      },
+      "VideoRecording": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the recording"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "ID of the video session"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Name of the recording file"
+          },
+          "fileSize": {
+            "type": "integer",
+            "description": "Size of the recording file in bytes"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Duration of the recording in seconds"
+          },
+          "recordedBy": {
+            "type": "string",
+            "description": "ID of the user who started the recording"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the recording started"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the recording ended"
+          },
+          "storageProvider": {
+            "type": "string",
+            "description": "Storage provider for the recording"
+          },
+          "storageKey": {
+            "type": "string",
+            "description": "Key for accessing the recording in storage"
+          },
+          "processingStatus": {
+            "type": "string",
+            "enum": ["PROCESSING", "READY", "FAILED"],
+            "description": "Current processing status of the recording"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["PRIVATE", "PARTICIPANTS_ONLY", "ORGANIZATION", "PUBLIC"],
+            "description": "Who can view this recording"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the recording record was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the recording record was last updated"
+          }
+        }
+      },
+      "VideoRecordingWithRecorder": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/VideoRecording"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "recorder": {
+                "$ref": "#/components/schemas/UserBasicInfo"
+              }
+            }
+          }
+        ]
+      },
+      "UserBasicInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "User ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "First name"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name"
+          },
+          "profilePic": {
+            "type": "string",
+            "description": "URL to profile picture"
           }
         }
       }

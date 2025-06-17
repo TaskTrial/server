@@ -147,6 +147,73 @@ const setupChatHandlers = (io, socket, user) => {
     }
   };
 
+  // Handle attachment notifications
+  const notifyAttachment = async (data, callback) => {
+    try {
+      const { chatRoomId, messageId, attachments } = data;
+
+      // Verify user is a participant
+      const participant = await prisma.chatParticipant.findUnique({
+        where: {
+          chatRoomId_userId: {
+            chatRoomId,
+            userId: user.id,
+          },
+        },
+      });
+
+      if (!participant) {
+        if (callback) {
+          callback({ error: 'Not authorized for this chat room' });
+        }
+        return;
+      }
+
+      // Get the message to verify it exists
+      const message = await prisma.chatMessage.findUnique({
+        where: {
+          id: messageId,
+          chatRoomId,
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              firstName: true,
+              lastName: true,
+              profilePic: true,
+            },
+          },
+        },
+      });
+
+      if (!message) {
+        if (callback) {
+          callback({ error: 'Message not found' });
+        }
+        return;
+      }
+
+      // Broadcast the attachment notification to all users in the chat room
+      io.to(chatRoomId).emit('attachment_added', {
+        messageId,
+        chatRoomId,
+        attachments,
+        message,
+      });
+
+      if (callback) {
+        callback({ success: true });
+      }
+    } catch (error) {
+      console.error('Error handling attachment notification:', error);
+      if (callback) {
+        callback({ error: 'Failed to process attachment notification' });
+      }
+    }
+  };
+
   // Handle typing status
   const typingStatus = (data) => {
     const { chatRoomId, isTyping } = data;
@@ -473,6 +540,7 @@ const setupChatHandlers = (io, socket, user) => {
   socket.on('mark_as_read', markAsRead);
   socket.on('delete_message', deleteMessage);
   socket.on('edit_message', editMessage);
+  socket.on('notify_attachment', notifyAttachment);
 
   // Initialize by joining user's rooms
   joinUserRooms();
@@ -488,6 +556,7 @@ const setupChatHandlers = (io, socket, user) => {
       socket.removeAllListeners('mark_as_read');
       socket.removeAllListeners('delete_message');
       socket.removeAllListeners('edit_message');
+      socket.removeAllListeners('notify_attachment');
     },
   };
 };

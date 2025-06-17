@@ -47,6 +47,16 @@ export const createVideoSession = async (req, res) => {
     // Generate a unique meeting URL
     const meetingUrl = generateMeetingUrl();
 
+    // Process settings with defaults
+    const sessionSettings = {
+      enableWaitingRoom: false, // Default: no waiting room
+      allowScreenSharing: true,
+      allowRecording: true,
+      allowChat: true,
+      maxParticipants: 50,
+      ...settings,
+    };
+
     // Create the video session
     const videoSession = await prisma.videoConferenceSession.create({
       data: {
@@ -55,7 +65,7 @@ export const createVideoSession = async (req, res) => {
         description,
         hostId: userId,
         meetingUrl,
-        settings: settings || {},
+        settings: sessionSettings,
         status: 'ACTIVE',
       },
     });
@@ -398,6 +408,7 @@ export const joinVideoSession = async (req, res) => {
         chatRoomId: true,
         status: true,
         hostId: true,
+        settings: true,
       },
     });
 
@@ -437,33 +448,53 @@ export const joinVideoSession = async (req, res) => {
       },
     });
 
+    // Check if waiting room is enabled and user is not host
+    const waitingRoomEnabled = session.settings?.enableWaitingRoom === true;
+    const isHost = userId === session.hostId;
+    const needsAdmission = waitingRoomEnabled && !isHost;
+
+    // If the user was already admitted, they don't need to wait again
+    const wasAdmitted =
+      existingParticipant && existingParticipant.status === 'ADMITTED';
+
     let participant;
 
     if (existingParticipant) {
       // If user had left, update their record
       if (existingParticipant.leftAt) {
+        const updateData = {
+          joinedAt: new Date(),
+          leftAt: null,
+          deviceInfo: deviceInfo || existingParticipant.deviceInfo,
+        };
+
+        // If waiting room is enabled and user is not host and not previously admitted,
+        // put them in the waiting room
+        if (needsAdmission && !wasAdmitted) {
+          updateData.status = 'WAITING';
+        } else {
+          updateData.status = 'ADMITTED';
+        }
+
         participant = await prisma.videoParticipant.update({
           where: {
             id: existingParticipant.id,
           },
-          data: {
-            joinedAt: new Date(),
-            leftAt: null,
-            deviceInfo: deviceInfo || existingParticipant.deviceInfo,
-          },
+          data: updateData,
         });
       } else {
         // User is already in the session
         return res.status(200).json({
           message: 'Already joined this session',
           participant: existingParticipant,
+          waitingForAdmission: existingParticipant.status === 'WAITING',
         });
       }
     } else {
       // Determine the role
       let role = 'ATTENDEE';
 
-      if (userId === session.hostId) {
+      if (isHost) {
         role = 'HOST';
       }
 
@@ -474,21 +505,51 @@ export const joinVideoSession = async (req, res) => {
           userId,
           deviceInfo: deviceInfo || {},
           role,
+          // If waiting room is enabled and user is not host, set status to WAITING
+          status: needsAdmission ? 'WAITING' : 'ADMITTED',
         },
       });
     }
 
     // If session was in SCHEDULED status and this is the host joining, update to ACTIVE
-    if (session.status === 'SCHEDULED' && userId === session.hostId) {
+    if (session.status === 'SCHEDULED' && isHost) {
       await prisma.videoConferenceSession.update({
         where: { id },
         data: { status: 'ACTIVE' },
       });
     }
 
+    // If the participant is in waiting room, notify the host
+    if (participant.status === 'WAITING') {
+      // Create a notification for the host (in a real implementation, this would use WebSockets)
+      await prisma.notification
+        .create({
+          data: {
+            userId: session.hostId,
+            title: 'Participant waiting to join',
+            content: `${req.user.firstName} ${req.user.lastName} is waiting to join your video session`,
+            type: 'VIDEO_WAITING_ROOM',
+            metadata: {
+              sessionId: id,
+              participantId: participant.id,
+              participantName: `${req.user.firstName} ${req.user.lastName}`,
+            },
+            isRead: false,
+          },
+        })
+        .catch((err) => console.error('Error creating notification:', err));
+
+      return res.status(200).json({
+        message: 'Waiting for host approval to join the session',
+        participant,
+        waitingForAdmission: true,
+      });
+    }
+
     return res.status(200).json({
       message: 'Successfully joined the session',
       participant,
+      waitingForAdmission: false,
     });
   } catch (error) {
     console.error('Error joining video session:', error);
@@ -1193,6 +1254,240 @@ export const updateRecordingVisibility = async (req, res) => {
     console.error('Error updating recording visibility:', error);
     return res.status(500).json({
       message: 'Failed to update recording visibility',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc   Admit participant from waiting room
+ * @route  /api/video/sessions/:id/participants/:participantId/admit
+ * @method PUT
+ * @access private
+ */
+export const admitParticipant = async (req, res) => {
+  try {
+    const { id, participantId } = req.params;
+    const userId = req.user.id;
+
+    // Verify session exists
+    const session = await prisma.videoConferenceSession.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        hostId: true,
+        status: true,
+        settings: true,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Video session not found' });
+    }
+
+    if (session.status !== 'ACTIVE') {
+      return res.status(400).json({
+        message: 'Cannot admit participants to a session that is not active',
+      });
+    }
+
+    // Check if waiting room is enabled
+    const waitingRoomEnabled = session.settings?.enableWaitingRoom === true;
+    if (!waitingRoomEnabled) {
+      return res.status(400).json({
+        message: 'Waiting room is not enabled for this session',
+      });
+    }
+
+    // Check if requesting user is host or co-host
+    const requestingParticipant = await prisma.videoParticipant.findUnique({
+      where: {
+        sessionId_userId: {
+          sessionId: id,
+          userId,
+        },
+      },
+    });
+
+    if (!requestingParticipant) {
+      return res.status(403).json({
+        message: 'You are not a participant in this session',
+      });
+    }
+
+    const canAdmit =
+      session.hostId === userId || requestingParticipant.role === 'COHOST';
+
+    if (!canAdmit) {
+      return res.status(403).json({
+        message: 'Only the host or co-host can admit participants',
+      });
+    }
+
+    // Get the participant to admit
+    const participantToAdmit = await prisma.videoParticipant.findUnique({
+      where: { id: participantId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!participantToAdmit) {
+      return res.status(404).json({ message: 'Participant not found' });
+    }
+
+    if (participantToAdmit.status !== 'WAITING') {
+      return res.status(400).json({
+        message: 'Participant is not in the waiting room',
+      });
+    }
+
+    // Admit the participant
+    const updatedParticipant = await prisma.videoParticipant.update({
+      where: { id: participantId },
+      data: {
+        status: 'ADMITTED',
+      },
+    });
+
+    // Delete any waiting room notifications for this participant
+    await prisma.notification
+      .deleteMany({
+        where: {
+          type: 'VIDEO_WAITING_ROOM',
+          userId: session.hostId,
+          metadata: {
+            path: ['participantId'],
+            equals: participantId,
+          },
+        },
+      })
+      .catch((err) => console.error('Error deleting notifications:', err));
+
+    return res.status(200).json({
+      message: `${participantToAdmit.user.firstName} ${participantToAdmit.user.lastName} has been admitted`,
+      participant: updatedParticipant,
+    });
+  } catch (error) {
+    console.error('Error admitting participant:', error);
+    return res.status(500).json({
+      message: 'Failed to admit participant',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc   Deny participant from waiting room
+ * @route  /api/video/sessions/:id/participants/:participantId/deny
+ * @method PUT
+ * @access private
+ */
+export const denyParticipant = async (req, res) => {
+  try {
+    const { id, participantId } = req.params;
+    const userId = req.user.id;
+
+    // Verify session exists
+    const session = await prisma.videoConferenceSession.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        hostId: true,
+        status: true,
+        settings: true,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Video session not found' });
+    }
+
+    // Check if requesting user is host or co-host
+    const requestingParticipant = await prisma.videoParticipant.findUnique({
+      where: {
+        sessionId_userId: {
+          sessionId: id,
+          userId,
+        },
+      },
+    });
+
+    if (!requestingParticipant) {
+      return res.status(403).json({
+        message: 'You are not a participant in this session',
+      });
+    }
+
+    const canDeny =
+      session.hostId === userId || requestingParticipant.role === 'COHOST';
+
+    if (!canDeny) {
+      return res.status(403).json({
+        message: 'Only the host or co-host can deny participants',
+      });
+    }
+
+    // Get the participant to deny
+    const participantToDeny = await prisma.videoParticipant.findUnique({
+      where: { id: participantId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!participantToDeny) {
+      return res.status(404).json({ message: 'Participant not found' });
+    }
+
+    if (participantToDeny.status !== 'WAITING') {
+      return res.status(400).json({
+        message: 'Participant is not in the waiting room',
+      });
+    }
+
+    // Deny the participant by marking them as left
+    await prisma.videoParticipant.update({
+      where: { id: participantId },
+      data: {
+        status: 'DENIED',
+        leftAt: new Date(),
+      },
+    });
+
+    // Delete any waiting room notifications for this participant
+    await prisma.notification
+      .deleteMany({
+        where: {
+          type: 'VIDEO_WAITING_ROOM',
+          userId: session.hostId,
+          metadata: {
+            path: ['participantId'],
+            equals: participantId,
+          },
+        },
+      })
+      .catch((err) => console.error('Error deleting notifications:', err));
+
+    return res.status(200).json({
+      message: `${participantToDeny.user.firstName} ${participantToDeny.user.lastName} has been denied access`,
+    });
+  } catch (error) {
+    console.error('Error denying participant:', error);
+    return res.status(500).json({
+      message: 'Failed to deny participant',
       error: error.message,
     });
   }

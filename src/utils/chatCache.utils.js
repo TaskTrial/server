@@ -164,7 +164,7 @@ export const chatMessagesCache = {
         cursor = result.cursor;
 
         if (result.keys.length > 0) {
-          await redisClient.del(result.keys);
+          await redisClient.del(...result.keys);
         }
       } while (cursor !== 0);
 

@@ -2,18 +2,21 @@
 import { Router } from 'express';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import {
+  admitParticipant,
+  changeParticipantRole,
   createVideoSession,
+  denyParticipant,
   getChatRoomSessions,
+  getSessionRecordings,
   getVideoSession,
-  updateVideoSession,
   joinVideoSession,
   leaveVideoSession,
-  changeParticipantRole,
   startRecording,
   stopRecording,
-  getSessionRecordings,
   updateRecordingVisibility,
+  updateVideoSession,
 } from '../controllers/videoConference.controller.js';
+import { videoSessionCreationLimiter } from '../utils/apiLimiter.utils.js';
 
 const router = Router();
 
@@ -21,7 +24,11 @@ const router = Router();
 router.use(verifyAccessToken);
 
 // Session management
-router.post('/api/video/sessions', createVideoSession);
+router.post(
+  '/api/video/sessions',
+  videoSessionCreationLimiter,
+  createVideoSession,
+);
 router.get('/api/video/chat/:chatRoomId/sessions', getChatRoomSessions);
 router.get('/api/video/sessions/:id', getVideoSession);
 router.put('/api/video/sessions/:id', updateVideoSession);
@@ -32,6 +39,16 @@ router.post('/api/video/sessions/:id/leave', leaveVideoSession);
 router.put(
   '/api/video/sessions/:id/participants/:participantId/role',
   changeParticipantRole,
+);
+
+// Waiting room management
+router.put(
+  '/api/video/sessions/:id/participants/:participantId/admit',
+  admitParticipant,
+);
+router.put(
+  '/api/video/sessions/:id/participants/:participantId/deny',
+  denyParticipant,
 );
 
 // Recording management

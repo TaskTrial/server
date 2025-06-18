@@ -506,12 +506,12 @@ export const addTeamMember = async (req, res, next) => {
  */
 export const removeTeamMember = async (req, res, next) => {
   try {
-    const { organizationId, teamId, memberId } = req.params;
+    const { organizationId, teamId, userId } = req.params;
 
     // Validate required parameters
     const paramsValidation = validateParams(
-      { organizationId, teamId, memberId },
-      ['organizationId', 'teamId', 'memberId'],
+      { organizationId, teamId, userId },
+      ['organizationId', 'teamId', 'userId'],
     );
 
     if (!paramsValidation.success) {
@@ -544,7 +544,7 @@ export const removeTeamMember = async (req, res, next) => {
     // Check if team member exists
     const teamMember = await prisma.teamMember.findFirst({
       where: {
-        id: memberId,
+        userId,
         teamId,
       },
       include: {
@@ -602,7 +602,12 @@ export const removeTeamMember = async (req, res, next) => {
 
     // Soft delete the team member
     const removedMember = await prisma.teamMember.update({
-      where: { id: memberId },
+      where: {
+        teamId_userId: {
+          teamId,
+          userId,
+        },
+      },
       data: { deletedAt: new Date(), isActive: false },
       include: {
         user: {

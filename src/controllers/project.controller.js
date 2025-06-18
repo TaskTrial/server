@@ -1114,21 +1114,28 @@ export const addProjectMember = async (req, res, next) => {
       (id) => !existingUserIds.includes(id),
     );
 
-    if (nonExistingUserIds.length > 0) {
+    // Filter our member data to only include existing users
+    const validMemberData = members.filter((member) =>
+      existingUserIds.includes(member.userId),
+    );
+
+    // If none of the users exist, return an error
+    if (validMemberData.length === 0) {
       return res.status(404).json({
-        message: 'Some users were not found',
+        message: 'None of the specified users were found',
         userIds: nonExistingUserIds,
       });
     }
 
+    // Continue with only valid/existing users
     // Check which users are already members
     const existingMembers = await prisma.projectMember.findMany({
       where: {
         projectId,
         userId: {
-          in: userIds,
+          in: existingUserIds, // Use only existing user IDs
         },
-        leftAt: null, // Only consider active members
+        leftAt: null,
       },
       select: {
         userId: true,
@@ -1136,13 +1143,13 @@ export const addProjectMember = async (req, res, next) => {
     });
 
     const existingMemberIds = existingMembers.map((member) => member.userId);
-    const newMemberData = members.filter(
+    const newMemberData = validMemberData.filter(
       (member) => !existingMemberIds.includes(member.userId),
     );
 
     if (newMemberData.length === 0) {
       return res
-        .status(400)
+        .status(200)
         .json({ message: 'All users are already members of this project' });
     }
 
@@ -1175,7 +1182,12 @@ export const addProjectMember = async (req, res, next) => {
       message: `Successfully added ${newMemberData.length} members to the project`,
       data: {
         count: projectMembers.count,
-        skipped: userIds.length - newMemberData.length,
+        skipped: {
+          alreadyMembers:
+            userIds.length - newMemberData.length - nonExistingUserIds.length,
+          nonExistingUsers: nonExistingUserIds.length,
+          nonExistingUserIds: nonExistingUserIds,
+        },
       },
     });
   } catch (error) {

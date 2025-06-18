@@ -53,7 +53,7 @@ router.delete(
 );
 
 router.delete(
-  '/api/organization/:organizationId/team/:teamId/members/:memberId',
+  '/api/organization/:organizationId/team/:teamId/members/:userId',
   verifyAccessToken,
   removeTeamMember,
 );

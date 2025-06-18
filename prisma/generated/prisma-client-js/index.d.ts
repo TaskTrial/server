@@ -920,8 +920,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.6.0
-   * Query Engine version: f676762280b54cd07c770017ed3711ddde35f37a
+   * Prisma Client JS version: 6.10.0
+   * Query Engine version: aee10d5a411e4360c6d3445ce4810ca65adbf3e8
    */
   export type PrismaVersion = {
     client: string
@@ -10787,7 +10787,7 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     avatar?: boolean
-    creator?: boolean | UserDefaultArgs<ExtArgs>
+    creator?: boolean | Team$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     department?: boolean | Team$departmentArgs<ExtArgs>
     members?: boolean | Team$membersArgs<ExtArgs>
@@ -10808,7 +10808,7 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     avatar?: boolean
-    creator?: boolean | UserDefaultArgs<ExtArgs>
+    creator?: boolean | Team$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     department?: boolean | Team$departmentArgs<ExtArgs>
   }, ExtArgs["result"]["team"]>
@@ -10824,7 +10824,7 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     avatar?: boolean
-    creator?: boolean | UserDefaultArgs<ExtArgs>
+    creator?: boolean | Team$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     department?: boolean | Team$departmentArgs<ExtArgs>
   }, ExtArgs["result"]["team"]>
@@ -10844,7 +10844,7 @@ export namespace Prisma {
 
   export type TeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "createdBy" | "organizationId" | "departmentId" | "createdAt" | "updatedAt" | "deletedAt" | "avatar", ExtArgs["result"]["team"]>
   export type TeamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    creator?: boolean | UserDefaultArgs<ExtArgs>
+    creator?: boolean | Team$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     department?: boolean | Team$departmentArgs<ExtArgs>
     members?: boolean | Team$membersArgs<ExtArgs>
@@ -10854,12 +10854,12 @@ export namespace Prisma {
     _count?: boolean | TeamCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TeamIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    creator?: boolean | UserDefaultArgs<ExtArgs>
+    creator?: boolean | Team$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     department?: boolean | Team$departmentArgs<ExtArgs>
   }
   export type TeamIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    creator?: boolean | UserDefaultArgs<ExtArgs>
+    creator?: boolean | Team$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     department?: boolean | Team$departmentArgs<ExtArgs>
   }
@@ -10867,7 +10867,7 @@ export namespace Prisma {
   export type $TeamPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Team"
     objects: {
-      creator: Prisma.$UserPayload<ExtArgs>
+      creator: Prisma.$UserPayload<ExtArgs> | null
       organization: Prisma.$OrganizationPayload<ExtArgs>
       department: Prisma.$DepartmentPayload<ExtArgs> | null
       members: Prisma.$TeamMemberPayload<ExtArgs>[]
@@ -11280,7 +11280,7 @@ export namespace Prisma {
    */
   export interface Prisma__TeamClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    creator<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    creator<T extends Team$creatorArgs<ExtArgs> = {}>(args?: Subset<T, Team$creatorArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     department<T extends Team$departmentArgs<ExtArgs> = {}>(args?: Subset<T, Team$departmentArgs<ExtArgs>>): Prisma__DepartmentClient<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     members<T extends Team$membersArgs<ExtArgs> = {}>(args?: Subset<T, Team$membersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -11719,6 +11719,25 @@ export namespace Prisma {
      * Limit how many Teams to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Team.creator
+   */
+  export type Team$creatorArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -42946,7 +42965,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Team"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Team"> | Date | string | null
     avatar?: StringNullableFilter<"Team"> | string | null
-    creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    creator?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     members?: TeamMemberListRelationFilter
@@ -42990,7 +43009,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Team"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Team"> | Date | string | null
     avatar?: StringNullableFilter<"Team"> | string | null
-    creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    creator?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     members?: TeamMemberListRelationFilter
@@ -45895,7 +45914,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     avatar?: string | null
-    creator: UserCreateNestedOneWithoutCreatedTeamsInput
+    creator?: UserCreateNestedOneWithoutCreatedTeamsInput
     organization: OrganizationCreateNestedOneWithoutTeamsInput
     department?: DepartmentCreateNestedOneWithoutTeamsInput
     members?: TeamMemberCreateNestedManyWithoutTeamInput
@@ -45929,7 +45948,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    creator?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    creator?: UserUpdateOneWithoutCreatedTeamsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutTeamsNestedInput
     department?: DepartmentUpdateOneWithoutTeamsNestedInput
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
@@ -49048,6 +49067,11 @@ export namespace Prisma {
     deletedAt?: SortOrder
   }
 
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
   export type TeamOrganizationIdNameCompoundUniqueInput = {
     organizationId: string
     name: string
@@ -49165,11 +49189,6 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type UserNullableScalarRelationFilter = {
-    is?: UserWhereInput | null
-    isNot?: UserWhereInput | null
   }
 
   export type SprintListRelationFilter = {
@@ -52478,10 +52497,12 @@ export namespace Prisma {
     connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
   }
 
-  export type UserUpdateOneRequiredWithoutCreatedTeamsNestedInput = {
+  export type UserUpdateOneWithoutCreatedTeamsNestedInput = {
     create?: XOR<UserCreateWithoutCreatedTeamsInput, UserUncheckedCreateWithoutCreatedTeamsInput>
     connectOrCreate?: UserCreateOrConnectWithoutCreatedTeamsInput
     upsert?: UserUpsertWithoutCreatedTeamsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCreatedTeamsInput, UserUpdateWithoutCreatedTeamsInput>, UserUncheckedUpdateWithoutCreatedTeamsInput>
   }
@@ -57581,7 +57602,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     avatar?: string | null
-    creator: UserCreateNestedOneWithoutCreatedTeamsInput
+    creator?: UserCreateNestedOneWithoutCreatedTeamsInput
     department?: DepartmentCreateNestedOneWithoutTeamsInput
     members?: TeamMemberCreateNestedManyWithoutTeamInput
     projects?: ProjectCreateNestedManyWithoutTeamInput
@@ -58826,7 +58847,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     avatar?: string | null
-    creator: UserCreateNestedOneWithoutCreatedTeamsInput
+    creator?: UserCreateNestedOneWithoutCreatedTeamsInput
     organization: OrganizationCreateNestedOneWithoutTeamsInput
     members?: TeamMemberCreateNestedManyWithoutTeamInput
     projects?: ProjectCreateNestedManyWithoutTeamInput
@@ -60042,7 +60063,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     avatar?: string | null
-    creator: UserCreateNestedOneWithoutCreatedTeamsInput
+    creator?: UserCreateNestedOneWithoutCreatedTeamsInput
     organization: OrganizationCreateNestedOneWithoutTeamsInput
     department?: DepartmentCreateNestedOneWithoutTeamsInput
     projects?: ProjectCreateNestedManyWithoutTeamInput
@@ -60209,7 +60230,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    creator?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    creator?: UserUpdateOneWithoutCreatedTeamsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutTeamsNestedInput
     department?: DepartmentUpdateOneWithoutTeamsNestedInput
     projects?: ProjectUpdateManyWithoutTeamNestedInput
@@ -60667,7 +60688,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     avatar?: string | null
-    creator: UserCreateNestedOneWithoutCreatedTeamsInput
+    creator?: UserCreateNestedOneWithoutCreatedTeamsInput
     organization: OrganizationCreateNestedOneWithoutTeamsInput
     department?: DepartmentCreateNestedOneWithoutTeamsInput
     members?: TeamMemberCreateNestedManyWithoutTeamInput
@@ -61266,7 +61287,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    creator?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    creator?: UserUpdateOneWithoutCreatedTeamsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutTeamsNestedInput
     department?: DepartmentUpdateOneWithoutTeamsNestedInput
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
@@ -65184,7 +65205,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     avatar?: string | null
-    creator: UserCreateNestedOneWithoutCreatedTeamsInput
+    creator?: UserCreateNestedOneWithoutCreatedTeamsInput
     organization: OrganizationCreateNestedOneWithoutTeamsInput
     department?: DepartmentCreateNestedOneWithoutTeamsInput
     members?: TeamMemberCreateNestedManyWithoutTeamInput
@@ -65616,7 +65637,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    creator?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    creator?: UserUpdateOneWithoutCreatedTeamsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutTeamsNestedInput
     department?: DepartmentUpdateOneWithoutTeamsNestedInput
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
@@ -66180,7 +66201,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     avatar?: string | null
-    creator: UserCreateNestedOneWithoutCreatedTeamsInput
+    creator?: UserCreateNestedOneWithoutCreatedTeamsInput
     organization: OrganizationCreateNestedOneWithoutTeamsInput
     department?: DepartmentCreateNestedOneWithoutTeamsInput
     members?: TeamMemberCreateNestedManyWithoutTeamInput
@@ -66670,7 +66691,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    creator?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    creator?: UserUpdateOneWithoutCreatedTeamsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutTeamsNestedInput
     department?: DepartmentUpdateOneWithoutTeamsNestedInput
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
@@ -72655,7 +72676,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    creator?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    creator?: UserUpdateOneWithoutCreatedTeamsNestedInput
     department?: DepartmentUpdateOneWithoutTeamsNestedInput
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
     projects?: ProjectUpdateManyWithoutTeamNestedInput
@@ -73166,7 +73187,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
-    creator?: UserUpdateOneRequiredWithoutCreatedTeamsNestedInput
+    creator?: UserUpdateOneWithoutCreatedTeamsNestedInput
     organization?: OrganizationUpdateOneRequiredWithoutTeamsNestedInput
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
     projects?: ProjectUpdateManyWithoutTeamNestedInput

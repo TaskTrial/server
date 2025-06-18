@@ -5,9 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["prismaSchemaFolder"]
-  output          = "./generated/prisma-client-js"
+  provider = "prisma-client-js"
+  // previewFeatures = ["prismaSchemaFolder"]
+  output   = "./generated/prisma-client-js"
 }
 
 datasource db {
@@ -149,7 +149,7 @@ model Department {
 
   // Relations
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  manager      User          @relation("DepartmentManager", fields: [managerId], references: [id])
+  manager      User          @relation("DepartmentManager", fields: [managerId], references: [id], onDelete: Cascade)
   teams        Team[]
   users        User[]
   activityLogs ActivityLog[] @relation("DepartmentActivityLogs")
@@ -174,7 +174,7 @@ model Team {
   avatar         String? // for team avatar/logo
 
   // Relations
-  creator      User          @relation("TeamCreator", fields: [createdBy], references: [id])
+  creator      User?         @relation("TeamCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   department   Department?   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   members      TeamMember[]
@@ -227,7 +227,7 @@ model Project {
   lastModifiedBy String?      @db.Uuid // for audit
 
   // Relations
-  creator       User            @relation("ProjectCreator", fields: [createdBy], references: [id])
+  creator       User            @relation("ProjectCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   modifier      User?           @relation("ProjectModifier", fields: [lastModifiedBy], references: [id])
   organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   team          Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -312,9 +312,9 @@ model Task {
   // Relations
   project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   sprint       Sprint?          @relation(fields: [sprintId], references: [id])
-  creator      User             @relation("TaskCreator", fields: [createdBy], references: [id])
-  assignee     User?            @relation("TaskAssignee", fields: [assignedTo], references: [id])
-  modifier     User?            @relation("TaskModifier", fields: [lastModifiedBy], references: [id])
+  creator      User             @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  assignee     User?            @relation("TaskAssignee", fields: [assignedTo], references: [id], onDelete: Cascade)
+  modifier     User?            @relation("TaskModifier", fields: [lastModifiedBy], references: [id], onDelete: Cascade)
   attachments  TaskAttachment[]
   comments     Comment[]
   timelogs     Timelog[]
@@ -644,7 +644,7 @@ model ChatMessage {
 
   // Relations
   chatRoom    ChatRoom            @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  sender      User                @relation(fields: [senderId], references: [id])
+  sender      User                @relation(fields: [senderId], references: [id], onDelete: Cascade)
   replyTo     ChatMessage?        @relation("MessageReplies", fields: [replyToId], references: [id])
   replies     ChatMessage[]       @relation("MessageReplies")
   attachments MessageAttachment[]
@@ -706,7 +706,7 @@ model PinnedMessage {
   // Relations
   chatRoom ChatRoom    @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   message  ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user     User        @relation(fields: [pinnedBy], references: [id])
+  user     User        @relation(fields: [pinnedBy], references: [id], onDelete: Cascade)
 
   @@unique([chatRoomId, messageId]) // A message can only be pinned once in a chat
   @@index([chatRoomId])
@@ -729,7 +729,7 @@ model VideoConferenceSession {
 
   // Relations
   chatRoom     ChatRoom           @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  host         User               @relation("SessionHost", fields: [hostId], references: [id])
+  host         User               @relation("SessionHost", fields: [hostId], references: [id], onDelete: Cascade)
   participants VideoParticipant[]
   recordings   VideoRecording[]
 
@@ -754,7 +754,7 @@ model VideoParticipant {
 
   // Relations
   session VideoConferenceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user    User                   @relation(fields: [userId], references: [id])
+  user    User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([sessionId, userId]) // A user can only join a session once
   @@index([sessionId])
@@ -779,7 +779,7 @@ model VideoRecording {
 
   // Relations
   session  VideoConferenceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  recorder User                   @relation(fields: [recordedBy], references: [id])
+  recorder User                   @relation(fields: [recordedBy], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@index([recordedBy])

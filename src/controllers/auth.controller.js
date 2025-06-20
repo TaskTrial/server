@@ -782,7 +782,6 @@ export const googleOAuthLogin = async (req, res) => {
       refreshToken,
     });
   } catch (error) {
-    console.error('Google OAuth error:', error);
     res.status(400).json({
       message: 'Google authentication failed',
       error: error.message,
@@ -959,7 +958,6 @@ export const firebaseLogin = async (req, res, next) => {
       refreshToken,
     });
   } catch (error) {
-    console.error('Firebase auth error:', error);
     next(error);
   }
 };

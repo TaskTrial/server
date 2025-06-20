@@ -16,7 +16,6 @@ import {
   firebaseLogin,
 } from '../controllers/auth.controller.js';
 import { apiLimiter } from '../utils/apiLimiter.utils.js';
-import { verifyFirebaseToken } from '../middlewares/firebaseAuth.middleware.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
 import prisma from '../config/prismaClient.js';
 
@@ -94,8 +93,7 @@ router.get('/api/auth/me', verifyAccessToken, async (req, res) => {
 
     res.status(200).json({ user });
   } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error });
   }
 });
 

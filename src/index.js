@@ -22,7 +22,7 @@ import projectRoutes from './routes/project.routes.js';
 import sprintRoutes from './routes/sprint.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import activitylogRoutes from './routes/activitylog.routes.js';
-import chatRoutes from './routes/chat.routes.js';
+// import chatRoutes from './routes/chat.routes.js';
 import videoRoutes from './routes/videoConference.routes.js';
 import permissionRoutes from './routes/permission.routes.js';
 import {
@@ -106,7 +106,7 @@ app.use(projectRoutes);
 app.use(sprintRoutes);
 app.use(taskRoutes);
 app.use(activitylogRoutes);
-app.use(chatRoutes);
+// app.use(chatRoutes);
 app.use(videoRoutes);
 app.use(permissionRoutes);
 

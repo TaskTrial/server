@@ -21,6 +21,7 @@ import {
   createActivityLog,
   generateActivityDetails,
 } from '../utils/activityLogs.utils.js';
+import firebaseAdmin from '../config/firebase.js';
 
 /* eslint no-undef:off */
 /**
@@ -320,8 +321,14 @@ export const signin = async (req, res, next) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePic: user.profilePic,
         role: user.role,
+        isActive: user.isActive,
+        lastLogin: user.lastLogin,
+        firebaseUid: user.firebaseUid,
       },
     });
   } catch (error) {
@@ -698,12 +705,14 @@ export const googleOAuthLogin = async (req, res) => {
       },
     });
 
+    const isNewUser = !user;
+
     if (!user) {
       user = await prisma.user.create({
         data: {
           email: payload.email,
-          firstName: payload.given_name.trim() || '',
-          lastName: payload.family_name.trim() || '',
+          firstName: payload.given_name?.trim() || '',
+          lastName: payload.family_name?.trim() || '',
           username: payload.email.split('@')[0], // Generate username from email
           password: null, // Since it's OAuth
           role: 'MEMBER', // Default role
@@ -716,13 +725,19 @@ export const googleOAuthLogin = async (req, res) => {
           },
         },
       });
+    } else {
+      // Update last login time for existing user
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() },
+      });
     }
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Optional: Store refresh token in database
+    // Store refresh token in database
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -735,9 +750,14 @@ export const googleOAuthLogin = async (req, res) => {
     const userResponse = {
       id: user.id,
       email: user.email,
-      name: user.name,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
       profilePic: user.profilePic,
+      isActive: user.isActive,
+      lastLogin: user.lastLogin,
+      firebaseUid: user.firebaseUid,
     };
 
     await createActivityLog({
@@ -758,12 +778,11 @@ export const googleOAuthLogin = async (req, res) => {
     res.status(200).json({
       message: 'Google authentication successful',
       user: userResponse,
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
+      accessToken,
+      refreshToken,
     });
   } catch (error) {
+    console.error('Google OAuth error:', error);
     res.status(400).json({
       message: 'Google authentication failed',
       error: error.message,
@@ -835,6 +854,8 @@ export const firebaseLogin = async (req, res, next) => {
       where: { firebaseUid: uid },
     });
 
+    const isNewUser = !user;
+
     if (!user) {
       // If not found by Firebase UID, try finding by email
       user = await prisma.user.findUnique({
@@ -880,6 +901,7 @@ export const firebaseLogin = async (req, res, next) => {
             profilePic: picture || null,
             lastLogin: new Date(),
             password: null, // No password for Firebase users
+            isActive: true,
           },
         });
       }
@@ -891,15 +913,25 @@ export const firebaseLogin = async (req, res, next) => {
       });
     }
 
-    // Generate a custom token for this user if needed
-    // const customToken = await firebaseAdmin.auth().createCustomToken(uid);
+    // Generate JWT tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Store refresh token in database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken,
+        lastLogin: new Date(),
+      },
+    });
 
     await createActivityLog({
       entityType: 'USER',
-      action: 'CREATED',
+      action: isNewUser ? 'CREATED' : 'UPDATED',
       userId: user.id,
       details: {
-        action: 'FIREBASE_SIGNUP',
+        action: isNewUser ? 'FIREBASE_SIGNUP' : 'FIREBASE_SIGNIN',
         userId: user.id,
         email: user.email,
         timestamp: new Date(),
@@ -910,6 +942,7 @@ export const firebaseLogin = async (req, res, next) => {
     });
 
     return res.status(200).json({
+      message: 'Firebase authentication successful',
       user: {
         id: user.id,
         email: user.email,
@@ -918,10 +951,15 @@ export const firebaseLogin = async (req, res, next) => {
         lastName: user.lastName,
         role: user.role,
         profilePic: user.profilePic,
+        isActive: user.isActive,
+        lastLogin: user.lastLogin,
+        firebaseUid: user.firebaseUid,
       },
-      message: 'Authentication successful',
+      accessToken,
+      refreshToken,
     });
   } catch (error) {
+    console.error('Firebase auth error:', error);
     next(error);
   }
 };

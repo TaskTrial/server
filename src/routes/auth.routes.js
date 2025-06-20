@@ -17,6 +17,8 @@ import {
 } from '../controllers/auth.controller.js';
 import { apiLimiter } from '../utils/apiLimiter.utils.js';
 import { verifyFirebaseToken } from '../middlewares/firebaseAuth.middleware.js';
+import { verifyAccessToken } from '../middlewares/auth.middleware.js';
+import prisma from '../config/prismaClient.js';
 
 const router = Router();
 
@@ -66,13 +68,35 @@ router.post('/api/auth/logout', logout);
 // Firebase sign-in endpoint
 router.post('/api/auth/firebase', firebaseLogin);
 
-// Get current user profile
-router.get('/me', verifyFirebaseToken, async (req, res) => {
-  if (!req.user) {
-    return res.status(404).json({ message: 'User not found in database' });
-  }
+// Get current user profile - using JWT authentication
+router.get('/api/auth/me', verifyAccessToken, async (req, res) => {
+  try {
+    // Get user from database using the decoded token
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        firstName: true,
+        lastName: true,
+        profilePic: true,
+        role: true,
+        isActive: true,
+        lastLogin: true,
+        firebaseUid: true,
+      },
+    });
 
-  res.status(200).json({ user: req.user });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found in database' });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 export default router;

@@ -16,7 +16,7 @@ export const googleVerifyIdToken = async (idToken) => {
     const payload = ticket.getPayload();
 
     // Extract user information
-    const { email, name, picture, sub: googleId } = payload;
+    const { email, picture, sub: googleId } = payload;
 
     // Find or create user in database
     let user = await prisma.user.findUnique({
@@ -27,9 +27,10 @@ export const googleVerifyIdToken = async (idToken) => {
       user = await prisma.user.create({
         data: {
           email,
-          name,
+          firstName: payload.given_name || 'First',
+          lastName: payload.family_name || 'Last',
           username: email.split('@')[0],
-          password: '', // No password for OAuth users
+          password: null, // No password for OAuth users
           role: 'MEMBER',
           isActive: true,
           profilePic: picture,

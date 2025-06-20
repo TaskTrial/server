@@ -8,6 +8,10 @@ import {
   updatePasswordValidation,
   updateUserAccountValidation,
 } from '../validations/user.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * @desc   Get all users with pagination
@@ -225,6 +229,14 @@ export const updateUserAccount = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: updatedUser.organizationId,
+      details: generateActivityDetails('UPDATED', user, updatedUser),
+    });
+
     res.status(200).json({
       message: 'User account updated successfully',
       user: updatedUser,
@@ -283,7 +295,36 @@ export const updateUserPassword = async (req, res, next) => {
       data: { password: hashedPassword },
     });
 
-    // Respond with a success message
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: user.organizationId,
+      details: {
+        type: 'PASSWORD_CHANGED',
+        changedAt: new Date(),
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          departmentId: user.departmentId,
+          organizationId: user.organizationId,
+          isOwner: user.isOwner,
+          isActive: user.isActive,
+          phoneNumber: user.phoneNumber,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          bio: user.bio,
+          preferences: user.preferences,
+          lastLogin: user.lastLogin,
+          lastLogout: user.lastLogout,
+        },
+      },
+    });
+
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
     // Pass any errors to the error-handling middleware
@@ -321,6 +362,14 @@ export const softDeleteUser = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'DELETED',
+      userId: req.user.id,
+      organizationId: user.organizationId,
+      details: generateActivityDetails('DELETED', user, null),
+    });
+
     return res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     next(error);
@@ -348,6 +397,35 @@ export const restoreUser = async (req, res, next) => {
       data: {
         deletedAt: null,
         isActive: true,
+      },
+    });
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'RESTORED',
+      userId: req.user.id,
+      organizationId: user.organizationId,
+      details: {
+        restoredAt: new Date(),
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          departmentId: user.departmentId,
+          organizationId: user.organizationId,
+          isOwner: user.isOwner,
+          isActive: user.isActive,
+          phoneNumber: user.phoneNumber,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          bio: user.bio,
+          preferences: user.preferences,
+          lastLogin: user.lastLogin,
+          lastLogout: user.lastLogout,
+        },
       },
     });
 
@@ -405,6 +483,37 @@ export const uploadUserProfilePic = async (req, res, next) => {
       data: { profilePic: profilePicUrl },
     });
 
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: user.organizationId,
+      details: {
+        type: 'PROFILE_PIC_UPLOADED',
+        profilePicUrl,
+        uploadedAt: new Date(),
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          departmentId: user.departmentId,
+          organizationId: user.organizationId,
+          isOwner: user.isOwner,
+          isActive: user.isActive,
+          phoneNumber: user.phoneNumber,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          bio: user.bio,
+          preferences: user.preferences,
+          lastLogin: user.lastLogin,
+          lastLogout: user.lastLogout,
+        },
+      },
+    });
+
     res.status(200).json({
       message: 'Profile picture uploaded successfully',
       profilePicUrl,
@@ -450,6 +559,36 @@ export const deleteUserProfilePic = async (req, res, next) => {
     const updatedUser = await prisma.user.update({
       where: { id: id },
       data: { profilePic: null },
+    });
+
+    await createActivityLog({
+      entityType: 'USER',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId: user.organizationId,
+      details: {
+        type: 'PROFILE_PIC_DELETED',
+        deletedAt: new Date(),
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          departmentId: user.departmentId,
+          organizationId: user.organizationId,
+          isOwner: user.isOwner,
+          isActive: user.isActive,
+          phoneNumber: user.phoneNumber,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          bio: user.bio,
+          preferences: user.preferences,
+          lastLogin: user.lastLogin,
+          lastLogout: user.lastLogout,
+        },
+      },
     });
 
     res.status(200).json({

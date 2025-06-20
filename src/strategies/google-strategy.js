@@ -46,7 +46,7 @@ export const configureGoogleStrategy = () => {
                 firstName: profile.name.givenName || 'First',
                 lastName: profile.name.familyName || 'Last',
                 username: email.split('@')[0], // Generate username from email
-                password: '', // Since it's OAuth, no password needed
+                password: null, // Since it's OAuth, no password needed
                 role: 'MEMBER', // Default role
                 isActive: true,
                 isOwner: false,

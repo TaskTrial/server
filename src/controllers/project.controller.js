@@ -118,12 +118,26 @@ const checkTeam = async (
  * @param {Object} [options] - Additional options for the query
  * @returns {Promise<Object>} - Contains success flag, error message, and team data
  */
-const checkTeamPermissions = (user, organization, team, action) => {
+const checkTeamPermissions = async (user, organization, team, action) => {
   const isAdmin = user.role === 'ADMIN';
   const isOwner = organization.owners.some((owner) => owner.userId === user.id);
   const isTeamManager = team.createdBy === user.id;
 
-  if (!isAdmin && !isOwner && !isTeamManager) {
+  // Check if user is a team leader
+  let isTeamLeader = false;
+  if (team.id) {
+    const teamMember = await prisma.teamMember.findFirst({
+      where: {
+        teamId: team.id,
+        userId: user.id,
+        role: 'LEADER',
+        deletedAt: null,
+      },
+    });
+    isTeamLeader = !!teamMember;
+  }
+
+  if (!isAdmin && !isOwner && !isTeamManager && !isTeamLeader) {
     return {
       success: false,
       message: `You do not have permission to ${action} this team`,
@@ -135,6 +149,7 @@ const checkTeamPermissions = (user, organization, team, action) => {
     isAdmin,
     isOwner,
     isTeamManager,
+    isTeamLeader,
   };
 };
 
@@ -182,7 +197,7 @@ export const createProject = async (req, res, next) => {
     const team = teamResult.team;
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -377,7 +392,7 @@ export const updateProject = async (req, res, next) => {
     }
 
     // Check permissions (can be done via a similar helper function as in create)
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -405,6 +420,7 @@ export const updateProject = async (req, res, next) => {
       permissionCheck.isAdmin ||
       permissionCheck.isOwner ||
       permissionCheck.isTeamManager ||
+      permissionCheck.isTeamLeader ||
       isProjectOwner;
 
     if (!hasPermission) {
@@ -629,7 +645,7 @@ export const updateProjectStatus = async (req, res, next) => {
     }
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -778,7 +794,7 @@ export const updateProjectPriority = async (req, res, next) => {
     }
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -896,7 +912,7 @@ export const deleteProject = async (req, res, next) => {
     }
 
     // Check user permissions
-    const permissionResult = checkTeamPermissions(
+    const permissionResult = await checkTeamPermissions(
       user,
       orgResult.organization,
       teamResult.team,
@@ -986,7 +1002,7 @@ export const restoreProject = async (req, res, next) => {
     }
 
     // Check user permissions
-    const permissionResult = checkTeamPermissions(
+    const permissionResult = await checkTeamPermissions(
       user,
       orgResult.organization,
       teamResult.team,
@@ -1084,7 +1100,7 @@ export const addProjectMember = async (req, res, next) => {
     }
 
     // Check user permissions
-    const permissionResult = checkTeamPermissions(
+    const permissionResult = await checkTeamPermissions(
       req.user,
       orgResult.organization,
       teamResult.team,
@@ -1243,7 +1259,7 @@ export const removeProjectMember = async (req, res, next) => {
     }
 
     // Check user permissions
-    const permissionResult = checkTeamPermissions(
+    const permissionResult = await checkTeamPermissions(
       user,
       orgResult.organization,
       teamResult.team,
@@ -1338,7 +1354,7 @@ export const getAllProjects = async (req, res, next) => {
     }
 
     // Determine if the user has special permissions for this team
-    const permissionResult = checkTeamPermissions(
+    const permissionResult = await checkTeamPermissions(
       user,
       orgResult.organization,
       teamResult.team,
@@ -1520,7 +1536,7 @@ export const getSpecificProject = async (req, res, next) => {
     const isMember = project.ProjectMember.some(
       (member) => member.userId === user.id,
     );
-    const permissionResult = checkTeamPermissions(
+    const permissionResult = await checkTeamPermissions(
       user,
       orgResult.organization,
       teamResult.team,

@@ -23,7 +23,8 @@ import sprintRoutes from './routes/sprint.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import activitylogRoutes from './routes/activitylog.routes.js';
 // import chatRoutes from './routes/chat.routes.js';
-// import videoRoutes from './routes/videoConference.routes.js';
+import videoRoutes from './routes/videoConference.routes.js';
+import permissionRoutes from './routes/permission.routes.js';
 import {
   errorHandler,
   notFound,
@@ -41,7 +42,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [
+      process.env.CLIENT_URL || 'http://localhost:5173',
+      'http://localhost:5174',
+    ],
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -73,7 +77,7 @@ app.use(passport.session());
 // Cors Policy
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
   }),
 );
@@ -103,7 +107,8 @@ app.use(sprintRoutes);
 app.use(taskRoutes);
 app.use(activitylogRoutes);
 // app.use(chatRoutes);
-// app.use(videoRoutes);
+app.use(videoRoutes);
+app.use(permissionRoutes);
 
 // Socket.IO middleware for authentication
 io.use(verifySocketToken);

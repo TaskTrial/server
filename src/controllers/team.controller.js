@@ -123,12 +123,26 @@ const checkTeam = async (
  * @param {Object} [options] - Additional options for the query
  * @returns {Promise<Object>} - Contains success flag, error message, and team data
  */
-const checkTeamPermissions = (user, organization, team, action) => {
+const checkTeamPermissions = async (user, organization, team, action) => {
   const isAdmin = user.role === 'ADMIN';
   const isOwner = organization.owners.some((owner) => owner.userId === user.id);
   const isTeamManager = team.createdBy === user.id;
 
-  if (!isAdmin && !isOwner && !isTeamManager) {
+  // Check if user is a team leader
+  let isTeamLeader = false;
+  if (team.id) {
+    const teamMember = await prisma.teamMember.findFirst({
+      where: {
+        teamId: team.id,
+        userId: user.id,
+        role: 'LEADER',
+        deletedAt: null,
+      },
+    });
+    isTeamLeader = !!teamMember;
+  }
+
+  if (!isAdmin && !isOwner && !isTeamManager && !isTeamLeader) {
     return {
       success: false,
       message: `You do not have permission to ${action} this team`,
@@ -140,6 +154,7 @@ const checkTeamPermissions = (user, organization, team, action) => {
     isAdmin,
     isOwner,
     isTeamManager,
+    isTeamLeader,
   };
 };
 
@@ -369,7 +384,7 @@ export const addTeamMember = async (req, res, next) => {
     const team = teamResult.team;
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -418,20 +433,31 @@ export const addTeamMember = async (req, res, next) => {
                 userId: member.userId,
               },
             });
-
-            if (alreadyExists) {
-              continue; // Skip this member silently
+            // If member exists and is soft deleted, restore them
+            if (alreadyExists && alreadyExists.deletedAt !== null) {
+              const restoredMember = await tx.teamMember.update({
+                where: { id: alreadyExists.id },
+                data: {
+                  role: member.role || 'MEMBER',
+                  isActive: true,
+                  deletedAt: null,
+                },
+              });
+              newMembers.push(restoredMember);
             }
-
-            const newMember = await tx.teamMember.create({
-              data: {
-                teamId: teamId,
-                userId: member.userId,
-                role: member.role || 'MEMBER',
-                isActive: true, // TODO: Implement OTP-based team membership verification endpoint
-              },
-            });
-            newMembers.push(newMember);
+            // If member doesn't exist at all, create new
+            else if (!alreadyExists) {
+              const newMember = await tx.teamMember.create({
+                data: {
+                  teamId: teamId,
+                  userId: member.userId,
+                  role: member.role || 'MEMBER',
+                  isActive: true, // TODO: Implement OTP-based team membership verification endpoint
+                },
+              });
+              newMembers.push(newMember);
+            }
+            // If member exists and is active, skip (already a member)
           } catch (err) {
             // Handle unique constraint violation
             if (err.code === 'P2002') {
@@ -444,7 +470,7 @@ export const addTeamMember = async (req, res, next) => {
 
       // Fetch all team members for the response
       const allTeamMembers = await tx.teamMember.findMany({
-        where: { teamId: teamId },
+        where: { teamId: teamId, deletedAt: null },
         include: {
           user: {
             select: {
@@ -566,7 +592,7 @@ export const removeTeamMember = async (req, res, next) => {
     }
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -703,7 +729,7 @@ export const updateTeam = async (req, res, next) => {
     const team = teamResult.team;
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -827,7 +853,7 @@ export const uploadTeamAvatar = async (req, res, next) => {
     const team = teamResult.team;
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -919,7 +945,7 @@ export const deleteTeamAvatar = async (req, res, next) => {
     const team = teamResult.team;
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -1012,7 +1038,7 @@ export const deleteTeam = async (req, res, next) => {
     const team = teamResult.team;
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       existingOrg,
       team,
@@ -1026,12 +1052,44 @@ export const deleteTeam = async (req, res, next) => {
       });
     }
 
-    // delete the team
-    await prisma.team.update({
-      where: { id: teamId },
-      data: { deletedAt: new Date() },
+    // delete the team and all associated projects
+    const result = await prisma.$transaction(async (tx) => {
+      // First, get all projects in this team to log them
+      const teamProjects = await tx.project.findMany({
+        where: {
+          teamId: teamId,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+
+      // Soft delete all projects in this team
+      if (teamProjects.length > 0) {
+        await tx.project.updateMany({
+          where: {
+            teamId: teamId,
+            deletedAt: null,
+          },
+          data: {
+            deletedAt: new Date(),
+            lastModifiedBy: req.user.id,
+          },
+        });
+      }
+
+      // Soft delete the team
+      const deletedTeam = await tx.team.update({
+        where: { id: teamId },
+        data: { deletedAt: new Date() },
+      });
+
+      return { deletedTeam, teamProjects };
     });
 
+    // Create activity log for team deletion
     await createActivityLog({
       entityType: 'TEAM',
       action: 'DELETED',
@@ -1042,12 +1100,44 @@ export const deleteTeam = async (req, res, next) => {
         deletedAt: new Date(),
         deletedBy: req.user.id,
         teamName: team.name,
+        deletedProjectsCount: result.teamProjects.length,
+        deletedProjects: result.teamProjects.map((p) => ({
+          id: p.id,
+          name: p.name,
+        })),
       }),
     });
 
+    // Create activity logs for each deleted project
+    for (const project of result.teamProjects) {
+      await createActivityLog({
+        entityType: 'PROJECT',
+        action: 'DELETED',
+        userId: req.user.id,
+        organizationId,
+        teamId: team.id,
+        projectId: project.id,
+        details: {
+          projectName: project.name,
+          deletedAt: new Date(),
+          deletedBy: req.user.id,
+          reason: 'Team deletion cascade',
+        },
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      message: 'Team deleted successfully',
+      message: `Team deleted successfully. ${result.teamProjects.length} project(s) were also deleted.`,
+      data: {
+        deletedTeamId: team.id,
+        deletedTeamName: team.name,
+        deletedProjectsCount: result.teamProjects.length,
+        deletedProjects: result.teamProjects.map((p) => ({
+          id: p.id,
+          name: p.name,
+        })),
+      },
     });
   } catch (error) {
     next(error);
@@ -1084,7 +1174,7 @@ export const getAllTeams = async (req, res, next) => {
     const organization = orgCheck.organization;
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       orgCheck.organization,
       { createdBy: null },
@@ -1116,6 +1206,7 @@ export const getAllTeams = async (req, res, next) => {
         },
         include: {
           members: {
+            where: { deletedAt: null },
             include: {
               user: {
                 select: {
@@ -1252,7 +1343,7 @@ export const getSpecificTeam = async (req, res, next) => {
     }
 
     // Check permissions
-    const permissionCheck = checkTeamPermissions(
+    const permissionCheck = await checkTeamPermissions(
       req.user,
       orgCheck.organization,
       teamCheck.team,

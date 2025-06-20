@@ -41,7 +41,7 @@ export const verifySocketToken = async (socket, next) => {
     }
 
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
     // Get user from database
     const user = await prisma.user.findUnique({

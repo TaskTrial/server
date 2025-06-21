@@ -3,6 +3,10 @@ import {
   createDepartmentValidation,
   updateDepartmentValidation,
 } from '../validations/department.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Helper function to check if organization exists and is not deleted
@@ -376,6 +380,33 @@ export const createDepartment = async (req, res, next) => {
         },
       },
     });
+
+    await createActivityLog({
+      entityType: 'DEPARTMENT',
+      action: 'CREATED',
+      userId: req.user.id,
+      organizationId,
+      departmentId: newDepartment.id,
+      details: {
+        department: {
+          id: newDepartment.id,
+          name: newDepartment.name,
+          description: newDepartment.description,
+          organizationId: newDepartment.organizationId,
+          managerId: newDepartment.managerId,
+          createdAt: newDepartment.createdAt,
+          updatedAt: newDepartment.updatedAt,
+        },
+        createdBy: {
+          id: req.user.id,
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          email: req.user.email,
+          role: req.user.role,
+        },
+      },
+    });
+
     return res.status(201).json({
       success: true,
       message: 'Department created successfully',
@@ -500,6 +531,19 @@ export const updateDepartment = async (req, res, next) => {
       },
     });
 
+    await createActivityLog({
+      entityType: 'DEPARTMENT',
+      action: 'UPDATED',
+      userId: req.user.id,
+      organizationId,
+      departmentId: updatedDepartment.id,
+      details: generateActivityDetails(
+        'UPDATED',
+        department,
+        updatedDepartment,
+      ),
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Department updated successfully',
@@ -537,7 +581,16 @@ export const softDeleteDepartment = async (req, res, next) => {
         organizationId,
         deletedAt: null,
       },
-      select: { id: true, organizationId: true, deletedAt: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        organizationId: true,
+        managerId: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
+      },
     });
 
     if (!department) {
@@ -569,6 +622,15 @@ export const softDeleteDepartment = async (req, res, next) => {
     await prisma.department.update({
       where: { id: departmentId },
       data: { deletedAt: new Date() },
+    });
+
+    await createActivityLog({
+      entityType: 'DEPARTMENT',
+      action: 'DELETED',
+      userId: req.user.id,
+      organizationId,
+      departmentId: department.id,
+      details: generateActivityDetails('DELETED', department, null),
     });
 
     return res.status(200).json({
@@ -606,7 +668,16 @@ export const restoreDepartment = async (req, res, next) => {
         id: departmentId,
         organizationId,
       },
-      select: { id: true, organizationId: true, deletedAt: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        organizationId: true,
+        managerId: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
+      },
     });
 
     if (!department) {
@@ -638,6 +709,33 @@ export const restoreDepartment = async (req, res, next) => {
     await prisma.department.update({
       where: { id: departmentId },
       data: { deletedAt: null },
+    });
+
+    await createActivityLog({
+      entityType: 'DEPARTMENT',
+      action: 'RESTORED',
+      userId: req.user.id,
+      organizationId,
+      departmentId: department.id,
+      details: {
+        restoredAt: new Date(),
+        department: {
+          id: department.id,
+          name: department.name,
+          description: department.description,
+          organizationId: department.organizationId,
+          managerId: department.managerId,
+          createdAt: department.createdAt,
+          updatedAt: department.updatedAt,
+        },
+        restoredBy: {
+          id: req.user.id,
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          email: req.user.email,
+          role: req.user.role,
+        },
+      },
     });
 
     return res.status(200).json({

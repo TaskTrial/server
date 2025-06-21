@@ -4,6 +4,10 @@ import {
   updateSprintStatusValidation,
   updateSprintValidation,
 } from '../validations/sprint.validation.js';
+import {
+  createActivityLog,
+  generateActivityDetails,
+} from '../utils/activityLogs.utils.js';
 
 /**
  * Validate required parameters
@@ -306,6 +310,37 @@ export const createSprint = async (req, res, next) => {
         },
       });
 
+      await createActivityLog({
+        entityType: 'SPRINT',
+        action: 'CREATED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: sprint.id,
+        details: {
+          sprint: {
+            id: sprint.id,
+            name: sprint.name,
+            description: sprint.description,
+            startDate: sprint.startDate,
+            endDate: sprint.endDate,
+            status: sprint.status,
+            goal: sprint.goal,
+            order: sprint.order,
+            projectId: sprint.projectId,
+            createdAt: sprint.createdAt,
+          },
+          createdBy: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+          },
+        },
+      });
+
       res.status(201).json({
         success: true,
         message: 'Sprint created successfully',
@@ -504,6 +539,21 @@ export const updateSprint = async (req, res, next) => {
       data: updateData,
     });
 
+    await createActivityLog({
+      entityType: 'SPRINT',
+      action: 'UPDATED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: updatedSprint.id,
+      details: generateActivityDetails(
+        'UPDATED',
+        existingSprint,
+        updatedSprint,
+      ),
+    });
+
     res.status(200).json({
       success: true,
       message: 'Sprint updated successfully',
@@ -578,9 +628,12 @@ export const updateSprintStatus = async (req, res, next) => {
         projectId,
       },
       select: {
+        id: true,
+        name: true,
         status: true,
         startDate: true,
         endDate: true,
+        projectId: true,
       },
     });
 
@@ -651,6 +704,34 @@ export const updateSprintStatus = async (req, res, next) => {
           select: {
             name: true,
           },
+        },
+      },
+    });
+
+    await createActivityLog({
+      entityType: 'SPRINT',
+      action: 'STATUS_CHANGED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: updatedSprint.id,
+      details: {
+        oldStatus: existingSprint.status,
+        newStatus: updatedSprint.status,
+        sprint: {
+          id: updatedSprint.id,
+          name: updatedSprint.name,
+          startDate: updatedSprint.startDate,
+          endDate: updatedSprint.endDate,
+          projectId: updatedSprint.projectId,
+        },
+        changedBy: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
         },
       },
     });
@@ -1064,21 +1145,18 @@ export const deleteSprint = async (req, res, next) => {
         },
       });
 
-      // 3. Create audit log
-      await tx.activityLog.create({
-        data: {
-          action: 'SPRINT_DELETED',
-          entityType: 'SPRINT',
-          entityId: sprintId,
-          userId: user.id,
-          details: {
-            sprintName: deletedSprint.name,
-            projectName: deletedSprint.project.name,
-          },
-        },
-      });
-
       return deletedSprint;
+    });
+
+    await createActivityLog({
+      entityType: 'SPRINT',
+      action: 'DELETED',
+      userId: user.id,
+      organizationId,
+      teamId,
+      projectId,
+      sprintId: existingSprint.id,
+      details: generateActivityDetails('DELETED', existingSprint, null),
     });
 
     res.status(200).json({

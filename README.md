@@ -1,5 +1,7 @@
 # Server Repository
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/TaskTrial/server)
+
 This repository contains the server-side implementation for the project. It handles **backend logic**, **database** interactions, and serves **APIs** for the application.
 
 ## Usage

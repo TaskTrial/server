@@ -165,7 +165,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to view this team',
+        message: 'You are not a member of this organization.',
       });
     });
   });
@@ -306,7 +306,7 @@ describe('Department Controller', () => {
       req.query = { page: '1', limit: '10' };
       req.user = { id: 'user-id' };
 
-      const organization = { id: organizationId };
+      const organization = { id: organizationId, users: [{ id: 'user-id' }] };
 
       const departments = [
         {
@@ -320,7 +320,7 @@ describe('Department Controller', () => {
         },
       ];
 
-      mockPrisma.organization.findUnique.mockResolvedValue(organization);
+      mockPrisma.organization.findFirst.mockResolvedValue(organization);
       mockPrisma.department.count.mockResolvedValue(1);
       mockPrisma.department.findMany.mockResolvedValue(departments);
 
@@ -346,7 +346,7 @@ describe('Department Controller', () => {
       req.params = { organizationId: 'invalid-id' };
       req.user = { id: 'user-id' };
 
-      mockPrisma.organization.findUnique.mockResolvedValue(null);
+      mockPrisma.organization.findFirst.mockResolvedValue(null);
 
       await getCreatedDepartments(req, res, next);
 
@@ -473,7 +473,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to create this team',
+        message: 'You do not have permission to create this department',
       });
     });
 
@@ -739,7 +739,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to update this team',
+        message: 'You do not have permission to update this department',
       });
     });
 
@@ -1012,7 +1012,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to delete this team',
+        message: 'You do not have permission to delete this department',
       });
     });
 
@@ -1217,7 +1217,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to restore this team',
+        message: 'You do not have permission to restore this department',
       });
     });
 

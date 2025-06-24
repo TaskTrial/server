@@ -235,7 +235,7 @@ export const createSprint = async (req, res, next) => {
     );
     if (!accessCheck.success) {
       return res
-        .status(accessCheck.message === 'Project not found' ? 404 : 403)
+        .status(accessCheck.message.includes('not found') ? 404 : 403)
         .json({
           success: false,
           message: accessCheck.message,
@@ -393,7 +393,7 @@ export const updateSprint = async (req, res, next) => {
     );
     if (!accessCheck.success) {
       return res
-        .status(accessCheck.message === 'Project not found' ? 404 : 403)
+        .status(accessCheck.message.includes('not found') ? 404 : 403)
         .json({
           success: false,
           message: accessCheck.message,
@@ -604,7 +604,7 @@ export const updateSprintStatus = async (req, res, next) => {
     );
     if (!accessCheck.success) {
       return res
-        .status(accessCheck.message === 'Project not found' ? 404 : 403)
+        .status(accessCheck.message.includes('not found') ? 404 : 403)
         .json({
           success: false,
           message: accessCheck.message,
@@ -1069,7 +1069,7 @@ export const deleteSprint = async (req, res, next) => {
     );
     if (!accessCheck.success) {
       return res
-        .status(accessCheck.message === 'Project not found' ? 404 : 403)
+        .status(accessCheck.message.includes('not found') ? 404 : 403)
         .json({
           success: false,
           message: accessCheck.message,

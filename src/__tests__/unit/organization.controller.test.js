@@ -14,7 +14,7 @@ import {
   uploadOrganizationLogo,
   deleteOrganizationLogo,
   getAllOrganizationUsers,
-} from '../../../controllers/organization.controller.js';
+} from '../../controllers/organization.controller.js';
 import {
   mockPrisma,
   mockGenerateOTP,
@@ -24,12 +24,12 @@ import {
   mockCreateActivityLog,
   mockUploadToCloudinary,
   mockDeleteFromCloudinary,
-} from '../../setup.js';
+} from '../setup.js';
 
 /* eslint no-undef: off */
 
 // Mock validation schemas
-jest.mock('../../../validations/organization.validation.js', () => ({
+jest.mock('../../validations/organization.validation.js', () => ({
   createOrganizationValidation: jest.fn(),
   updateOrganizationValidation: jest.fn(),
   verifyOrganizationValidation: jest.fn(),
@@ -64,7 +64,7 @@ describe('Organization Controller', () => {
       req.user = { id: 'user-id' };
 
       const { createOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       createOrganizationValidation.mockReturnValue({ error: null });
 
@@ -123,7 +123,7 @@ describe('Organization Controller', () => {
       req.user = { id: 'user-id' };
 
       const { createOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       createOrganizationValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -147,7 +147,7 @@ describe('Organization Controller', () => {
       req.user = { id: 'user-id' };
 
       const { createOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       createOrganizationValidation.mockReturnValue({ error: null });
 
@@ -391,7 +391,7 @@ describe('Organization Controller', () => {
       };
 
       const { verifyOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       verifyOrganizationValidation.mockReturnValue({ error: null });
 
@@ -412,7 +412,7 @@ describe('Organization Controller', () => {
       req.body = { otp: '' };
 
       const { verifyOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       verifyOrganizationValidation.mockReturnValue({
         error: { details: [{ message: 'OTP is required' }] },
@@ -431,7 +431,7 @@ describe('Organization Controller', () => {
       req.body = { otp: '123456' };
 
       const { verifyOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       verifyOrganizationValidation.mockReturnValue({ error: null });
 
@@ -455,7 +455,7 @@ describe('Organization Controller', () => {
       };
 
       const { verifyOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       verifyOrganizationValidation.mockReturnValue({ error: null });
 
@@ -481,7 +481,7 @@ describe('Organization Controller', () => {
       };
 
       const { verifyOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       verifyOrganizationValidation.mockReturnValue({ error: null });
 
@@ -689,7 +689,7 @@ describe('Organization Controller', () => {
       };
 
       const { updateOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       updateOrganizationValidation.mockReturnValue({
         error: null,
@@ -731,7 +731,7 @@ describe('Organization Controller', () => {
       req.body = { name: '' };
 
       const { updateOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       updateOrganizationValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -753,7 +753,7 @@ describe('Organization Controller', () => {
       req.body = { name: 'Test' };
 
       const { updateOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       updateOrganizationValidation.mockReturnValue({
         error: null,
@@ -783,7 +783,7 @@ describe('Organization Controller', () => {
       };
 
       const { updateOrganizationValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       updateOrganizationValidation.mockReturnValue({
         error: null,
@@ -894,7 +894,7 @@ describe('Organization Controller', () => {
       ];
 
       const { addOwnersValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       addOwnersValidation.mockReturnValue({ error: null });
 
@@ -924,7 +924,7 @@ describe('Organization Controller', () => {
       req.body = { userIds: [] };
 
       const { addOwnersValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       addOwnersValidation.mockReturnValue({
         error: { details: [{ message: 'User IDs are required' }] },
@@ -943,7 +943,7 @@ describe('Organization Controller', () => {
       req.body = { userIds: ['user-1'] };
 
       const { addOwnersValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       addOwnersValidation.mockReturnValue({ error: null });
 
@@ -970,7 +970,7 @@ describe('Organization Controller', () => {
       };
 
       const { addOwnersValidation } = await import(
-        '../../../validations/organization.validation.js'
+        '../../validations/organization.validation.js'
       );
       addOwnersValidation.mockReturnValue({ error: null });
 

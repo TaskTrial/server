@@ -6,10 +6,10 @@ import {
   getAllSprints,
   getSpecificSprint,
   deleteSprint,
-} from '../../../controllers/sprint.controller.js';
-import prisma from '../../../config/prismaClient.js';
+} from '../../controllers/sprint.controller.js';
+import prisma from '../../config/prismaClient.js';
 
-jest.mock('../../../config/prismaClient.js', () => ({
+jest.mock('../../config/prismaClient.js', () => ({
   __esModule: true,
   default: {
     organization: { findFirst: jest.fn() },
@@ -30,13 +30,13 @@ jest.mock('../../../config/prismaClient.js', () => ({
   },
 }));
 
-jest.mock('../../../validations/sprint.validation.js', () => ({
+jest.mock('../../validations/sprint.validation.js', () => ({
   sprintvalidation: jest.fn(() => ({ error: null })),
   updateSprintStatusValidation: jest.fn(() => ({ error: null })),
   updateSprintValidation: { validate: jest.fn(() => ({ error: null })) },
 }));
 
-jest.mock('../../../utils/activityLogs.utils.js', () => ({
+jest.mock('../../utils/activityLogs.utils.js', () => ({
   createActivityLog: jest.fn(),
   generateActivityDetails: jest.fn(),
 }));

@@ -8,13 +8,13 @@ import {
   updateDepartment,
   softDeleteDepartment,
   restoreDepartment,
-} from '../../../controllers/department.controller.js';
-import { mockPrisma, mockCreateActivityLog } from '../../setup.js';
+} from '../../controllers/department.controller.js';
+import { mockPrisma, mockCreateActivityLog } from '../setup.js';
 
 /* eslint no-undef: off */
 
 // Mock validation schemas
-jest.mock('../../../validations/department.validation.js', () => ({
+jest.mock('../../validations/department.validation.js', () => ({
   createDepartmentValidation: jest.fn(),
   updateDepartmentValidation: jest.fn(),
 }));
@@ -392,7 +392,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -416,7 +416,7 @@ describe('Department Controller', () => {
       req.body = { name: '' };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -435,7 +435,7 @@ describe('Department Controller', () => {
       req.body = { name: 'Engineering' };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -462,7 +462,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -494,7 +494,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -522,7 +522,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -566,7 +566,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -620,7 +620,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -646,7 +646,7 @@ describe('Department Controller', () => {
       req.body = { name: '' };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -665,7 +665,7 @@ describe('Department Controller', () => {
       req.body = { name: 'Updated Engineering' };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -691,7 +691,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -727,7 +727,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -768,7 +768,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -808,7 +808,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -858,7 +858,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 

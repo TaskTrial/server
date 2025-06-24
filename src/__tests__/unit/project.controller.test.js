@@ -11,19 +11,19 @@ import {
   getAllProjects,
   getSpecificProject,
   getProjectsInSpecificOrg,
-} from '../../../controllers/project.controller.js';
-import { mockPrisma } from '../../setup.js';
+} from '../../controllers/project.controller.js';
+import { mockPrisma } from '../setup.js';
 import {
   createProjectValidation,
   updateProjectValidation,
-} from '../../../validations/project.validation.js';
+} from '../../validations/project.validation.js';
 
-jest.mock('../../../validations/project.validation.js', () => ({
+jest.mock('../../validations/project.validation.js', () => ({
   createProjectValidation: jest.fn(),
   updateProjectValidation: jest.fn(),
 }));
 
-jest.mock('../../../utils/activityLogs.utils.js', () => ({
+jest.mock('../../utils/activityLogs.utils.js', () => ({
   createActivityLog: jest.fn(),
   generateActivityDetails: jest.fn(),
 }));

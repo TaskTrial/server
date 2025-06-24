@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import prisma from '../../../config/prismaClient.js';
+import prisma from '../../config/prismaClient.js';
 import {
   signup,
   signin,
@@ -12,7 +12,7 @@ import {
   refreshAccessToken,
   googleOAuthLogin,
   firebaseLogin,
-} from '../../../controllers/auth.controller.js';
+} from '../../controllers/auth.controller.js';
 import {
   mockHashPassword,
   mockComparePassword,
@@ -25,12 +25,12 @@ import {
   mockCreateActivityLog,
   mockGenerateActivityDetails,
   mockGoogleVerifyIdToken,
-} from '../../setup.js';
+} from '../setup.js';
 
 /* eslint no-undef: off */
 
 // Mock validation schemas
-jest.mock('../../../validations/auth.validations.js', () => ({
+jest.mock('../../validations/auth.validations.js', () => ({
   signupValidation: jest.fn(),
   signinValidation: jest.fn(),
   verifyEmailValidation: jest.fn(),
@@ -46,7 +46,7 @@ jest.mock('jsonwebtoken', () => ({
 }));
 
 // Mock firebase
-jest.mock('../../../config/firebase.js', () => ({
+jest.mock('../../config/firebase.js', () => ({
   __esModule: true,
   default: {
     auth: jest.fn().mockReturnValue({
@@ -79,7 +79,7 @@ describe('Auth Controller', () => {
 
       // Mock validation
       const { signupValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       signupValidation.mockReturnValue({ error: null });
 
@@ -132,7 +132,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'invalid-email' };
 
       const { signupValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       signupValidation.mockReturnValue({
         error: { details: [{ message: 'Invalid email format' }] },
@@ -158,7 +158,7 @@ describe('Auth Controller', () => {
       req.body = userData;
 
       const { signupValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       signupValidation.mockReturnValue({ error: null });
 
@@ -186,7 +186,7 @@ describe('Auth Controller', () => {
       req.body = loginData;
 
       const { signinValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       signinValidation.mockReturnValue({ error: null });
 
@@ -227,7 +227,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'nonexistent@example.com', password: 'password123' };
 
       const { signinValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       signinValidation.mockReturnValue({ error: null });
 
@@ -245,7 +245,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'test@example.com', password: 'wrongpassword' };
 
       const { signinValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       signinValidation.mockReturnValue({ error: null });
 
@@ -271,7 +271,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'inactive@example.com', password: 'password123' };
 
       const { signinValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       signinValidation.mockReturnValue({ error: null });
 
@@ -302,7 +302,7 @@ describe('Auth Controller', () => {
       };
 
       const { verifyEmailValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       verifyEmailValidation.mockReturnValue({ error: null });
 
@@ -336,7 +336,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'nonexistent@example.com', otp: '123456' };
 
       const { verifyEmailValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       verifyEmailValidation.mockReturnValue({ error: null });
 
@@ -354,7 +354,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'test@example.com', otp: 'invalid-otp' };
 
       const { verifyEmailValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       verifyEmailValidation.mockReturnValue({ error: null });
 
@@ -434,7 +434,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'test@example.com' };
 
       const { forgotPasswordValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       forgotPasswordValidation.mockReturnValue({ error: null });
 
@@ -462,7 +462,7 @@ describe('Auth Controller', () => {
       req.body = { email: 'nonexistent@example.com' };
 
       const { forgotPasswordValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       forgotPasswordValidation.mockReturnValue({ error: null });
 
@@ -486,7 +486,7 @@ describe('Auth Controller', () => {
       };
 
       const { resetPasswordValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       resetPasswordValidation.mockReturnValue({ error: null });
 
@@ -519,7 +519,7 @@ describe('Auth Controller', () => {
       };
 
       const { resetPasswordValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       resetPasswordValidation.mockReturnValue({ error: null });
 
@@ -541,7 +541,7 @@ describe('Auth Controller', () => {
       };
 
       const { resetPasswordValidation } = await import(
-        '../../../validations/auth.validations.js'
+        '../../validations/auth.validations.js'
       );
       resetPasswordValidation.mockReturnValue({ error: null });
 
@@ -722,7 +722,7 @@ describe('Auth Controller', () => {
       req.body = { idToken: 'firebase-id-token' };
 
       // Mock Firebase verifyIdToken
-      const firebaseAdmin = await import('../../../config/firebase.js');
+      const firebaseAdmin = await import('../../config/firebase.js');
       const mockVerifyIdToken = jest.fn().mockResolvedValue({
         uid: 'firebase-uid',
         email: 'firebase@example.com',
@@ -767,7 +767,7 @@ describe('Auth Controller', () => {
       req.body = { idToken: 'firebase-id-token' };
 
       // Mock Firebase verifyIdToken
-      const firebaseAdmin = await import('../../../config/firebase.js');
+      const firebaseAdmin = await import('../../config/firebase.js');
       const mockVerifyIdToken = jest.fn().mockResolvedValue({
         uid: 'new-firebase-uid',
         email: 'newfirebase@example.com',

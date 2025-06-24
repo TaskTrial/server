@@ -10,19 +10,19 @@ import {
   deleteTeam,
   getAllTeams,
   getSpecificTeam,
-} from '../../../controllers/team.controller.js';
+} from '../../controllers/team.controller.js';
 import {
   mockPrisma,
   mockCreateActivityLog,
   mockGenerateActivityDetails,
   mockUploadToCloudinary,
   mockDeleteFromCloudinary,
-} from '../../setup.js';
+} from '../setup.js';
 import { Buffer } from 'buffer';
 
-import '../../setup.js';
+import '../setup.js';
 
-jest.mock('../../../validations/team.validation.js', () => ({
+jest.mock('../../validations/team.validation.js', () => ({
   addTeamMemberValidation: jest.fn(),
   createTeamValidation: jest.fn(),
   updateTeamValidation: jest.fn(),
@@ -94,7 +94,7 @@ describe('Team Controller', () => {
       const allTeamMembers = [leaderMember];
 
       const { createTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       createTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -128,7 +128,7 @@ describe('Team Controller', () => {
       req.user = { id: 'user-id', role: 'ADMIN' };
       req.body = { name: 'Team A' };
       const { createTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       createTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(null);
@@ -150,7 +150,7 @@ describe('Team Controller', () => {
         users: [{ id: 'user-id' }],
       };
       const { createTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       createTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -168,7 +168,7 @@ describe('Team Controller', () => {
       req.user = { id: 'user-id', role: 'ADMIN' };
       req.body = { name: '' };
       const { createTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       createTeamValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -192,7 +192,7 @@ describe('Team Controller', () => {
         users: [{ id: 'user-id' }],
       };
       const { createTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       createTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -218,7 +218,7 @@ describe('Team Controller', () => {
         users: [{ id: 'user-id' }],
       };
       const { createTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       createTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -242,7 +242,7 @@ describe('Team Controller', () => {
         users: [{ id: 'user-id' }],
       };
       const { createTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       createTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -266,7 +266,7 @@ describe('Team Controller', () => {
       };
       const team = { id: 'team-id', name: 'Team A', createdBy: 'user-id' };
       const { addTeamMemberValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       addTeamMemberValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -310,7 +310,7 @@ describe('Team Controller', () => {
       req.user = { id: 'user-id', role: 'ADMIN' };
       req.body = { members: [] };
       const { addTeamMemberValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       addTeamMemberValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(null);
@@ -331,7 +331,7 @@ describe('Team Controller', () => {
         users: [{ id: 'user-id' }],
       };
       const { addTeamMemberValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       addTeamMemberValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -354,7 +354,7 @@ describe('Team Controller', () => {
       };
       const team = { id: 'team-id', name: 'Team A', createdBy: 'other-user' };
       const { addTeamMemberValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       addTeamMemberValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -372,7 +372,7 @@ describe('Team Controller', () => {
       req.user = { id: 'user-id', role: 'ADMIN' };
       req.body = { members: [] };
       const { addTeamMemberValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       addTeamMemberValidation.mockReturnValue({
         error: { details: [{ message: 'Members required' }] },
@@ -396,7 +396,7 @@ describe('Team Controller', () => {
       };
       const team = { id: 'team-id', name: 'Team A', createdBy: 'user-id' };
       const { addTeamMemberValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       addTeamMemberValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -624,7 +624,7 @@ describe('Team Controller', () => {
         avatar: 'img2.png',
       };
       const { updateTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       updateTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -646,7 +646,7 @@ describe('Team Controller', () => {
       req.user = { id: 'admin-id', role: 'ADMIN' };
       req.body = { name: 'Updated Team' };
       const { updateTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       updateTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(null);
@@ -667,7 +667,7 @@ describe('Team Controller', () => {
         users: [{ id: 'admin-id' }],
       };
       const { updateTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       updateTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -690,7 +690,7 @@ describe('Team Controller', () => {
       };
       const team = { id: 'team-id', name: 'Team A', createdBy: 'other-user' };
       const { updateTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       updateTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -708,7 +708,7 @@ describe('Team Controller', () => {
       req.user = { id: 'admin-id', role: 'ADMIN' };
       req.body = { name: '' };
       const { updateTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       updateTeamValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -733,7 +733,7 @@ describe('Team Controller', () => {
       const team = { id: 'team-id', name: 'Team A', createdBy: 'admin-id' };
       const duplicateTeam = { id: 'other-team-id', name: 'Duplicate Team' };
       const { updateTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       updateTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
@@ -759,7 +759,7 @@ describe('Team Controller', () => {
       };
       const team = { id: 'team-id', name: 'Team A', createdBy: 'admin-id' };
       const { updateTeamValidation } = await import(
-        '../../../validations/team.validation.js'
+        '../../validations/team.validation.js'
       );
       updateTeamValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);

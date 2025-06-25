@@ -1341,6 +1341,19 @@ export const deleteTask = async (req, res, next) => {
 
     // Start a transaction to ensure all operations succeed or fail together
     await prisma.$transaction(async (prisma) => {
+      // Log the delete activity BEFORE deleting the task
+      await createActivityLog({
+        entityType: 'TASK',
+        action: 'DELETED',
+        userId: user.id,
+        organizationId,
+        teamId,
+        projectId,
+        sprintId: task.sprintId || null,
+        taskId: task.id,
+        details: generateActivityDetails('DELETED', task, null),
+      });
+
       if (permanent) {
         if (!permissionsCheck.isAdmin && !permissionsCheck.isOwner) {
           throw new Error(
@@ -1387,19 +1400,6 @@ export const deleteTask = async (req, res, next) => {
           },
         });
       }
-    });
-
-    // Log the delete activity
-    await createActivityLog({
-      entityType: 'TASK',
-      action: 'DELETED',
-      userId: user.id,
-      organizationId,
-      teamId,
-      projectId,
-      sprintId: task.sprintId || null,
-      taskId: task.id,
-      details: generateActivityDetails('DELETED', task, null),
     });
 
     return res.status(200).json({

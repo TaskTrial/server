@@ -23,7 +23,7 @@ import sprintRoutes from './routes/sprint.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import activitylogRoutes from './routes/activitylog.routes.js';
 // import chatRoutes from './routes/chat.routes.js';
-import videoRoutes from './routes/videoConference.routes.js';
+import videoConferenceRoutes from './routes/videoConference.routes.js';
 import permissionRoutes from './routes/permission.routes.js';
 import {
   errorHandler,
@@ -36,7 +36,7 @@ import setupVideoHandlers from './socket/videoHandlers.js';
 import { verifySocketToken } from './middlewares/auth.middleware.js';
 
 /* eslint no-undef: off */
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 const app = express();
 const server = http.createServer(app);
@@ -107,7 +107,7 @@ app.use(sprintRoutes);
 app.use(taskRoutes);
 app.use(activitylogRoutes);
 // app.use(chatRoutes);
-app.use(videoRoutes);
+app.use('/api', videoConferenceRoutes);
 app.use(permissionRoutes);
 
 // Socket.IO middleware for authentication
@@ -135,9 +135,13 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  /* eslint no-console:off */
-  console.log(
-    `Server is running in ${process.env.NODE_ENV} enviroment on port ${PORT}`,
-  );
-});
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    /* eslint no-console:off */
+    console.log(
+      `Server is running in ${process.env.NODE_ENV} enviroment on port ${PORT}`,
+    );
+  });
+}
+
+export { app, server };

@@ -944,16 +944,12 @@ export const getSpecificSprint = async (req, res, next) => {
             status: true,
             priority: true,
             dueDate: true,
-            assignees: {
+            assignee: {
               select: {
-                user: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    profilePic: true,
-                  },
-                },
+                id: true,
+                firstName: true,
+                lastName: true,
+                profilePic: true,
               },
             },
           },
@@ -1019,7 +1015,7 @@ export const getSpecificSprint = async (req, res, next) => {
         project: sprint.project,
         tasks: sprint.tasks.map((task) => ({
           ...task,
-          assignees: task.assignees.map((a) => a.user),
+          assignee: task.assignee,
         })),
         recentActivity: sprint.activityLogs,
         stats: {

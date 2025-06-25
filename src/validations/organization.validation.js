@@ -44,6 +44,10 @@ export const createOrganizationValidation = (obj) => {
       'string.max': 'Address cannot exceed 255 characters',
     }),
 
+    contactEmail: Joi.string().email().optional().allow('').messages({
+      'string.email': 'Contact email must be a valid email address',
+    }),
+
     contactPhone: Joi.string()
       .pattern(/^\+?[0-9\s\-()]{10,20}$/)
       .allow('')
@@ -119,7 +123,6 @@ export const updateOrganizationValidation = (obj) => {
 
     contactEmail: Joi.string().email().optional().messages({
       'string.email': 'Contact email must be a valid email address',
-      'string.empty': 'Contact email is required if provided',
     }),
 
     contactPhone: Joi.string()

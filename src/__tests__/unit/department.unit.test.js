@@ -8,13 +8,13 @@ import {
   updateDepartment,
   softDeleteDepartment,
   restoreDepartment,
-} from '../../../controllers/department.controller.js';
-import { mockPrisma, mockCreateActivityLog } from '../../setup.js';
+} from '../../controllers/department.controller.js';
+import { mockPrisma, mockCreateActivityLog } from '../setup.js';
 
 /* eslint no-undef: off */
 
 // Mock validation schemas
-jest.mock('../../../validations/department.validation.js', () => ({
+jest.mock('../../validations/department.validation.js', () => ({
   createDepartmentValidation: jest.fn(),
   updateDepartmentValidation: jest.fn(),
 }));
@@ -165,7 +165,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to view this team',
+        message: 'You are not a member of this organization.',
       });
     });
   });
@@ -306,7 +306,7 @@ describe('Department Controller', () => {
       req.query = { page: '1', limit: '10' };
       req.user = { id: 'user-id' };
 
-      const organization = { id: organizationId };
+      const organization = { id: organizationId, users: [{ id: 'user-id' }] };
 
       const departments = [
         {
@@ -320,7 +320,7 @@ describe('Department Controller', () => {
         },
       ];
 
-      mockPrisma.organization.findUnique.mockResolvedValue(organization);
+      mockPrisma.organization.findFirst.mockResolvedValue(organization);
       mockPrisma.department.count.mockResolvedValue(1);
       mockPrisma.department.findMany.mockResolvedValue(departments);
 
@@ -346,7 +346,7 @@ describe('Department Controller', () => {
       req.params = { organizationId: 'invalid-id' };
       req.user = { id: 'user-id' };
 
-      mockPrisma.organization.findUnique.mockResolvedValue(null);
+      mockPrisma.organization.findFirst.mockResolvedValue(null);
 
       await getCreatedDepartments(req, res, next);
 
@@ -392,7 +392,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -416,7 +416,7 @@ describe('Department Controller', () => {
       req.body = { name: '' };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -435,7 +435,7 @@ describe('Department Controller', () => {
       req.body = { name: 'Engineering' };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -462,7 +462,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -473,7 +473,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to create this team',
+        message: 'You do not have permission to create this department',
       });
     });
 
@@ -494,7 +494,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -522,7 +522,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -566,7 +566,7 @@ describe('Department Controller', () => {
       };
 
       const { createDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       createDepartmentValidation.mockReturnValue({ error: null });
 
@@ -620,7 +620,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -646,7 +646,7 @@ describe('Department Controller', () => {
       req.body = { name: '' };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({
         error: { details: [{ message: 'Name is required' }] },
@@ -665,7 +665,7 @@ describe('Department Controller', () => {
       req.body = { name: 'Updated Engineering' };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -691,7 +691,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -727,7 +727,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -739,7 +739,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to update this team',
+        message: 'You do not have permission to update this department',
       });
     });
 
@@ -768,7 +768,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -808,7 +808,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -858,7 +858,7 @@ describe('Department Controller', () => {
       };
 
       const { updateDepartmentValidation } = await import(
-        '../../../validations/department.validation.js'
+        '../../validations/department.validation.js'
       );
       updateDepartmentValidation.mockReturnValue({ error: null });
 
@@ -1012,7 +1012,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to delete this team',
+        message: 'You do not have permission to delete this department',
       });
     });
 
@@ -1217,7 +1217,7 @@ describe('Department Controller', () => {
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({
         success: false,
-        message: 'You do not have permission to restore this team',
+        message: 'You do not have permission to restore this department',
       });
     });
 

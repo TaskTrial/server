@@ -8,7 +8,7 @@ export default [
   {
     /**
      * "off" or 0 - turn the rule off
-     * "warn" or 1 - turn the rule on as a warning (doesn’t affect exit code)
+     * "warn" or 1 - turn the rule on as a warning (doesn't affect exit code)
      * "error" or 2 - turn the rule on as an error (exit code is 1 when triggered)
      */
     ignores: [
@@ -16,6 +16,8 @@ export default [
       '**/eslint.config.js',
       'prisma/**',
       'prisma/generated/**',
+      'prisma/generated/prisma-client-js/**',
+      'jest.config.js',
       'node_modules/**',
       'dist/**',
     ],

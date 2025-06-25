@@ -1,5 +1,5 @@
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import prisma from '../../../../src/config/prismaClient';
+import prisma from '../../config/prismaClient';
 import {
   createTask,
   deleteTask,
@@ -10,10 +10,10 @@ import {
   updateTask,
   updateTaskPriority,
   updateTaskStatus,
-} from '../../../../src/controllers/task.controller';
-import { createActivityLog } from '../../../../src/utils/activityLogs.utils';
+} from '../../controllers/task.controller';
+import { createActivityLog } from '../../utils/activityLogs.utils';
 
-jest.mock('../../../../src/config/prismaClient', () => {
+jest.mock('../../../src/config/prismaClient', () => {
   const prismaMock = {
     organization: { findFirst: jest.fn() },
     team: { findFirst: jest.fn() },
@@ -47,7 +47,7 @@ jest.mock('../../../../src/config/prismaClient', () => {
   };
 });
 
-jest.mock('../../../../src/utils/activityLogs.utils', () => ({
+jest.mock('../../../src/utils/activityLogs.utils', () => ({
   createActivityLog: jest.fn(),
   generateActivityDetails: jest.fn((action, before, after) => ({
     action,

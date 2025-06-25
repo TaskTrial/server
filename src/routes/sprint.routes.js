@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import {
   createSprint,
+  deleteSprint,
   getAllSprints,
+  getSpecificSprint,
   updateSprint,
   updateSprintStatus,
 } from '../controllers/sprint.controller.js';
@@ -37,12 +39,12 @@ router.get(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId',
   apiLimiter,
   verifyAccessToken,
-  getAllSprints,
+  getSpecificSprint,
 );
 
 router.delete(
   '/api/organization/:organizationId/team/:teamId/project/:projectId/sprint/:sprintId',
   verifyAccessToken,
-  getAllSprints,
+  deleteSprint,
 );
 export default router;

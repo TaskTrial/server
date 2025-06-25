@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import prisma from '../../../config/prismaClient.js';
+const prisma = require('../../config/prismaClient.js').default;
 import {
   getAllUsers,
   getUserById,
@@ -10,7 +10,7 @@ import {
   restoreUser,
   uploadUserProfilePic,
   deleteUserProfilePic,
-} from '../../../controllers/user.controller.js';
+} from '../../controllers/user.controller.js';
 import {
   mockHashPassword,
   mockComparePassword,
@@ -18,12 +18,12 @@ import {
   mockDeleteFromCloudinary,
   mockCreateActivityLog,
   mockGenerateActivityDetails,
-} from '../../setup.js';
+} from '../setup.js';
 
 /* eslint no-undef: off */
 
 // Mock validation schemas
-jest.mock('../../../validations/user.validation.js', () => ({
+jest.mock('../../validations/user.validation.js', () => ({
   updateUserAccountValidation: jest.fn(),
   updatePasswordValidation: jest.fn(),
 }));
@@ -207,7 +207,7 @@ describe('User Controller', () => {
       req.user = { id: 'user-id', role: 'MEMBER' };
 
       const { updateUserAccountValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updateUserAccountValidation.mockReturnValue({
         error: null,
@@ -268,7 +268,7 @@ describe('User Controller', () => {
       req.user = { id: 'admin-id', role: 'ADMIN' };
 
       const { updateUserAccountValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updateUserAccountValidation.mockReturnValue({
         error: null,
@@ -322,7 +322,7 @@ describe('User Controller', () => {
       req.body = { firstName: '' };
 
       const { updateUserAccountValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updateUserAccountValidation.mockReturnValue({
         error: { details: [{ message: 'First name is required' }] },
@@ -342,7 +342,7 @@ describe('User Controller', () => {
       req.user = { id: 'user-id' };
 
       const { updateUserAccountValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updateUserAccountValidation.mockReturnValue({
         error: null,
@@ -365,7 +365,7 @@ describe('User Controller', () => {
       req.user = { id: 'user-id' };
 
       const { updateUserAccountValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updateUserAccountValidation.mockReturnValue({
         error: null,
@@ -399,7 +399,7 @@ describe('User Controller', () => {
       req.user = { id: 'user-id' };
 
       const { updatePasswordValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updatePasswordValidation.mockReturnValue({
         error: null,
@@ -448,7 +448,7 @@ describe('User Controller', () => {
       req.body = { oldPassword: '', newPassword: '' };
 
       const { updatePasswordValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updatePasswordValidation.mockReturnValue({
         error: { details: [{ message: 'Old password is required' }] },
@@ -467,7 +467,7 @@ describe('User Controller', () => {
       req.body = { oldPassword: 'oldpassword', newPassword: 'newpassword' };
 
       const { updatePasswordValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updatePasswordValidation.mockReturnValue({
         error: null,
@@ -489,7 +489,7 @@ describe('User Controller', () => {
       req.body = { oldPassword: 'wrongpassword', newPassword: 'newpassword' };
 
       const { updatePasswordValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updatePasswordValidation.mockReturnValue({
         error: null,
@@ -517,7 +517,7 @@ describe('User Controller', () => {
       req.body = { oldPassword: 'samepassword', newPassword: 'samepassword' };
 
       const { updatePasswordValidation } = await import(
-        '../../../validations/user.validation.js'
+        '../../validations/user.validation.js'
       );
       updatePasswordValidation.mockReturnValue({
         error: null,

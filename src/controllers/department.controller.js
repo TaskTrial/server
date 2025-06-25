@@ -62,7 +62,7 @@ const checkDepartmentPermissions = (user, organization, action) => {
   if (!isAdmin && !isOwner) {
     return {
       success: false,
-      message: `You do not have permission to ${action} this team`,
+      message: `You do not have permission to ${action} this department`,
     };
   }
 
@@ -86,28 +86,24 @@ export const getAllDepartments = async (req, res, next) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    // Check if organization exists
-    const orgResult = await checkOrganization(organizationId);
-    if (!orgResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: orgResult.message,
-      });
+    const organization = await prisma.organization.findFirst({
+      where: { id: organizationId, deletedAt: null },
+      include: { users: { select: { id: true } } },
+    });
+
+    if (!organization) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Organization not found' });
     }
-    const organization = orgResult.organization;
 
-    // Check permission
-    const permission = await checkDepartmentPermissions(
-      req.user,
-      organization,
-      'view',
-    );
-
-    // Check if user is a member
     const isMember = organization.users.some((user) => user.id === req.user.id);
 
-    if (!permission.success && !isMember) {
-      return res.status(403).json(permission);
+    if (!isMember) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not a member of this organization.',
+      });
     }
 
     const [totalDepartments, departments] = await Promise.all([
@@ -249,16 +245,22 @@ export const getCreatedDepartments = async (req, res, next) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    // Verify organization exists
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { id: true },
+    const organization = await prisma.organization.findFirst({
+      where: { id: organizationId, deletedAt: null },
+      include: { users: { select: { id: true } } },
     });
 
     if (!organization) {
-      return res.status(404).json({
+      return res
+        .status(404)
+        .json({ success: false, message: 'Organization not found' });
+    }
+
+    const isMember = organization.users.some((user) => user.id === req.user.id);
+    if (!isMember) {
+      return res.status(403).json({
         success: false,
-        message: 'Organization not found',
+        message: 'You are not a member of this organization.',
       });
     }
 
@@ -564,51 +566,19 @@ export const softDeleteDepartment = async (req, res, next) => {
   try {
     const { organizationId, departmentId } = req.params;
 
-    // Check if organization exists
-    const orgResult = await checkOrganization(organizationId);
-    if (!orgResult.success) {
-      return res.status(404).json({
-        success: false,
-        message: orgResult.message,
-      });
-    }
-    const organization = orgResult.organization;
-
-    // Check if department exists
-    const department = await prisma.department.findFirst({
-      where: {
-        id: departmentId,
-        organizationId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        organizationId: true,
-        managerId: true,
-        createdAt: true,
-        updatedAt: true,
-        deletedAt: true,
-      },
+    const organization = await prisma.organization.findFirst({
+      where: { id: organizationId, deletedAt: null },
+      include: { owners: { select: { userId: true } } },
     });
 
-    if (!department) {
-      return res.status(404).json({
-        success: false,
-        message: 'Department not found',
-      });
-    }
-
-    if (department.deletedAt) {
-      return res.status(400).json({
-        success: false,
-        message: 'Department is already deleted',
-      });
+    if (!organization) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Organization not found' });
     }
 
     // Owner/Admin permission check
-    const permission = await checkDepartmentPermissions(
+    const permission = checkDepartmentPermissions(
       req.user,
       organization,
       'delete',
@@ -616,6 +586,22 @@ export const softDeleteDepartment = async (req, res, next) => {
 
     if (!permission.success) {
       return res.status(403).json(permission);
+    }
+
+    const department = await prisma.department.findFirst({
+      where: { id: departmentId, organizationId },
+    });
+
+    if (!department) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Department not found' });
+    }
+
+    if (department.deletedAt) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Department is already deleted' });
     }
 
     // Soft delete the department

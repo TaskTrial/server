@@ -13,6 +13,7 @@ import { Server } from 'socket.io';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
+import lusca from 'lusca';
 import swaggerUi from 'swagger-ui-express';
 import authRouter from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
@@ -70,6 +71,7 @@ app.use(
     },
   }),
 );
+app.use(lusca.csrf());
 
 app.use(passport.initialize());
 app.use(passport.session());

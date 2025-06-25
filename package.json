@@ -10,7 +10,8 @@
     "test:coverage": "UNIT_TEST=1 NODE_ENV=test TEST_TYPE=unit jest --coverage",
     "test:unit": "UNIT_TEST=1 NODE_ENV=test TEST_TYPE=unit jest",
     "test:integration": "NODE_ENV=test jest --config jest.integration.config.js --detectOpenHandles --forceExit --runInBand",
-    "test:all": "npm run test:unit && npm run test:integration",
+    "test:e2e": "NODE_ENV=test TEST_TYPE=e2e jest --config jest.e2e.config.js --detectOpenHandles --forceExit --runInBand",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "start": "node ./src/index.js",
     "start:dev": "nodemon ./src/index.js",
     "format": "npx prettier . --write",
@@ -99,6 +100,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.462.0",
+    "lusca": "^1.7.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
     "next-themes": "^0.3.0",
@@ -125,8 +127,7 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.0",
     "vaul": "^0.9.3",
-    "zod": "^3.23.8",
-    "lusca": "^1.7.0"
+    "zod": "^3.23.8"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [

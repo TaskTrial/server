@@ -1,3 +1,5 @@
+run-integration-test.sh
+
 # Logs
 logs
 *.log

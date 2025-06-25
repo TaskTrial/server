@@ -61,6 +61,14 @@ router.post(
 );
 router.post('/logout', authController.logout);
 router.post('/google', authController.googleOAuthLogin);
-router.post('/firebase', authController.firebaseLogin);
+
+// Rate limiter for firebaseLogin route: max 10 requests per minute
+const firebaseLoginLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: 'Too many requests, please try again later.',
+});
+
+router.post('/firebase', firebaseLoginLimiter, authController.firebaseLogin);
 
 export default router;

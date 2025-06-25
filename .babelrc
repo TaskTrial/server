@@ -8,5 +8,9 @@
         }
       }
     ]
+  ],
+  "plugins": [
+    "@babel/plugin-syntax-import-meta",
+    "@babel/plugin-transform-modules-commonjs"
   ]
 }

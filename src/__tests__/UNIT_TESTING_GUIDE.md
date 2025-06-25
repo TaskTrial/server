@@ -10,10 +10,11 @@ This guide provides instructions and best practices for writing unit tests for t
 4. [Running Tests](#running-tests)
 5. [Writing Unit Tests for Controllers](#writing-unit-tests-for-controllers)
    - [Setting Up the Test File](#setting-up-the-test-file)
-   - [Mocking Prisma Client](#mocking-prisma-client)
+   - [Using the Centralized Mock Setup](#using-the-centralized-mock-setup)
    - [Structuring the Test Suite](#structuring-the-test-suite)
    - [Writing a Test Case (Arrange, Act, Assert)](#writing-a-test-case-arrange-act-assert)
-6. [Best Practices](#best-practices)
+6. [Environment Variables](#environment-variables)
+7. [Best Practices](#best-practices)
 
 ---
 
@@ -31,7 +32,8 @@ Unit tests are essential for ensuring code quality, preventing regressions, and 
 - All test files are located in the `src/__tests__` directory.
 - Unit tests are placed in `src/__tests__/unit/`.
 - The test file for a source file should mirror its location and be named with a `.test.js` extension.
-  - **Example:** The test for `src/controllers/team.controller.js` is located at `src/__tests__/unit/controllers/team.controller.test.js`.
+  - **Example:** The test for `src/controllers/team.controller.js` is located at `src/__tests__/unit/team.controller.test.js`.
+- Common mocking setup is centralized in `src/__tests__/setup.js`.
 
 ### Running Tests
 
@@ -44,7 +46,7 @@ Unit tests are essential for ensuring code quality, preventing regressions, and 
 - **Run tests for a specific file:**
 
   ```bash
-  npm test -- server/src/__tests__/unit/controllers/task.controller.js
+  npm test -- src/__tests__/unit/auth.unit.test.js
   ```
 
 - **Run tests in watch mode (reruns on file changes):**
@@ -61,53 +63,58 @@ A typical controller test file starts with imports, mock setups, and the main `d
 
 ```javascript
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import prisma from '../../../../src/config/prismaClient';
-import { someControllerFunction } from '../../../../src/controllers/some.controller';
-// ... other imports
-```
+import {
+  mockPrisma,
+  mockHashPassword,
+  mockComparePassword,
+  // other mocks as needed
+} from '../setup.js';
 
-#### Mocking Prisma Client
-
-To test controllers in isolation, we must mock the Prisma client. Due to how Jest's `jest.mock` hoisting works, we must define the mock within the factory function to avoid `ReferenceError`.
-
-Place this at the top of your controller test file:
-
-```javascript
-jest.mock('../../../../src/config/prismaClient', () => {
-  const prismaMock = {
-    organization: { findFirst: jest.fn() },
-    team: {
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      count: jest.fn(),
-    },
-    project: { findFirst: jest.fn() },
-    sprint: { findFirst: jest.fn() },
-    task: {
-      create: jest.fn(),
-      findFirst: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      count: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
-    },
-    user: { findUnique: jest.fn() },
-    projectMember: { findFirst: jest.fn(), findMany: jest.fn() },
-    // ... add other models and methods as needed
-  };
-  // Mock the transaction client
-  prismaMock.$transaction = jest
-    .fn()
-    .mockImplementation(async (callback) => callback(prismaMock));
-
+// Mock Prisma client
+jest.mock('../../config/prismaClient.js', () => {
   return {
     __esModule: true,
-    default: prismaMock,
+    default: mockPrisma,
   };
+});
+
+// Import the controller after mocking dependencies
+import { someControllerFunction } from '../../controllers/some.controller.js';
+```
+
+#### Using the Centralized Mock Setup
+
+We use a centralized mock setup in `src/__tests__/setup.js` to ensure consistency across tests. This file provides:
+
+1. Mock implementations for common utilities (password hashing, OTP generation, etc.)
+2. A chainable mock Prisma client with all necessary models and methods
+3. Global test utilities like `mockRequest()` and `mockResponse()`
+
+The setup file automatically detects if we're running unit or integration tests and configures mocks accordingly.
+
+To use the mocks in your test:
+
+```javascript
+// Import the mocks you need
+import {
+  mockPrisma,
+  mockHashPassword,
+  mockComparePassword,
+  // other mocks as needed
+} from '../setup.js';
+
+// Mock Prisma client - IMPORTANT: Do this before importing controllers
+jest.mock('../../config/prismaClient.js', () => {
+  return {
+    __esModule: true,
+    default: mockPrisma,
+  };
+});
+
+// Now you can configure mock behaviors in your tests
+mockPrisma.user.findFirst.mockResolvedValue({
+  id: 'user-id',
+  email: 'test@example.com',
 });
 ```
 
@@ -120,16 +127,8 @@ describe('Task Controller', () => {
   let req, res, next;
 
   beforeEach(() => {
-    req = {
-      params: {},
-      body: {},
-      query: {},
-      user: { id: 'userId', role: 'USER' },
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
+    req = mockRequest();
+    res = mockResponse();
     next = jest.fn();
     jest.clearAllMocks(); // Resets all mocks
   });
@@ -159,13 +158,13 @@ it('should create a task successfully', async () => {
   req.user = { id: 'userId', role: 'ADMIN' };
 
   // Setup mock return values for Prisma calls
-  prisma.organization.findFirst.mockResolvedValue({
+  mockPrisma.organization.findFirst.mockResolvedValue({
     id: 'orgId',
     owners: [{ userId: 'userId' }],
   });
-  prisma.team.findFirst.mockResolvedValue({ id: 'teamId' });
-  prisma.project.findFirst.mockResolvedValue({ id: 'projectId' });
-  prisma.task.create.mockResolvedValue({ id: 'taskId', ...req.body });
+  mockPrisma.team.findFirst.mockResolvedValue({ id: 'teamId' });
+  mockPrisma.project.findFirst.mockResolvedValue({ id: 'projectId' });
+  mockPrisma.task.create.mockResolvedValue({ id: 'taskId', ...req.body });
 
   // 2. Act
   // Execute the function under test
@@ -180,17 +179,28 @@ it('should create a task successfully', async () => {
       message: 'Task created successfully',
     }),
   );
-  expect(prisma.task.create).toHaveBeenCalledWith({
+  expect(mockPrisma.task.create).toHaveBeenCalledWith({
     data: expect.any(Object), // You can be more specific here
   });
   expect(next).not.toHaveBeenCalled();
 });
 ```
 
+### Environment Variables
+
+The testing environment is configured using the following environment variables:
+
+- `NODE_ENV=test`: Indicates that we're running in a test environment
+- `UNIT_TEST=1`: Set automatically by Jest when running unit tests
+- `TEST_TYPE=unit|integration`: Determines which test type is being run
+
+These variables are set automatically by the test runner based on the command you use (`npm test` or `npm run test:integration`).
+
 ### Best Practices
 
 - **Test One Thing:** Each `it` block should have a single, clear responsibility.
 - **Be Descriptive:** Use clear names for `describe` and `it` blocks. `describe('createTask')` and `it('should return 404 if organization is not found')` are good examples.
+- **Import Order Matters:** Always mock dependencies before importing the modules that use them.
 - **Cover All Cases:** For each controller, test:
   - The success "happy path" (2xx status).
   - Invalid input and validation errors (400 status).
@@ -198,3 +208,4 @@ it('should create a task successfully', async () => {
   - Cases where a resource is not found (404 status).
   - Server errors by mocking a dependency to throw an error and asserting that `next(error)` is called.
 - **Keep Tests Independent:** Use `beforeEach` to ensure that one test does not affect the outcome of another.
+- **Use the Centralized Mocks:** Leverage the mocks in `setup.js` rather than creating your own to ensure consistency.

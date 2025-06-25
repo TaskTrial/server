@@ -73,6 +73,11 @@ app.use(
 );
 app.use(lusca.csrf());
 
+// Middleware to expose CSRF token
+app.use((req, res, next) => {
+  res.setHeader('X-CSRF-Token', req.csrfToken());
+  next();
+});
 app.use(passport.initialize());
 app.use(passport.session());
 

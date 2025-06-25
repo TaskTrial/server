@@ -139,7 +139,7 @@ if (process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => {
     /* eslint no-console:off */
     console.log(
-      `Server is running in ${process.env.NODE_ENV} enviroment on port ${PORT}`,
+      `Server is running in ${process.env.NODE_ENV} environment on port ${PORT}`,
     );
   });
 }

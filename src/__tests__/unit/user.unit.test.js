@@ -1,6 +1,6 @@
 /* eslint-env node */
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import prisma from '../../config/prismaClient.js';
+const prisma = require('../../config/prismaClient.js').default;
 import {
   getAllUsers,
   getUserById,

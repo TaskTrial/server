@@ -336,6 +336,8 @@ describe('Team Controller', () => {
       addTeamMemberValidation.mockReturnValue({ error: null });
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
       mockPrisma.team.findFirst.mockResolvedValue(null);
+      mockPrisma.teamMember.findFirst.mockResolvedValue(null);
+      mockPrisma.user.findMany.mockResolvedValue([]);
       await addTeamMember(req, res, next);
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
@@ -360,6 +362,7 @@ describe('Team Controller', () => {
       mockPrisma.organization.findFirst.mockResolvedValue(organization);
       mockPrisma.team.findFirst.mockResolvedValue(team);
       mockPrisma.teamMember.findFirst.mockResolvedValue(null);
+      mockPrisma.user.findMany.mockResolvedValue([]);
       await addTeamMember(req, res, next);
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith({

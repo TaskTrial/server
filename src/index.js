@@ -120,11 +120,20 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(config.port, () => {
-  /* eslint no-console:off */
-  console.log(
-    `Server is running in ${config.env} environment on port ${config.port}`,
-  );
-});
+// Only start the server if this file is being run directly (not imported by tests)
+// This prevents tests from starting multiple server instances
+if (process.env.NODE_ENV !== 'test' || process.env.START_SERVER === 'true') {
+  server.listen(config.port, () => {
+    /* eslint no-console:off */
+    console.log(
+      `Server is running in ${config.env} environment on port ${config.port}`,
+    );
+  });
+}
+
+// Store server instance in global for tests to access
+if (process.env.NODE_ENV === 'test') {
+  global.__SERVER__ = server;
+}
 
 export { app, server };

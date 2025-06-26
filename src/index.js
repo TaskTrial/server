@@ -13,24 +13,13 @@ import { Server } from 'socket.io';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
-import lusca from 'lusca';
+// import lusca from 'lusca';
 import swaggerUi from 'swagger-ui-express';
-import authRouter from './routes/auth.routes.js';
-import userRoutes from './routes/user.routes.js';
-import orgRouter from './routes/organization.routes.js';
-import teamRoutes from './routes/team.routes.js';
-import projectRoutes from './routes/project.routes.js';
-import sprintRoutes from './routes/sprint.routes.js';
-import taskRoutes from './routes/task.routes.js';
-import activitylogRoutes from './routes/activitylog.routes.js';
-// import chatRoutes from './routes/chat.routes.js';
-import videoConferenceRoutes from './routes/videoConference.routes.js';
-import permissionRoutes from './routes/permission.routes.js';
+import router from './routes/index.routes.js';
 import {
   errorHandler,
   notFound,
 } from './middlewares/errorHandler.middleware.js';
-import departmentRoutes from './routes/department.routes.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
 import setupChatHandlers from './socket/chatHandlers.js';
 import setupVideoHandlers from './socket/videoHandlers.js';
@@ -71,13 +60,13 @@ app.use(
     },
   }),
 );
-app.use(lusca.csrf());
+// app.use(lusca.csrf());
 
-// Middleware to expose CSRF token
-app.use((req, res, next) => {
-  res.setHeader('X-CSRF-Token', req.csrfToken());
-  next();
-});
+// // Middleware to expose CSRF token
+// app.use((req, res, next) => {
+//   res.setHeader('X-CSRF-Token', req.csrfToken());
+//   next();
+// });
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -104,18 +93,7 @@ app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use(authRouter);
-app.use(orgRouter);
-app.use(userRoutes);
-app.use(departmentRoutes);
-app.use(teamRoutes);
-app.use(projectRoutes);
-app.use(sprintRoutes);
-app.use(taskRoutes);
-app.use(activitylogRoutes);
-// app.use(chatRoutes);
-app.use('/api', videoConferenceRoutes);
-app.use(permissionRoutes);
+app.use(router);
 
 // Socket.IO middleware for authentication
 io.use(verifySocketToken);

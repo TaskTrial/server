@@ -106,10 +106,21 @@ jobs:
         run: npm run test:unit
 
       - name: Run Integration Tests
-        run: npm run test:integration
+        run: NODE_ENV=test npm run test:integration
+        env:
+          GOOGLE_CLIENT_ID: mock_id
+          GOOGLE_CLIENT_SECRET: mock_secret
+          GOOGLE_CALLBACK_URL: http://localhost:3000/callback
 
       - name: Run E2E Tests
         run: npm run test:e2e
 
       - name: Generate coverage report
         run: npm run test:coverage
+
+      - name: Create test environment file
+        run: |
+          echo "GOOGLE_CLIENT_ID=test_client_id" >> .env.test
+          echo "GOOGLE_CLIENT_SECRET=test_client_secret" >> .env.test
+          echo "GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback" >> .env.test
+          # Add other required environment variables

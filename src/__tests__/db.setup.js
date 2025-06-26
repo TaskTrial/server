@@ -85,3 +85,8 @@ export async function findTestUser(email) {
 
 // Export the prisma client as default
 export default prisma;
+
+// In src/__tests__/db.setup.js or a new mock file
+jest.mock('../strategies/google-strategy', () => ({
+  configureGoogleStrategy: jest.fn(),
+}));

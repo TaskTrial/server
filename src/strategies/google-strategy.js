@@ -9,6 +9,11 @@ import {
 } from '../utils/token.utils.js';
 
 export const configureGoogleStrategy = () => {
+  if (process.env.NODE_ENV === 'test') {
+    // Skip or use mock during tests
+    return;
+  }
+
   passport.use(
     new GoogleStrategy(
       {

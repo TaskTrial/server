@@ -1,124 +1,90 @@
-# Server Repository
+# TaskHive Server
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/TaskTrial/server)
 
-This repository contains the server-side implementation for the project. It handles **backend logic**, **database** interactions, and serves **APIs** for the application.
+This repository contains the server-side implementation of TaskHive, providing **backend logic**, **database interactions**, and **RESTful APIs** for the TaskHive application.
 
 ## Usage
 
-```bash
-
-cd server/
-#install first
-npm install
-# run the server
-npm run start:dev # and makesure there is no error
-```
-
-## Project Structure Flow
-
-![tasktrial flow](./images/structure_flow.png)
-
-## Completed Endpoints
-
-You can test your APIs using **_Swagger_** from [_here_](http://localhost:3000/api-docs/) after running the server
+You can test your APIs using **_Swagger_** from [_link here_](http://localhost:3000/api-docs/) after running the server
 
 base url: `http://localhost:3000`
 
-### Auth
+### Running the Application
 
-- Sign up or register: `POST /api/auth/signup`
-- Resend OTP: `POST /api/auth/resendOTP`
-- Verify email: `POST /api/auth/verifyEmail`
-- Sign in or login: `POST /api/auth/signin`
-- Forget Password: `POST /api/auth/forgotPassword`
-- Reset Password: `POST /api/auth/resetPassword`
-- Forget password without email: `POST /api/auth/forgotPasswordWithoutEmail`
-- Reset password without email: `POST /api/auth/resetPasswordWithoutEmail`
-- Refresh Access Token: `POST /api/auth/refreshAccessToken`
-- Login with google: `POST /api/auth/google`
-- Logout: `POST /api/auth/logout`
-- Login using firebase: `POST /api/auth/firebase`
+```bash
+# Development mode
+npm run start:dev
 
-### User
+# Production mode
+npm run start:prod
 
-- Get all users: `GET /api/users/all`
-- Get a specific user: `GET /api/users/:id`
-- Update a user: `PUT /api/users/:id`
-- Update user password: `PATCH /api/users/update-password/:id`
-- Delete a user: `DELETE /api/users/delete/:id`
-- Restore a user: `PATCH /api/users/restore/:id`
-- Upload user profile picture: `POST /api/users/:id/profile-picture`
-- Delete user profile picture: `DELETE /api/users/:id/profile-picture`
+# Test environment
+npm run start:test
+```
 
-### Organization
+### Environment Configuration
 
-- Create an Organization: `POST /api/organization`
-- Join to an Organization: `POST /api/organization/join`
-- User organization status: `GET /api/organization/status`
-- Resend OTP: `POST /api/organization/resendOTP/:orgId`
-- Verify an Organization: `POST /api/organization/verifyOrg/:orgId`
-- Get all Organizations: `GET /api/organization/all`
-- Get a specific Organization: `GET /api/organization/:organizationId`
-- Update an Organization: `PUT /api/organization/:organizationId`
-- Delete an Organization: `DELETE /api/organization/:organizationId`
-- Add owners to the org: `POST /api/organization/:organizationId/addOwner`
-- Upload the organization logo: `POST /api/organization/:organizationId/logo/upload`
-- Delete the organization logo: `DELETE /api/organization/:organizationId/logo/delete`
+- **Development**: Uses local environment variables with verbose logging for debugging
+- **Production**: Uses production configuration, optimized for performance and security
+- **Test**: Used for running the application during testing with mock services
 
-### Department
+## Database Setup
 
-- Get all Departments: `GET /api/organizations/:organizationId/departments/all`
-- Get department by id: `GET /api/organizations/:organizationId/departments/:departmentId`
-- Create a Department: `POST /api/organizations/:organizationId/departments/create`
-- Update a Department: `PUT /api/organizations/:organizationId/departments/:departmentId`
-- Soft Delete a Department: `DELETE /api/organizations/:organizationId/departments/:departmentId/delete`
-- Restore a Department: `PATCH /api/organizations/:organizationId/departments/:departmentId/restore`
+The project uses PostgreSQL with Prisma ORM. Initial setup:
 
-### Team
+```bash
+# Generate Prisma client
+npx prisma generate
 
-- Create a new team in a specific organization: `POST /api/organization/:organizationId/team`
-- Add new team members: `POST /api/organization/:organizationId/team/:teamId/addMember`
-- Remove member from a team: `DELETE /api/organization/:organizationId/team/:teamId/members/:memberId`
-- Update a team: `PUT /api/organization/:organizationId/team/:teamId`
-- Upload team avatar: `POST /api/organization/:organizationId/team/:teamId/avatar/upload`
-- Delete team avatar: `DELETE /api/organization/:organizationId/team/:teamId/avatar/delete`
-- Delete a team: `DELETE /api/organization/:organizationId/team/:teamId`
-- Get all teams: `GET /api/organization/:organizationId/teams/all`
-- Get a specific team: `GET /api/organization/:organizationId/teams/:teamId`
+# Run migrations
+npx prisma migrate dev
+```
 
-### Project
+## Testing
 
-- Create a new project: `POST /api/organization/:organizationId/team/:teamId/project`
-- Update a project: `PUT /api/organization/:organizationId/team/:teamId/project/:projectId`
-- Update the project status: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/status`
-- Update the project priority: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/priority`
-- Delete a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/delete`
-- Restore a project: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/restore`
-- Add new member in the project: `POST /api/organization/:organizationId/team/:teamId/project/:projectId/addMember`
-- Remove member from a project: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/removeMember`
-- Get all projects: `GET /api/organization/:organizationId/team/:teamId/project/all`
-- Get a specific project: `GET /api/organization/:organizationId/team/:teamId/project/:projectId`
-- Get projects in a specific organization: `GET /api/organization/:organizationId/projects`
+The project uses Jest as the testing framework with distinct configurations for different test types.
 
-### Task
+### Running Tests
 
-- Create a new task: `POST /api/organization/:organizationId/team/:teamId/project/:projectId/task/create`
-- Update a task: `PUT /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId`
-- Update the task priority: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/priority`
-- Update a task status: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/status`
-- Get all tasks: `GET /api/organization/:organizationId/team/:teamId/project/:projectId/task/all`
-- Get a specific task: `GET /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId`
-- Delete a task: `DELETE /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/delete`
-- Restore the deleted task: `PATCH /api/organization/:organizationId/team/:teamId/project/:projectId/task/:taskId/restore`
-- Get tasks in a specific organization: `GET /api/organization/:organizationId/tasks`
+```bash
+# Run all unit tests
+npm run test
+# or
+npm run test:unit
 
-### Activity Logs
+# Run unit tests in watch mode
+npm run test:watch
 
-- Get all logs: `GET /api/organization/:organizationId/activity-logs`
-- Get a specific log by id: `GET /api/organization/:organizationId/activity-logs/:logId`
-- Get activity feed: `GET /api/organization/:organizationId/activity-feed`
+# Generate test coverage report
+npm run test:coverage
 
-### Chat
+# Run integration tests (runs serially with --runInBand)
+npm run test:integration
 
-### Session
+# Run end-to-end tests
+npm run test:e2e
+
+# Run all test suites
+npm run test:all
+```
+
+### Testing Guidelines
+
+- **Unit Tests**: Test individual functions and components in isolation
+- **Integration Tests**: Test interactions between multiple components (API endpoints, database)
+- **E2E Tests**: Test complete workflows from start to finish
+
+### Common Testing Issues & Solutions
+
+- **Port conflicts**: Integration tests run serially with `--runInBand` to avoid port conflicts
+- **Database setup**: Tests use a separate test database to avoid affecting development data
+- **Test data**: Use the provided test data helpers for consistent test data generation
+
+## API Documentation
+
+The API is documented using Swagger. Once the server is running, you can access the documentation at:
+
+```bash
+http://localhost:3000/api-docs
+```

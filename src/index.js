@@ -13,32 +13,20 @@ import { Server } from 'socket.io';
 import { apiLimiter } from './utils/apiLimiter.utils.js';
 import passport from 'passport';
 import session from 'express-session';
-import lusca from 'lusca';
+// import lusca from 'lusca';
 import swaggerUi from 'swagger-ui-express';
-import authRouter from './routes/auth.routes.js';
-import userRoutes from './routes/user.routes.js';
-import orgRouter from './routes/organization.routes.js';
-import teamRoutes from './routes/team.routes.js';
-import projectRoutes from './routes/project.routes.js';
-import sprintRoutes from './routes/sprint.routes.js';
-import taskRoutes from './routes/task.routes.js';
-import activitylogRoutes from './routes/activitylog.routes.js';
-// import chatRoutes from './routes/chat.routes.js';
-import videoConferenceRoutes from './routes/videoConference.routes.js';
-import permissionRoutes from './routes/permission.routes.js';
+import router from './routes/index.routes.js';
 import {
   errorHandler,
   notFound,
 } from './middlewares/errorHandler.middleware.js';
-import departmentRoutes from './routes/department.routes.js';
 import { configureGoogleStrategy } from './strategies/google-strategy.js';
 import setupChatHandlers from './socket/chatHandlers.js';
 import setupVideoHandlers from './socket/videoHandlers.js';
 import { verifySocketToken } from './middlewares/auth.middleware.js';
+import config from './config/env/index.js';
 
 /* eslint no-undef: off */
-const PORT = process.env.PORT || 3000;
-
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -62,22 +50,22 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(
   session({
-    secret: 'secret',
+    secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: config.env === 'production',
       httpOnly: true,
     },
   }),
 );
-app.use(lusca.csrf());
+// app.use(lusca.csrf());
 
-// Middleware to expose CSRF token
-app.use((req, res, next) => {
-  res.setHeader('X-CSRF-Token', req.csrfToken());
-  next();
-});
+// // Middleware to expose CSRF token
+// app.use((req, res, next) => {
+//   res.setHeader('X-CSRF-Token', req.csrfToken());
+//   next();
+// });
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -99,23 +87,13 @@ configureGoogleStrategy();
 // Rate limiter middleware
 app.use(apiLimiter);
 
-app.use(morgan('dev'));
+// Setup logging based on environment
+app.use(morgan(config.logLevel));
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use(authRouter);
-app.use(orgRouter);
-app.use(userRoutes);
-app.use(departmentRoutes);
-app.use(teamRoutes);
-app.use(projectRoutes);
-app.use(sprintRoutes);
-app.use(taskRoutes);
-app.use(activitylogRoutes);
-// app.use(chatRoutes);
-app.use('/api', videoConferenceRoutes);
-app.use(permissionRoutes);
+app.use(router);
 
 // Socket.IO middleware for authentication
 io.use(verifySocketToken);
@@ -142,13 +120,20 @@ io.on('connection', (socket) => {
   });
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  server.listen(PORT, () => {
+// Only start the server if this file is being run directly (not imported by tests)
+// This prevents tests from starting multiple server instances
+if (process.env.NODE_ENV !== 'test' || process.env.START_SERVER === 'true') {
+  server.listen(config.port, () => {
     /* eslint no-console:off */
     console.log(
-      `Server is running in ${process.env.NODE_ENV} environment on port ${PORT}`,
+      `Server is running in ${config.env} environment on port ${config.port}`,
     );
   });
+}
+
+// Store server instance in global for tests to access
+if (process.env.NODE_ENV === 'test') {
+  global.__SERVER__ = server;
 }
 
 export { app, server };

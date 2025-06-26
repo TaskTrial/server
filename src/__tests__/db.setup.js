@@ -1,8 +1,10 @@
 // Database setup for integration tests
 import { beforeAll, afterAll } from '@jest/globals';
 import prisma from '../config/prismaClient.js';
+import { server } from '../index.js';
 
 /* eslint no-console: off */
+/* eslint no-undef: off */
 
 // Generate a unique test identifier for this test run
 export const TEST_IDENTIFIER = `test_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -11,12 +13,25 @@ console.log(`Using test identifier: ${TEST_IDENTIFIER}`);
 // Setup before all tests
 beforeAll(async () => {
   console.log('Setting up integration test environment...');
+
+  // Store server reference in global so it can be accessed in afterAll hook
+  global.__SERVER__ = server;
 });
 
 // Close database connection after all tests
 afterAll(async () => {
   console.log('Closing database connection...');
   await prisma.$disconnect();
+
+  // Close server if it's running
+  if (global.__SERVER__) {
+    await new Promise((resolve) => {
+      global.__SERVER__.close(() => {
+        console.log('Server closed');
+        resolve();
+      });
+    });
+  }
 });
 
 /**
@@ -70,3 +85,8 @@ export async function findTestUser(email) {
 
 // Export the prisma client as default
 export default prisma;
+
+// In src/__tests__/db.setup.js or a new mock file
+jest.mock('../strategies/google-strategy', () => ({
+  configureGoogleStrategy: jest.fn(),
+}));

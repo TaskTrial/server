@@ -24,10 +24,9 @@ import { configureGoogleStrategy } from './strategies/google-strategy.js';
 import setupChatHandlers from './socket/chatHandlers.js';
 import setupVideoHandlers from './socket/videoHandlers.js';
 import { verifySocketToken } from './middlewares/auth.middleware.js';
+import config from './config/env/index.js';
 
 /* eslint no-undef: off */
-const PORT = process.env.PORT || 3000;
-
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -51,11 +50,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(
   session({
-    secret: 'secret',
+    secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: config.env === 'production',
       httpOnly: true,
     },
   }),
@@ -88,7 +87,8 @@ configureGoogleStrategy();
 // Rate limiter middleware
 app.use(apiLimiter);
 
-app.use(morgan('dev'));
+// Setup logging based on environment
+app.use(morgan(config.logLevel));
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));
 
@@ -120,13 +120,11 @@ io.on('connection', (socket) => {
   });
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  server.listen(PORT, () => {
-    /* eslint no-console:off */
-    console.log(
-      `Server is running in ${process.env.NODE_ENV} environment on port ${PORT}`,
-    );
-  });
-}
+server.listen(config.port, () => {
+  /* eslint no-console:off */
+  console.log(
+    `Server is running in ${config.env} environment on port ${config.port}`,
+  );
+});
 
 export { app, server };

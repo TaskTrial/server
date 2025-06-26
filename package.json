@@ -13,7 +13,9 @@
     "test:e2e": "NODE_ENV=test TEST_TYPE=e2e jest --config jest.e2e.config.js --detectOpenHandles --forceExit --runInBand",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "start": "node ./src/index.js",
-    "start:dev": "nodemon ./src/index.js",
+    "start:dev": "STAGE=local nodemon ./src/index.js",
+    "start:prod": "STAGE=production nodemon ./src/index.js",
+    "start:test": "STAGE=test nodemon ./src/index.js",
     "format": "npx prettier . --write",
     "lint": "npx eslint . --fix --ignore-pattern 'prisma/**' --ignore-pattern 'jest.config.js'",
     "prepare": "husky install"
@@ -99,6 +101,7 @@
     "input-otp": "^1.2.4",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "lodash.merge": "^4.6.2",
     "lucide-react": "^0.462.0",
     "lusca": "^1.7.0",
     "morgan": "^1.10.0",

@@ -6,9 +6,13 @@ This repository contains the server-side implementation of TaskHive, providing *
 
 ## Usage
 
-You can test your APIs using **_Swagger_** from [_link here_](http://localhost:3000/api-docs/) after running the server
-
 base url: `http://localhost:3000`
+
+The API is documented using **Swagger**. Once the server is running, you can access the documentation at:
+
+```bash
+http://localhost:3000/api-docs
+```
 
 ### Running the Application
 
@@ -80,11 +84,3 @@ npm run test:all
 - **Port conflicts**: Integration tests run serially with `--runInBand` to avoid port conflicts
 - **Database setup**: Tests use a separate test database to avoid affecting development data
 - **Test data**: Use the provided test data helpers for consistent test data generation
-
-## API Documentation
-
-The API is documented using Swagger. Once the server is running, you can access the documentation at:
-
-```bash
-http://localhost:3000/api-docs
-```

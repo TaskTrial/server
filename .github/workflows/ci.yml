@@ -21,6 +21,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
   eslint:
     runs-on: ubuntu-latest
     needs: setup
@@ -77,3 +85,31 @@ jobs:
 
       - name: Check commit messages
         run: npx commitlint --from=HEAD --to=HEAD
+
+  testing:
+    runs-on: ubuntu-latest
+    needs: [setup, eslint, prettier]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Unit Tests
+        run: npm run test:unit
+
+      - name: Run Integration Tests
+        run: npm run test:integration
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
+
+      - name: Generate coverage report
+        run: npm run test:coverage

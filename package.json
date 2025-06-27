@@ -18,6 +18,7 @@
     "cleanup:test-data": "NODE_ENV=test STAGE=test node ./src/__tests__/scripts/cleanup-test-data.js",
     "start": "node ./src/index.js",
     "start:dev": "STAGE=development nodemon ./src/index.js",
+    "dev": "nodemon ./src/index.js",
     "start:prod": "STAGE=production nodemon ./src/index.js",
     "start:test": "STAGE=test nodemon ./src/index.js",
     "format": "npx prettier . --write",

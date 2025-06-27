@@ -18,6 +18,7 @@ http://localhost:3000/api-docs
 
 ```bash
 # Development mode
+npm run dev
 npm run start:dev
 
 # Production mode

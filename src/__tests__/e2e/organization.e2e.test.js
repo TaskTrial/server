@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import { createTestData, TEST_IDENTIFIER } from '../db.setup.js';
@@ -45,6 +45,7 @@ describe('Organization E2E Workflow', () => {
 
     // Create test-specific organization data with unique identifiers
     testData.orgData = createTestData({ ...testOrganization });
+    jest.clearAllMocks();
   });
 
   // No cleanup after tests to preserve data

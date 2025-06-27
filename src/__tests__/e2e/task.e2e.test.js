@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, jest } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import taskRoutes, { orgRouter } from '../mocks/task.routes.mock.js';
@@ -25,6 +25,7 @@ describe('Task Controller E2E Tests', () => {
     );
     app.use(`/api/organization/:organizationId/tasks`, orgRouter);
     app.use(errorHandlerMiddleware);
+    jest.clearAllMocks();
   });
 
   describe('Create Task', () => {

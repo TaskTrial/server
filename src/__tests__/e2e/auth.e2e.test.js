@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import prisma, { createTestData, TEST_IDENTIFIER } from '../db.setup.js';
@@ -54,6 +54,7 @@ describe('Auth E2E Workflow', () => {
       testData.userId = existingUser.id;
       testData.userInDb = existingUser;
     }
+    jest.clearAllMocks();
   });
 
   // No cleanup after tests to avoid deleting records

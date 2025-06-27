@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import { createTestData, TEST_IDENTIFIER } from '../db.setup.js';
@@ -43,6 +43,7 @@ describe('Team E2E Workflow', () => {
 
     // For testing purposes, we'll use mock IDs
     testData.teamId = 'mock-team-id-1';
+    jest.clearAllMocks();
   });
 
   // No cleanup after tests to preserve data

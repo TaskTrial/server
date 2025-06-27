@@ -12,12 +12,6 @@ process.env.STAGE = 'test';
 process.env.JWT_SECRET = 'test-jwt-secret';
 process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
 
-// For unit tests, we use mock URLs that won't be used
-// For integration tests, the DATABASE_URL is set in db.setup.js
-if (isUnitTest) {
-  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
-}
-
 // Set up mock implementations with default values
 const mockComparePassword = jest.fn().mockImplementation(() => true);
 const mockGenerateOTP = jest.fn().mockImplementation(() => '123456');

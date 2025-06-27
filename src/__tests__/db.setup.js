@@ -21,6 +21,12 @@ beforeAll(async () => {
 // Close database connection after all tests
 afterAll(async () => {
   console.log('Closing database connection...');
+
+  // Clean up test data created with this identifier if environment variable is set
+  if (process.env.CLEAN_TEST_DATA === 'true') {
+    await cleanupTestData();
+  }
+
   await prisma.$disconnect();
 
   // Close server if it's running
@@ -33,6 +39,78 @@ afterAll(async () => {
     });
   }
 });
+
+/**
+ * Clean up test data created with the current TEST_IDENTIFIER
+ * This will remove all data marked with the current test identifier
+ */
+export async function cleanupTestData() {
+  try {
+    console.log(`Cleaning up test data with identifier: ${TEST_IDENTIFIER}`);
+
+    // Clean up users with test emails
+    const usersDeleted = await prisma.user.deleteMany({
+      where: {
+        email: {
+          contains: `+${TEST_IDENTIFIER}@`,
+        },
+      },
+    });
+    console.log(`Deleted ${usersDeleted.count} test users`);
+
+    // Clean up organizations with test names
+    const orgsDeleted = await prisma.organization.deleteMany({
+      where: {
+        name: {
+          contains: `_${TEST_IDENTIFIER}`,
+        },
+      },
+    });
+    console.log(`Deleted ${orgsDeleted.count} test organizations`);
+
+    // Clean up departments with test names
+    const deptsDeleted = await prisma.department.deleteMany({
+      where: {
+        name: {
+          contains: `_${TEST_IDENTIFIER}`,
+        },
+      },
+    });
+    console.log(`Deleted ${deptsDeleted.count} test departments`);
+
+    // Clean up teams with test names
+    const teamsDeleted = await prisma.team.deleteMany({
+      where: {
+        name: {
+          contains: `_${TEST_IDENTIFIER}`,
+        },
+      },
+    });
+    console.log(`Deleted ${teamsDeleted.count} test teams`);
+
+    // Clean up projects with test names
+    const projectsDeleted = await prisma.project.deleteMany({
+      where: {
+        name: {
+          contains: `_${TEST_IDENTIFIER}`,
+        },
+      },
+    });
+    console.log(`Deleted ${projectsDeleted.count} test projects`);
+
+    // Clean up sprints with test names
+    const sprintsDeleted = await prisma.sprint.deleteMany({
+      where: {
+        name: {
+          contains: `_${TEST_IDENTIFIER}`,
+        },
+      },
+    });
+    console.log(`Deleted ${sprintsDeleted.count} test sprints`);
+  } catch (error) {
+    console.error('Error cleaning up test data:', error);
+  }
+}
 
 /**
  * Helper function to create test-specific data

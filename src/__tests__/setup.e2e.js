@@ -31,5 +31,3 @@ jest.mock('../config/firebase.js', () => {
     },
   };
 });
-
-// Add any additional E2E specific mocks or configurations here

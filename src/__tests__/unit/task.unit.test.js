@@ -1,4 +1,11 @@
-import { jest, describe, beforeEach, it, expect } from '@jest/globals';
+import {
+  jest,
+  describe,
+  beforeEach,
+  afterEach,
+  it,
+  expect,
+} from '@jest/globals';
 import prisma from '../../config/prismaClient';
 import {
   createTask,
@@ -71,6 +78,9 @@ describe('Task Controller', () => {
       json: jest.fn(),
     };
     next = jest.fn();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

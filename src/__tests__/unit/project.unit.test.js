@@ -1,5 +1,12 @@
 /* eslint-env node */
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@jest/globals';
 import {
   createProject,
   updateProject,
@@ -51,9 +58,12 @@ describe('Project Controller', () => {
     req = mockRequest();
     res = mockResponse();
     next = jest.fn();
-    jest.clearAllMocks();
     createProjectValidation.mockReturnValue({ error: null });
     updateProjectValidation.mockReturnValue({ error: null });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('createProject', () => {

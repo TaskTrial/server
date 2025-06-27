@@ -72,6 +72,9 @@ describe('Auth Controller', () => {
     req = mockRequest();
     res = mockResponse();
     next = jest.fn();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

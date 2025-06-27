@@ -43,6 +43,9 @@ describe('Organization Controller', () => {
     req = mockRequest();
     res = mockResponse();
     next = mockNext();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

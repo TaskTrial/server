@@ -26,6 +26,9 @@ describe('Department Controller', () => {
     req = mockRequest();
     res = mockResponse();
     next = jest.fn();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

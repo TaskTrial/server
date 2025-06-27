@@ -1,5 +1,12 @@
 /* eslint-env node */
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@jest/globals';
 import {
   createTeam,
   addTeamMember,
@@ -58,6 +65,9 @@ describe('Team Controller', () => {
     req = mockRequest();
     res = mockResponse();
     next = jest.fn();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: .
+      target: production
+    ports:
+      - 5000:5000
+    environment:
+      - NODE_ENV=production
+      - STAGE=production
+    command: npm run start

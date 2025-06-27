@@ -93,6 +93,9 @@ app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.get('/', (req, res) => {
+  res.send(`<h1>Hello world from docker hub</h1>`);
+});
 app.use(router);
 
 // Socket.IO middleware for authentication

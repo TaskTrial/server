@@ -9,3 +9,7 @@
 - Nginx reverse proxy integration
 - CI/CD pipeline with GitHub Actions
 - Docker Hub automated publishing
+
+### Fixed
+
+- Docker hub double version

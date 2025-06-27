@@ -178,5 +178,4 @@ jobs:
           push: true
           tags: |
             mdawoud27/tasktrial:latest
-            mdawoud27/tasktrial:${{ steps.get_version.outputs.version }}
             mdawoud27/tasktrial:${{ github.sha }}

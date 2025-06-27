@@ -86,13 +86,13 @@ Unlike unit tests (which test individual functions in isolation) or integration 
 
 E2E tests should focus on complete user workflows rather than individual endpoints. Each test file should contain one or more complete workflows that a real user might perform.
 
-#### Key Principles:
+#### Key Principles
 
 1. **Test Complete Workflows:** Each test file should cover a complete user journey (e.g., registration through to performing actions as an authenticated user).
 2. **Sequential Tests:** E2E tests are often sequential and depend on the state created by previous tests.
 3. **Clean Up After Tests:** Use `afterAll` to clean up test data created during the E2E tests.
 
-#### Example Structure:
+#### Example Structure
 
 ```javascript
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
@@ -157,7 +157,7 @@ describe('User Workflow', () => {
 
 For more details, see the example E2E tests in `src/__tests__/e2e/` and the database setup in `src/__tests__/db.setup.js`.
 
-## Key Principles
+## Key Principles -
 
 1. **Test Complete Workflows**: E2E tests should verify entire user flows from start to finish, not just individual endpoints.
 2. **Data Isolation**: Tests should use unique, identifiable test data, and should NOT delete records from the database.
@@ -180,7 +180,7 @@ For more details, see the example E2E tests in `src/__tests__/e2e/` and the data
 3. **Assertion Phase**: Verify the expected outcomes.
 4. **No Cleanup Phase**: We preserve all data in the database.
 
-### Best Practices
+### Best Practices --
 
 - Create unique test data using timestamps or random identifiers.
 - Handle cases where test data might already exist.
@@ -319,7 +319,7 @@ describe('Department E2E Workflow', () => {
 });
 ```
 
-## Running E2E Tests
+## Running E2E Tests -
 
 ```bash
 # Run all E2E tests

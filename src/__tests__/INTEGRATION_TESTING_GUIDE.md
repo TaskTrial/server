@@ -195,6 +195,7 @@ You can now choose whether to keep or clean up test data:
    ```
 
 3. **Clean All Test Data** (standalone cleanup of all test data):
+
    ```bash
    npm run cleanup:test-data
    ```

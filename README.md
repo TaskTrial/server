@@ -33,18 +33,6 @@ npm run start:test
 - **Production**: Uses production configuration, optimized for performance and security
 - **Test**: Used for running the application during testing with mock services
 
-## Database Setup
-
-The project uses PostgreSQL with Prisma ORM. Initial setup:
-
-```bash
-# Generate Prisma client
-npx prisma generate
-
-# Run migrations
-npx prisma migrate dev
-```
-
 ## Testing
 
 The project uses Jest as the testing framework with distinct configurations for different test types.

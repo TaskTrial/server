@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  server:
+    image: mdawoud27/tasktrial
+    container_name: server-container
+    env_file:
+      - ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx-container
+    ports:
+      - '8080:80'
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - server

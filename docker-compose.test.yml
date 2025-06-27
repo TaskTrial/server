@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: .
+      target: testing
+    ports:
+      - 4000:4000
+    volumes:
+      - ./src:/app/src:ro
+    environment:
+      - NODE_ENV=testing
+      - STAGE=test
+    command: npm run start:test

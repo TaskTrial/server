@@ -36,7 +36,7 @@ Unlike unit tests (which test individual functions in isolation) or integration 
 
 ### Running E2E Tests
 
-- **Run all E2E tests:**
+- **Run all E2E tests (preserving test data):**
 
   ```bash
   npm run test:e2e
@@ -44,16 +44,42 @@ Unlike unit tests (which test individual functions in isolation) or integration 
 
   This command sets the appropriate environment variables and uses the Jest configuration for E2E tests.
 
+- **Run all E2E tests and clean up test data after tests:**
+
+  ```bash
+  npm run test:e2e:clean
+  ```
+
+  This runs the tests and deletes all test data created during this test run.
+
 - **Run a specific E2E test file:**
 
   ```bash
   npm run test:e2e -- src/__tests__/e2e/auth.e2e.test.js
   ```
 
+  To clean up test data when running a specific file:
+
+  ```bash
+  npm run test:e2e:clean -- src/__tests__/e2e/auth.e2e.test.js
+  ```
+
 - **Run all tests (unit, integration, and E2E):**
 
   ```bash
   npm run test:all
+  ```
+
+  Or, to clean up test data:
+
+  ```bash
+  npm run test:all:clean
+  ```
+
+- **Clean up all existing test data without running tests:**
+
+  ```bash
+  npm run cleanup:test-data
   ```
 
 ### Writing E2E Tests

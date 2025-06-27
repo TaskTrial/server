@@ -164,7 +164,7 @@ Many integration tests may return 403 Forbidden responses because the test user 
 
 ### Test Data Management
 
-Instead of deleting test data between runs, we use a unique identifier approach:
+By default, we use a unique identifier approach without deleting test data between runs:
 
 1. **Unique Test Identifier**: Each test run generates a unique identifier (`TEST_IDENTIFIER`) in `db.setup.js`.
 
@@ -172,11 +172,37 @@ Instead of deleting test data between runs, we use a unique identifier approach:
 
    - `createTestData(data)`: Adds the unique identifier to data properties like email, username, and name.
    - `findTestUser(email)`: Finds a test user by email, applying the unique identifier.
+   - `cleanupTestData()`: Removes test data created with the current test identifier.
 
 3. **Benefits**:
    - Tests can run in parallel without data collisions
-   - No need to delete data between runs, which can be error-prone
    - Test data is clearly identifiable in the database
+
+### Cleaning Up Test Data
+
+You can now choose whether to keep or clean up test data:
+
+1. **Standard Test Mode** (keep test data):
+
+   ```bash
+   npm run test:integration
+   ```
+
+2. **Clean Test Mode** (delete test data after tests):
+
+   ```bash
+   npm run test:integration:clean
+   ```
+
+3. **Clean All Test Data** (standalone cleanup of all test data):
+   ```bash
+   npm run cleanup:test-data
+   ```
+
+The integration test suite provides two ways to clean up test data:
+
+1. **Test-specific cleanup**: Uses the `cleanupTestData()` function in `db.setup.js` to remove only data with the current test identifier
+2. **Complete cleanup**: Uses a standalone script at `src/__tests__/scripts/cleanup-test-data.js` to remove all test data regardless of identifier
 
 ### Integration Best Practices
 

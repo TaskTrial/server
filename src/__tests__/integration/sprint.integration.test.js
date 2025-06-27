@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, jest } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import { app } from '../../index.js';
 import prisma from '../db.setup.js';
@@ -283,6 +290,10 @@ describe('Sprint Endpoints', () => {
     } catch (error) {
       console.error('Error setting up test data:', error);
     }
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   // Test creating a sprint

@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, jest } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import { app } from '../../index.js';
 import prisma from '../db.setup.js';
@@ -350,6 +357,10 @@ describe('Task Endpoints', () => {
         error.message,
       );
     }
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   // Test creating a task

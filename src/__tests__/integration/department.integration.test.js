@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, jest } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import { app } from '../../index.js';
 import prisma from '../db.setup.js';
@@ -169,6 +176,10 @@ describe('Department Endpoints', () => {
     } catch (error) {
       console.error('Error setting up test data:', error);
     }
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   // Test getting all departments

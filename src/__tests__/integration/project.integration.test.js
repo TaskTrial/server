@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, jest } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import { app } from '../../index.js';
 import prisma from '../db.setup.js';
@@ -211,6 +218,10 @@ describe('Project Endpoints', () => {
     } catch (error) {
       console.error('Error in beforeAll:', error);
     }
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('POST /api/organization/:organizationId/team/:teamId/project', () => {

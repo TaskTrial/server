@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import { app } from '../../index.js';
 import prisma, { createTestData, TEST_IDENTIFIER } from '../db.setup.js';
@@ -60,6 +67,10 @@ describe('Auth Endpoints', () => {
   // Log test identifier for debugging
   beforeAll(() => {
     console.log(`Running auth tests with identifier: ${TEST_IDENTIFIER}`);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('POST /api/auth/signup', () => {

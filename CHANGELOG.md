@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.2]
+
+- fix vercel configurations
+
 ## [1.1.1]
 
 - fix deployment configurations

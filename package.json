@@ -22,7 +22,8 @@
     "start:prod": "STAGE=production nodemon ./src/index.js",
     "start:test": "STAGE=test nodemon ./src/index.js",
     "format": "npx prettier . --write",
-    "lint": "npx eslint . --fix --ignore-pattern 'prisma/**' --ignore-pattern 'jest.config.js'"
+    "lint": "npx eslint . --fix --ignore-pattern 'prisma/**' --ignore-pattern 'jest.config.js'",
+    "vercel-build": "prisma generate && prisma migrate deploy"
   },
   "keywords": [],
   "author": "TaskTrial",

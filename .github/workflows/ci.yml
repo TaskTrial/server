@@ -1,9 +1,5 @@
 name: CI Pipeline
 
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
 on: [push, pull_request, workflow_dispatch]
 
 permissions:
@@ -181,19 +177,4 @@ jobs:
           target: production
           push: true
           tags: |
-            mdawoud27/tasktrial:latest
-            mdawoud27/tasktrial:${{ github.sha }}
-
-  deployment:
-    runs-on: ubuntu-latest
-    needs: [docker-build-push]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+            mdawoud27/tasktrial:${{ steps.get_version.outputs.version }}

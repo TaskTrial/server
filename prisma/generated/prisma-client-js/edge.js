@@ -729,7 +729,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/dawoud27/alx/GradProject/server/prisma/generated/prisma-client-js",
+      "value": "/home/dawoud27/alx/GradProject/TaskTrial/prisma/generated/prisma-client-js",
       "fromEnvVar": null
     },
     "config": {
@@ -747,7 +747,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/dawoud27/alx/GradProject/server/prisma/schema.prisma",
+    "sourceFilePath": "/home/dawoud27/alx/GradProject/TaskTrial/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

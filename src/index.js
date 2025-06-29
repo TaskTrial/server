@@ -116,7 +116,30 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.get('/', (req, res) => {
-  res.send(`<h1>TaskTrial API - Running in ${config.env} mode</h1>`);
+  const fs = require('fs');
+  const path = require('path');
+
+  // Read the HTML file
+  let html = fs.readFileSync(
+    path.join(__dirname, '../public/index.html'),
+    'utf8',
+  );
+
+  // Get version from package.json
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8'),
+  );
+  const version = packageJson.version;
+
+  // Replace the environment placeholder with actual environment
+  html = html.replace('ENVIRONMENT_PLACEHOLDER', config.env);
+
+  // Replace version placeholder
+  html = html.replace('1.0.0', version);
+
+  // Send the HTML response with the correct content type
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
 });
 app.use(router);
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.4]
+
+- update home page
+
 ## [1.1.3]
 
 - deploy

@@ -25,10 +25,10 @@ import setupChatHandlers from './socket/chatHandlers.js';
 import setupVideoHandlers from './socket/videoHandlers.js';
 import { verifySocketToken } from './middlewares/auth.middleware.js';
 import config from './config/env/index.js';
-import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /* eslint no-undef: off */
 const app = express();
@@ -51,20 +51,12 @@ if (!isServerless) {
   });
 }
 
-// app.use(bodyParser.json());
+// Setup middlewares
+app.use(express.json()); // for parsing application/json
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Load Swagger documentation only if file exists and not in production
-let swaggerDocument;
-try {
-  const swaggerPath = path.resolve(__dirname, './docs/swagger.json');
-  if (fs.existsSync(swaggerPath)) {
-    swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf8'));
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  }
-} catch (error) {
-  console.warn('Swagger documentation not available:', error.message);
-}
-
+// Session and authentication
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'secret',
@@ -76,13 +68,6 @@ app.use(
     },
   }),
 );
-// app.use(lusca.csrf());
-
-// // Middleware to expose CSRF token
-// app.use((req, res, next) => {
-//   res.setHeader('X-CSRF-Token', req.csrfToken());
-//   next();
-// });
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -96,10 +81,20 @@ app.use(
   }),
 );
 
-// Helmet
-app.use(helmet());
-
-app.use(cookieParser());
+// Helmet for security
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        connectSrc: ["'self'", 'ws:', 'wss:'],
+      },
+    },
+  }),
+);
 
 // Only configure strategies in non-serverless environment
 if (!isServerless) {
@@ -111,37 +106,135 @@ app.use(apiLimiter);
 
 // Setup logging based on environment
 app.use(morgan(config.logLevel));
-app.use(express.json()); // for parsing application/json
-app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.get('/', (req, res) => {
-  const fs = require('fs');
-  const path = require('path');
+// Load Swagger documentation only if file exists and not in production
+let swaggerDocument;
+try {
+  const swaggerPath = path.resolve(__dirname, './docs/swagger.json');
+  if (fs.existsSync(swaggerPath)) {
+    swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf8'));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  }
+} catch (error) {
+  console.warn('Swagger documentation not available:', error.message);
+}
 
-  // Read the HTML file
-  let html = fs.readFileSync(
-    path.join(__dirname, '../public/index.html'),
-    'utf8',
-  );
+// Determine the frontend assets directory path
+const frontendDistPath =
+  process.env.VERCEL === '1'
+    ? path.join(process.cwd(), 'public/dist')
+    : path.join(__dirname, '../public/dist');
 
-  // Get version from package.json
-  const packageJson = JSON.parse(
-    fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8'),
-  );
-  const version = packageJson.version;
+// Serve static files from the frontend build directory
+app.use(express.static(frontendDistPath));
 
-  // Replace the environment placeholder with actual environment
-  html = html.replace('ENVIRONMENT_PLACEHOLDER', config.env);
-
-  // Replace version placeholder
-  html = html.replace('1.0.0', version);
-
-  // Send the HTML response with the correct content type
-  res.setHeader('Content-Type', 'text/html');
-  res.send(html);
-});
+// API Routes - all API routes are prefixed with /api
 app.use(router);
+
+// Serve the root route by checking if index.html exists in frontend build,
+// otherwise fall back to API landing page
+app.get('/', (req, res) => {
+  try {
+    let indexPath;
+
+    // Check if the frontend build exists
+    if (process.env.VERCEL === '1') {
+      indexPath = path.join(process.cwd(), 'public/dist/index.html');
+    } else {
+      indexPath = path.join(__dirname, '../public/dist/index.html');
+    }
+
+    if (fs.existsSync(indexPath)) {
+      // Frontend build exists, serve the index.html
+      res.sendFile(indexPath);
+    } else {
+      // Frontend build doesn't exist, serve API landing page
+      const apiLandingPath =
+        process.env.VERCEL === '1'
+          ? path.join(process.cwd(), 'public/index.html')
+          : path.join(__dirname, '../public/index.html');
+
+      let html = fs.readFileSync(apiLandingPath, 'utf8');
+
+      // Extract version from CHANGELOG.md
+      let version = '1.0.0';
+      try {
+        const changelogPath =
+          process.env.VERCEL === '1'
+            ? path.join(process.cwd(), 'CHANGELOG.md')
+            : path.join(__dirname, '../CHANGELOG.md');
+
+        const changelog = fs.readFileSync(changelogPath, 'utf8');
+        // Extract version using regex - looks for the first version in format [x.y.z]
+        const versionMatch = changelog.match(/## \[(\d+\.\d+\.\d+)\]/);
+        if (versionMatch && versionMatch[1]) {
+          version = versionMatch[1];
+        }
+      } catch (versionError) {
+        console.warn(
+          'Could not read version from CHANGELOG:',
+          versionError.message,
+        );
+        // Fallback to package.json if CHANGELOG read fails
+        try {
+          const packagePath =
+            process.env.VERCEL === '1'
+              ? path.join(process.cwd(), 'package.json')
+              : path.join(__dirname, '../package.json');
+          const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+          version = packageJson.version || version;
+        } catch (packageError) {
+          console.warn(
+            'Could not read version from package.json:',
+            packageError.message,
+          );
+        }
+      }
+
+      // Replace the environment placeholder with actual environment
+      html = html.replace('ENVIRONMENT_PLACEHOLDER', config.env);
+
+      // Replace version placeholder
+      html = html.replace('1.0.0', version);
+
+      // Send the HTML response with the correct content type
+      res.setHeader('Content-Type', 'text/html');
+      res.send(html);
+    }
+  } catch (error) {
+    console.error('Error serving index page:', error);
+    // Fallback to simple HTML if file reading fails
+    res.send(
+      `<h1>TaskTrial API - Running in ${config.env} mode</h1><p>Version: ${process.env.npm_package_version || '1.0.0'}</p>`,
+    );
+  }
+});
+
+// Catch-all route to handle SPA routing on the frontend
+// This should be AFTER the API routes but BEFORE the error handlers
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.url.startsWith('/api')) {
+    return;
+  }
+
+  const indexPath =
+    process.env.VERCEL === '1'
+      ? path.join(process.cwd(), 'public/dist/index.html')
+      : path.join(__dirname, '../public/dist/index.html');
+
+  // Check if the file exists before trying to send it
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        res.status(500).send(err);
+      }
+    });
+  } else {
+    // If the frontend build doesn't exist, send a 404
+    res.status(404).send('Frontend not built. Run npm run client:build first.');
+  }
+});
 
 // Error handling middleware
 app.use(notFound);

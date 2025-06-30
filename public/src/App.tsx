@@ -569,7 +569,7 @@ function App() {
                         {endpoint.method}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <code className="text-white/80 font-mono text-sm block">
+                        <code className="text-white/80 font-mono text-sm block overflow-x-auto whitespace-normal break-words">
                           {endpoint.endpoint}
                         </code>
                         <p className="text-white/60 text-xs mt-1">

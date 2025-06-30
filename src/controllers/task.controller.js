@@ -1036,6 +1036,19 @@ export const getAllTasks = async (req, res, next) => {
             profilePic: true,
           },
         },
+        project: {
+          select: {
+            id: true,
+            name: true,
+            teamId: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
         sprint: {
           select: {
             id: true,
@@ -1073,9 +1086,16 @@ export const getAllTasks = async (req, res, next) => {
       take: parseInt(limit),
     });
 
+    // Process tasks to add additional fields
+    const processedTasks = tasks.map((task) => ({
+      ...task,
+      teamId: task.project?.teamId, // Add teamId directly
+      team: task.project?.team, // Add team info
+    }));
+
     return res.status(200).json({
       success: true,
-      tasks,
+      tasks: processedTasks,
       pagination: {
         total: totalCount,
         page: parseInt(page),
@@ -1770,6 +1790,13 @@ export const getTasksInSpecificOrg = async (req, res, next) => {
           id: true,
           name: true,
           status: true,
+          teamId: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       },
       creator: {
@@ -1951,6 +1978,8 @@ export const getTasksInSpecificOrg = async (req, res, next) => {
         timeProgress: Math.min(100, timeProgress),
         labels: task.labels,
         project: task.project,
+        teamId: task.project?.teamId,
+        team: task.project?.team,
         creator: task.creator,
         assignee: task.assignee,
         commentCount: task._count.comments,

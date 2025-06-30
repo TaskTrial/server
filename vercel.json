@@ -5,11 +5,23 @@
       "src": "src/index.js",
       "use": "@vercel/node",
       "config": {
-        "buildCommand": "npm run vercel-build"
+        "includeFiles": ["src/docs/**", "CHANGELOG.md"]
       }
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "src/index.js"
+    },
+    {
+      "src": "/api-docs/(.*)",
+      "dest": "src/index.js"
+    },
     {
       "src": "/(.*)",
       "dest": "src/index.js",

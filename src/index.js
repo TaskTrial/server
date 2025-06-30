@@ -75,11 +75,29 @@ app.use(passport.session());
 app.use(
   cors({
     origin: process.env.CLIENT_URL
-      ? [process.env.CLIENT_URL, 'http://localhost:5174']
+      ? [
+          process.env.CLIENT_URL,
+          'http://localhost:5174',
+          'https://tasktrial-prod.vercel.app',
+        ]
       : '*',
     credentials: true,
   }),
 );
+
+// Special CORS configuration for Swagger documentation
+app.use('/api-docs', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+  );
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-Requested-With,content-type',
+  );
+  next();
+});
 
 // Helmet for security
 app.use(
@@ -110,10 +128,28 @@ app.use(morgan(config.logLevel));
 // Load Swagger documentation only if file exists and not in production
 let swaggerDocument;
 try {
-  const swaggerPath = path.resolve(__dirname, './docs/swagger.json');
+  // Adjust the swagger path for Vercel environment
+  const swaggerPath =
+    process.env.VERCEL === '1'
+      ? path.join(process.cwd(), 'src/docs/swagger.json')
+      : path.resolve(__dirname, './docs/swagger.json');
+
   if (fs.existsSync(swaggerPath)) {
     swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf8'));
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    app.use(
+      '/api-docs',
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument, {
+        explorer: true,
+        customCss: '.swagger-ui .topbar { display: none }',
+        swaggerOptions: {
+          docExpansion: 'list',
+          filter: true,
+        },
+      }),
+    );
+  } else {
+    console.warn(`Swagger documentation file not found at: ${swaggerPath}`);
   }
 } catch (error) {
   console.warn('Swagger documentation not available:', error.message);

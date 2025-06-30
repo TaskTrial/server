@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.8]
+
+- fix swagger docs
+
 ## [1.1.7]
 
 - fix build

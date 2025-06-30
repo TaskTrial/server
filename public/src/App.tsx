@@ -95,7 +95,7 @@ function App() {
       name: 'Production',
       icon: <Server className="w-5 h-5" />,
       status: 'Live',
-      url: 'api.tasktrial.com',
+      url: 'tasktrial-prod.vercel.app/',
       color: 'bg-green-500',
       config: 'prod.js',
     },
@@ -111,33 +111,40 @@ function App() {
 
   const apiEndpoints = [
     {
+      method: 'POST',
+      endpoint: '/api/auth/signin',
+      description: 'Sign in with email and password',
+    },
+
+    {
       method: 'GET',
-      endpoint: '/api/v1/projects',
+      endpoint: '/api/organization/{id}/projects',
       description: 'Retrieve all projects with pagination',
     },
     {
       method: 'POST',
-      endpoint: '/api/v1/tasks',
+      endpoint:
+        '/api/organization/{orgId}/team/{teamId}/project/{projectId}/task/create',
       description: 'Create new task with sprint assignment',
     },
     {
       method: 'PUT',
-      endpoint: '/api/v1/tasks/{id}',
+      endpoint: '/api/tasks/{id}',
       description: 'Update task status and assignments',
     },
     {
       method: 'GET',
-      endpoint: '/api/v1/organizations',
+      endpoint: '/api/organizations',
       description: 'Get organization hierarchy',
     },
     {
       method: 'POST',
-      endpoint: '/api/v1/chat/messages',
+      endpoint: '/api/organization/{orgId}/chat/messages',
       description: 'Send real-time chat messages',
     },
     {
       method: 'GET',
-      endpoint: '/api/v1/activity-logs',
+      endpoint: '/api/organization/{orgId}/activity-logs',
       description: 'Retrieve activity logs and analytics',
     },
   ];
@@ -191,14 +198,14 @@ function App() {
       icon: <UserCheck className="w-5 h-5" />,
       description:
         'Complete auth system with Firebase, Google OAuth, and permission management',
-      endpoints: 8,
+      endpoints: 11,
     },
     {
       name: 'User Management',
       icon: <Users className="w-5 h-5" />,
       description:
         'Complete user lifecycle management with profiles and permissions',
-      endpoints: 10,
+      endpoints: 8,
     },
     {
       name: 'Organization Management',
@@ -212,41 +219,41 @@ function App() {
       icon: <Layers className="w-5 h-5" />,
       description:
         'Create and manage departments with specialized roles and functions',
-      endpoints: 6,
+      endpoints: 7,
     },
     {
       name: 'Team Management',
       icon: <Users className="w-5 h-5" />,
       description:
         'Form cross-functional teams with members from different departments',
-      endpoints: 8,
+      endpoints: 9,
     },
     {
       name: 'Project Management',
       icon: <Target className="w-5 h-5" />,
       description:
         'Create and track projects with goals, timelines, and resource allocation',
-      endpoints: 14,
+      endpoints: 11,
     },
     {
       name: 'Sprint & Task Management',
       icon: <CheckCircle className="w-5 h-5" />,
       description:
         'Plan work iterations with sprints and manage tasks with assignments and progress tracking',
-      endpoints: 24,
+      endpoints: 14,
     },
     {
       name: 'Real-time Communication',
       icon: <MessageSquare className="w-5 h-5" />,
       description: 'Chat system with WebSocket support and video conferencing',
-      endpoints: 16,
+      endpoints: 12,
     },
     {
       name: 'Activity & Analytics',
       icon: <Activity className="w-5 h-5" />,
       description:
         'Comprehensive logging and analytics for all user activities',
-      endpoints: 6,
+      endpoints: 3,
     },
   ];
 
@@ -396,7 +403,7 @@ function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto p-8">
             <div className="text-center">
-              <div className="text-4xl font-bold text-white mb-2">76+</div>
+              <div className="text-4xl font-bold text-white mb-2">87+</div>
               <div className="text-white/60">API Endpoints</div>
             </div>
             <div className="text-center">
@@ -658,7 +665,7 @@ function App() {
                 </div>
                 <div className="bg-slate-900/50 rounded-lg p-3 mb-3">
                   <code className="text-xs text-green-400 font-mono">
-                    docker-compose up --build {env.name.toLowerCase()}
+                    docker compose up --build {env.name.toLowerCase()}
                   </code>
                 </div>
                 <div className="text-xs text-white/60">

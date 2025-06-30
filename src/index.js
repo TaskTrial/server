@@ -128,31 +128,89 @@ app.use(morgan(config.logLevel));
 // Load Swagger documentation only if file exists and not in production
 let swaggerDocument;
 try {
-  // Adjust the swagger path for Vercel environment
-  const swaggerPath =
-    process.env.VERCEL === '1'
-      ? path.join(process.cwd(), 'src/docs/swagger.json')
-      : path.resolve(__dirname, './docs/swagger.json');
+  // Try multiple paths for Swagger documentation to ensure we find it
+  const possibleSwaggerPaths = [
+    // Vercel production paths
+    path.join(process.cwd(), 'src/docs/swagger.json'),
+    path.join(process.cwd(), './src/docs/swagger.json'),
+    path.join(process.cwd(), 'docs/swagger.json'),
+    // Local development paths
+    path.resolve(__dirname, './docs/swagger.json'),
+    path.resolve(__dirname, '../docs/swagger.json'),
+  ];
 
-  if (fs.existsSync(swaggerPath)) {
+  console.log('Current directory:', process.cwd());
+  console.log('__dirname:', __dirname);
+
+  // Try each path until we find the file
+  let swaggerPath = null;
+  for (const testPath of possibleSwaggerPaths) {
+    console.log('Checking for Swagger file at:', testPath);
+    if (fs.existsSync(testPath)) {
+      swaggerPath = testPath;
+      console.log('✅ Found Swagger file at:', swaggerPath);
+      break;
+    }
+  }
+
+  // If swagger file is found, set it up
+  if (swaggerPath) {
+    console.log('Loading swagger documentation from:', swaggerPath);
     swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf8'));
+
+    // Configure Swagger UI with more options for better compatibility
+    const swaggerOptions = {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      swaggerOptions: {
+        docExpansion: 'list',
+        filter: true,
+      },
+    };
+
+    app.use(
+      '/api-docs',
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument, swaggerOptions),
+    );
+    console.log('✅ Swagger UI set up successfully at /api-docs');
+  } else {
+    console.warn('❌ No swagger file found in any of the expected locations');
+
+    // Create a minimal swagger document as fallback
+    swaggerDocument = {
+      openapi: '3.0.0',
+      info: {
+        title: 'TaskTrial API',
+        version: '1.0.0',
+        description: 'API documentation for TaskTrial',
+      },
+      paths: {
+        '/api/health': {
+          get: {
+            summary: 'Health check endpoint',
+            responses: {
+              200: {
+                description: 'API is healthy',
+              },
+            },
+          },
+        },
+      },
+    };
+
     app.use(
       '/api-docs',
       swaggerUi.serve,
       swaggerUi.setup(swaggerDocument, {
         explorer: true,
         customCss: '.swagger-ui .topbar { display: none }',
-        swaggerOptions: {
-          docExpansion: 'list',
-          filter: true,
-        },
       }),
     );
-  } else {
-    console.warn(`Swagger documentation file not found at: ${swaggerPath}`);
+    console.log('⚠️ Using fallback minimal Swagger document');
   }
 } catch (error) {
-  console.warn('Swagger documentation not available:', error.message);
+  console.warn('❌ Error setting up Swagger documentation:', error);
 }
 
 // Determine the frontend assets directory path
@@ -166,6 +224,39 @@ app.use(express.static(frontendDistPath));
 
 // API Routes - all API routes are prefixed with /api
 app.use(router);
+
+// Add debug endpoint to check file system in production
+app.get('/debug', (req, res) => {
+  try {
+    const debugInfo = {
+      cwd: process.cwd(),
+      dirname: __dirname,
+      env: process.env.NODE_ENV,
+      vercel: process.env.VERCEL === '1' ? 'Yes' : 'No',
+      files: {},
+    };
+
+    // Check various paths
+    const paths = ['src/docs', './src/docs', 'docs', './docs', '.', '..'];
+
+    paths.forEach((dirPath) => {
+      try {
+        const fullPath = path.join(process.cwd(), dirPath);
+        if (fs.existsSync(fullPath)) {
+          debugInfo.files[dirPath] = fs.readdirSync(fullPath);
+        } else {
+          debugInfo.files[dirPath] = 'Directory does not exist';
+        }
+      } catch (err) {
+        debugInfo.files[dirPath] = `Error: ${err.message}`;
+      }
+    });
+
+    res.json(debugInfo);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Serve the root route by checking if index.html exists in frontend build,
 // otherwise fall back to API landing page

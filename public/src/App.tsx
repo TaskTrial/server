@@ -122,12 +122,6 @@ function App() {
       description: 'Retrieve all projects with pagination',
     },
     {
-      method: 'POST',
-      endpoint:
-        '/api/organization/{orgId}/team/{teamId}/project/{projectId}/task/create',
-      description: 'Create new task with sprint assignment',
-    },
-    {
       method: 'PUT',
       endpoint: '/api/tasks/{id}',
       description: 'Update task status and assignments',

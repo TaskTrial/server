@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "This repository contains the server-side implementation for the project. It handles **backend logic**, **database** interactions, and serves **APIs** for the application.",
   "main": "app.js",
   "type": "module",
@@ -23,7 +23,7 @@
     "start:test": "STAGE=test nodemon ./src/index.js",
     "format": "npx prettier . --write",
     "lint": "npx eslint . --fix --ignore-pattern 'prisma/**' --ignore-pattern 'jest.config.js' --ignore-pattern 'public/**'",
-    "vercel-build": "prisma generate && prisma migrate deploy",
+    "vercel-build": "prisma generate && prisma migrate deploy && mkdir -p ./dist/src/docs && cp -r ./src/docs/* ./dist/src/docs/ || true",
     "client:dev": "vite --config public/vite.config.ts",
     "build": "cd public && vite build",
     "client:preview": "vite preview --config public/vite.config.ts",

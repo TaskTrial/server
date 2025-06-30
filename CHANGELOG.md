@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.9]
+
+- fix ui
+
 ## [1.1.8]
 
 - fix swagger docs

@@ -20,6 +20,7 @@ export default [
       'jest.config.js',
       'node_modules/**',
       'dist/**',
+      'public/**',
     ],
     rules: {
       semi: 'error',

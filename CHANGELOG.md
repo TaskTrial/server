@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.6]
+
+- fix home page render
+
 ## [1.1.5]
 
 - fix testing

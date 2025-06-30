@@ -1,8 +1,9 @@
 // Database setup for integration tests
 import { beforeAll, afterAll } from '@jest/globals';
 import prisma from '../config/prismaClient.js';
-import { server } from '../index.js';
+import { server } from './mocks/index.mock.js';
 
+/* eslint no-unused-vars: off */
 /* eslint no-console: off */
 /* eslint no-undef: off */
 

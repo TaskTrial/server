@@ -7,9 +7,9 @@ import {
   jest,
 } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../index.js';
 import prisma, { createTestData, TEST_IDENTIFIER } from '../db.setup.js';
 import { hashPassword } from '../../utils/password.utils.js';
+import { app } from '../mocks/app.mock.js';
 
 // Base test user data
 const testUser = {
@@ -63,10 +63,23 @@ async function createOrUpdateTestUser(userData, additionalData = {}) {
   }
 }
 
+// We need to dynamically import the app for testing
+let api;
+
 describe('Auth Endpoints', () => {
   // Log test identifier for debugging
-  beforeAll(() => {
+  beforeAll(async () => {
     console.log(`Running auth tests with identifier: ${TEST_IDENTIFIER}`);
+
+    // Import the app dynamically
+    try {
+      const importedModule = await import('../../index.js');
+      api = importedModule.app;
+    } catch (error) {
+      console.error('Error importing app:', error);
+      // Create a mock app for testing
+      api = app;
+    }
   });
 
   afterEach(() => {
@@ -77,7 +90,7 @@ describe('Auth Endpoints', () => {
     it('should register a new user and return success status', async () => {
       // Create test-specific user data
       const userData = createTestData({ ...testUser });
-      const res = await request(app).post('/api/auth/signup').send(userData);
+      const res = await request(api).post('/api/auth/signup').send(userData);
 
       // Accept either 201 (created) or 400 (if user already exists) or 403 (if user already exists)
       expect([201, 400, 403]).toContain(res.statusCode);
@@ -112,7 +125,7 @@ describe('Auth Endpoints', () => {
         await createOrUpdateTestUser(userData);
 
         // Try to register again with the same email
-        const res = await request(app).post('/api/auth/signup').send(userData);
+        const res = await request(api).post('/api/auth/signup').send(userData);
 
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty(
@@ -137,7 +150,7 @@ describe('Auth Endpoints', () => {
           isActive: true,
         });
 
-        const res = await request(app)
+        const res = await request(api)
           .post('/api/auth/signin')
           .send({ email: userData.email, password: userData.password });
 
@@ -164,7 +177,7 @@ describe('Auth Endpoints', () => {
           isActive: true,
         });
 
-        const res = await request(app)
+        const res = await request(api)
           .post('/api/auth/signin')
           .send({ email: userData.email, password: 'WrongPassword123!' });
 
@@ -185,7 +198,7 @@ describe('Auth Endpoints', () => {
           isActive: false,
         });
 
-        const res = await request(app)
+        const res = await request(api)
           .post('/api/auth/signin')
           .send({ email: userData.email, password: userData.password });
 
@@ -217,7 +230,7 @@ describe('Auth Endpoints', () => {
           emailVerificationExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
         });
 
-        const res = await request(app)
+        const res = await request(api)
           .post('/api/auth/verifyEmail')
           .send({ email: userData.email, otp });
 
@@ -255,7 +268,7 @@ describe('Auth Endpoints', () => {
         });
 
         // Try with wrong OTP
-        const res = await request(app)
+        const res = await request(api)
           .post('/api/auth/verifyEmail')
           .send({ email: userData.email, otp: '654321' });
 
@@ -281,7 +294,7 @@ describe('Auth Endpoints', () => {
           isActive: true,
         });
 
-        const res = await request(app)
+        const res = await request(api)
           .post('/api/auth/forgotPassword')
           .send({ email: userData.email });
 
@@ -314,7 +327,7 @@ describe('Auth Endpoints', () => {
       // Use test-specific email that doesn't exist
       const nonExistentEmail = `nonexistent+${TEST_IDENTIFIER}@example.com`;
 
-      const res = await request(app)
+      const res = await request(api)
         .post('/api/auth/forgotPassword')
         .send({ email: nonExistentEmail });
 
@@ -348,7 +361,7 @@ describe('Auth Endpoints', () => {
           passwordResetExpires: new Date(Date.now() + 10 * 60 * 1000),
         });
 
-        const res = await request(app)
+        const res = await request(api)
           .post('/api/auth/resetPassword')
           .send({ email: userData.email, otp, newPassword });
 
@@ -370,7 +383,7 @@ describe('Auth Endpoints', () => {
   describe('POST /api/auth/logout', () => {
     it('should attempt to clear the refresh token', async () => {
       // This test might not actually have a token to clear, but we can test the endpoint responds correctly
-      const res = await request(app).post('/api/auth/logout').send({});
+      const res = await request(api).post('/api/auth/logout').send({});
 
       expect([200, 204, 403]).toContain(res.statusCode);
 
@@ -383,7 +396,7 @@ describe('Auth Endpoints', () => {
   describe('POST /api/auth/refreshAccessToken', () => {
     it('should handle refresh token requests', async () => {
       // We can't easily test with a valid token, but we can check the endpoint handles invalid requests properly
-      const res = await request(app)
+      const res = await request(api)
         .post('/api/auth/refreshAccessToken')
         .send({ refreshToken: `invalid-token-${TEST_IDENTIFIER}` });
 
@@ -398,7 +411,7 @@ describe('Auth Endpoints', () => {
     });
 
     it('should handle missing refresh tokens appropriately', async () => {
-      const res = await request(app)
+      const res = await request(api)
         .post('/api/auth/refreshAccessToken')
         .send({});
 

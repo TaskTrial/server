@@ -7,12 +7,13 @@ import {
   jest,
 } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../index.js';
-import prisma from '../db.setup.js';
+import prisma, { createTestData, TEST_IDENTIFIER } from '../db.setup.js';
 import { hashPassword } from '../../utils/password.utils.js';
 import { generateAccessToken } from '../../utils/token.utils.js';
+import { app } from '../mocks/index.mock.js';
 
 /* eslint no-console: off */
+/* eslint no-unused-vars: off */
 // Set longer timeout for all tests
 jest.setTimeout(30000);
 

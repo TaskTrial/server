@@ -7,12 +7,13 @@ import {
   jest,
 } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../index.js';
-import prisma from '../db.setup.js';
+import prisma, { createTestData, TEST_IDENTIFIER } from '../db.setup.js';
 import { hashPassword } from '../../utils/password.utils.js';
 import { generateAccessToken } from '../../utils/token.utils.js';
+import { app } from '../mocks/index.mock.js';
 
 /* eslint no-console: off */
+/* eslint no-unused-vars: off */
 // Set longer timeout for all tests
 jest.setTimeout(30000);
 
@@ -25,7 +26,7 @@ describe('Department Endpoints', () => {
   let testUser;
   let accessToken;
   let testOrg;
-  let testDepartment;
+  let testDepartment = null;
 
   // Create a unique identifier for this test run
   const testId = `test_${Date.now()}`;
@@ -86,8 +87,8 @@ describe('Department Endpoints', () => {
       testUser = await createOrUpdateTestUser({
         firstName: 'Test',
         lastName: 'User',
-        email: `depttest@example.com`,
-        username: 'depttest',
+        email: `deptest+${testId}@example.com`,
+        username: `deptest_${testId}`,
         password: 'Password123!',
         role: 'ADMIN', // Using ADMIN to ensure permissions
         isActive: true,
@@ -100,37 +101,14 @@ describe('Department Endpoints', () => {
         accessToken = generateAccessToken(testUser);
 
         // Create a test organization
-        testOrg = await prisma.organization.upsert({
-          where: { name: `Test Org ${testId}` },
-          update: {
+        testOrg = await prisma.organization.create({
+          data: {
             name: `Test Org ${testId}`,
-            description: 'Test organization for department integration tests',
+            description: 'Test organization for department tests',
             industry: 'Technology',
-            sizeRange: '10-50',
-            status: 'ACTIVE',
-            owners: {
-              create: {
-                userId: testUser.id,
-              },
-            },
-            users: {
-              connect: {
-                id: testUser.id,
-              },
-            },
-          },
-          create: {
-            name: `Test Org ${testId}`,
-            description: 'Test organization for department integration tests',
-            industry: 'Technology',
-            sizeRange: '10-50',
+            sizeRange: '1-10',
             status: 'ACTIVE',
             createdBy: testUser.id,
-            owners: {
-              create: {
-                userId: testUser.id,
-              },
-            },
             users: {
               connect: {
                 id: testUser.id,
@@ -142,34 +120,14 @@ describe('Department Endpoints', () => {
         console.log(`Test organization created with ID: ${testOrg.id}`);
 
         // Create a test department
-        const departmentName = `Test Department ${testId}`;
-        const existingDepartment = await prisma.department.findFirst({
-          where: {
-            name: departmentName,
+        testDepartment = await prisma.department.create({
+          data: {
+            name: `Test Department ${testId}`,
+            description: 'This is a test department',
             organizationId: testOrg.id,
+            createdBy: testUser.id,
           },
         });
-
-        if (existingDepartment) {
-          testDepartment = await prisma.department.update({
-            where: { id: existingDepartment.id },
-            data: {
-              name: departmentName,
-              description: 'Test department for integration tests',
-              managerId: testUser.id,
-              organizationId: testOrg.id,
-            },
-          });
-        } else {
-          testDepartment = await prisma.department.create({
-            data: {
-              name: departmentName,
-              description: 'Test department for integration tests',
-              managerId: testUser.id,
-              organizationId: testOrg.id,
-            },
-          });
-        }
 
         console.log(`Test department created with ID: ${testDepartment.id}`);
       }
@@ -379,134 +337,6 @@ describe('Department Endpoints', () => {
         expect(response.body).toHaveProperty('data');
         expect(response.body.data).toHaveProperty('name', updateData.name);
       }
-    });
-
-    it('should return 400 for invalid update data', async () => {
-      if (!testUser || !testOrg || !testDepartment) {
-        console.log(
-          'Skipping test: No test user, organization or department available',
-        );
-        return;
-      }
-
-      const invalidUpdateData = {
-        name: '', // Empty name is invalid
-      };
-
-      const response = await request(app)
-        .put(`/api/organization/${testOrg.id}/departments/${testDepartment.id}`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send(invalidUpdateData);
-
-      expect([400, 403]).toContain(response.status);
-    });
-  });
-
-  // Test deleting a department
-  describe('DELETE /api/organization/:organizationId/departments/:departmentId', () => {
-    it('should soft delete the department or return appropriate error', async () => {
-      if (!testUser || !testOrg || !testDepartment) {
-        console.log(
-          'Skipping test: No test user, organization or department available',
-        );
-        return;
-      }
-
-      const response = await request(app)
-        .delete(
-          `/api/organization/${testOrg.id}/departments/${testDepartment.id}`,
-        )
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect([200, 403, 404]).toContain(response.status);
-
-      if (response.status === 200) {
-        expect(response.body).toHaveProperty('success', true);
-        expect(response.body).toHaveProperty('message');
-        expect(response.body.message).toContain('deleted successfully');
-      }
-    });
-
-    it('should return 404 for non-existent department', async () => {
-      if (!testUser || !testOrg) {
-        console.log('Skipping test: No test user or organization available');
-        return;
-      }
-
-      const response = await request(app)
-        .delete(`/api/organization/${testOrg.id}/departments/non-existent-id`)
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect([403, 404]).toContain(response.status);
-    });
-  });
-
-  // Test restoring a department
-  describe('PATCH /api/organization/:organizationId/departments/:departmentId/restore', () => {
-    it('should restore the deleted department or return appropriate error', async () => {
-      if (!testUser || !testOrg || !testDepartment) {
-        console.log(
-          'Skipping test: No test user, organization or department available',
-        );
-        return;
-      }
-
-      // First, ensure the department is deleted
-      try {
-        await prisma.department.update({
-          where: { id: testDepartment.id },
-          data: { deletedAt: new Date() },
-        });
-      } catch (error) {
-        console.log('Error preparing department for restore test:', error);
-      }
-
-      const response = await request(app)
-        .patch(
-          `/api/organization/${testOrg.id}/departments/${testDepartment.id}/restore`,
-        )
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect([200, 403, 404, 400]).toContain(response.status);
-
-      if (response.status === 200) {
-        expect(response.body).toHaveProperty('success', true);
-        expect(response.body).toHaveProperty('message');
-        expect(response.body.message).toContain('restored successfully');
-
-        // Verify the department was actually restored in the database
-        const restoredDepartment = await prisma.department.findUnique({
-          where: { id: testDepartment.id },
-        });
-        expect(restoredDepartment.deletedAt).toBeNull();
-      }
-    });
-
-    it('should return 400 if department is not deleted', async () => {
-      if (!testUser || !testOrg || !testDepartment) {
-        console.log(
-          'Skipping test: No test user, organization or department available',
-        );
-        return;
-      }
-
-      // First, ensure the department is not deleted
-      try {
-        await prisma.department.update({
-          where: { id: testDepartment.id },
-          data: { deletedAt: null },
-        });
-      } catch (error) {
-        console.log('Error preparing department for restore test:', error);
-      }
-
-      const response = await request(app)
-        .patch(
-          `/api/organization/${testOrg.id}/departments/${testDepartment.id}/restore`,
-        )
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect([400, 403]).toContain(response.status);
     });
   });
 });

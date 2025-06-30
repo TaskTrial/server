@@ -5,6 +5,7 @@ export default {
       'babel-jest',
       {
         presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+        plugins: ['@babel/plugin-syntax-import-meta'],
       },
     ],
   },

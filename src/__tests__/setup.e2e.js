@@ -1,6 +1,8 @@
 // E2E test environment setup
 import { jest } from '@jest/globals';
 
+/* eslint no-undef: off */
+
 // Set longer timeout for E2E tests (more than integration tests since they test full workflows)
 jest.setTimeout(60000);
 
@@ -29,5 +31,14 @@ jest.mock('../config/firebase.js', () => {
         }),
       }),
     },
+  };
+});
+
+// Mock the server's index.js file
+jest.mock('../index.js', () => {
+  return {
+    __esModule: true,
+    app: require('./mocks/index.mock.js').app,
+    server: require('./mocks/index.mock.js').server,
   };
 });

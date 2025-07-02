@@ -72,6 +72,5 @@ router.post(
 );
 router.post('/logout', authLimiter, authController.logout);
 router.post('/google', socialAuthLimiter, authController.googleOAuthLogin);
-router.post('/firebase', socialAuthLimiter, authController.firebaseLogin);
 
 export default router;

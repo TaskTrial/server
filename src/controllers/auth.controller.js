@@ -16,12 +16,12 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from '../utils/token.utils.js';
-import { googleVerifyIdToken } from '../utils/googleVerifyToken.utils.js';
 import {
   createActivityLog,
   generateActivityDetails,
 } from '../utils/activityLogs.utils.js';
-import firebaseAdmin from '../config/firebase.js';
+import axios from 'axios';
+import crypto from 'crypto';
 
 /* eslint no-undef:off */
 /**
@@ -692,41 +692,80 @@ export const googleOAuthCallback = (req, res) => {
  */
 export const googleOAuthLogin = async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { access_token } = req.body;
 
-    // Verify Google ID Token
-    const ticket = await googleVerifyIdToken(idToken);
-    const payload = ticket.getPayload();
+    if (!access_token) {
+      return res.status(400).json({
+        message: 'Access token is required',
+      });
+    }
+
+    // Use the access token to get user info from Google
+    const response = await axios.get(
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      },
+    );
+
+    const { sub, email, name, given_name, family_name, picture } =
+      response.data;
 
     // Find or create user
     let user = await prisma.user.findUnique({
       where: {
-        email: payload.email,
+        email: email,
       },
     });
 
     const isNewUser = !user;
 
     if (!user) {
+      // Create new user
+      // Extract first and last name from full name if not provided
+      const firstName = given_name || (name ? name.split(' ')[0] : '');
+      const lastName =
+        family_name ||
+        (name && name.split(' ').length > 1
+          ? name.split(' ').slice(1).join(' ')
+          : '');
+
+      // Generate a unique username based on email
+      const baseUsername = email.split('@')[0];
+      let username = baseUsername;
+      let counter = 1;
+
+      // Check if username exists and add number if needed
+      while (await prisma.user.findUnique({ where: { username } })) {
+        username = `${baseUsername}${counter}`;
+        counter++;
+      }
+
+      // Generate a random password for OAuth users (they will never use this)
+      const randomPassword = crypto.randomBytes(20).toString('hex');
+      const hashedPassword = await hashPassword(randomPassword);
+
       user = await prisma.user.create({
         data: {
-          email: payload.email,
-          firstName: payload.given_name?.trim() || '',
-          lastName: payload.family_name?.trim() || '',
-          username: payload.email.split('@')[0], // Generate username from email
-          password: null, // Since it's OAuth
-          role: 'MEMBER', // Default role
-          profilePic: payload.picture,
+          email,
+          firstName,
+          lastName,
+          username,
+          password: hashedPassword, // Use hashed random password instead of null
+          role: 'MEMBER',
           isActive: true,
+          profilePic: picture,
           preferences: {
-            // Optional: store additional OAuth-related info
-            googleId: payload.sub,
-            authProvider: 'GOOGLE',
+            googleProvider: {
+              id: sub,
+            },
           },
         },
       });
     } else {
-      // Update last login time for existing user
+      // Update last login time
       user = await prisma.user.update({
         where: { id: user.id },
         data: { lastLogin: new Date() },
@@ -737,7 +776,7 @@ export const googleOAuthLogin = async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Store refresh token in database
+    // Store refresh token
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -745,20 +784,6 @@ export const googleOAuthLogin = async (req, res) => {
         lastLogin: new Date(),
       },
     });
-
-    // Prepare user response (exclude sensitive data)
-    const userResponse = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      profilePic: user.profilePic,
-      isActive: user.isActive,
-      lastLogin: user.lastLogin,
-      firebaseUid: user.firebaseUid,
-    };
 
     await createActivityLog({
       entityType: 'USER',
@@ -775,9 +800,20 @@ export const googleOAuthLogin = async (req, res) => {
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Google authentication successful',
-      user: userResponse,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        profilePic: user.profilePic,
+        isActive: user.isActive,
+        lastLogin: user.lastLogin,
+        firebaseUid: user.firebaseUid,
+      },
       accessToken,
       refreshToken,
     });
@@ -838,72 +874,93 @@ export const logout = async (req, res, next) => {
 };
 
 /**
- * Login with firebase
+ * function to handle Google OAuth callback with authorization code
  */
-export const firebaseLogin = async (req, res, next) => {
+export const googleOAuthCodeExchange = async (req, res, next) => {
   try {
-    const { idToken } = req.body;
+    const { code } = req.body;
 
-    // Verify the Firebase ID token
-    const decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
-    const { uid, email, name, picture } = decodedToken;
+    if (!code) {
+      return res.status(400).json({
+        message: 'Authorization code is required',
+      });
+    }
 
-    // Check if user exists in database
+    // Exchange code for tokens using Google's OAuth2 API
+    const response = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: 'postmessage', // Must match the redirect_uri used in the frontend
+      grant_type: 'authorization_code',
+    });
+
+    // Extract tokens from response
+    const { access_token } = response.data;
+
+    // Get user info using the access token
+    const userInfoResponse = await axios.get(
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      },
+    );
+
+    const { sub, email, name, given_name, family_name, picture } =
+      userInfoResponse.data;
+
+    // Find or create user in database
     let user = await prisma.user.findUnique({
-      where: { firebaseUid: uid },
+      where: {
+        email: email,
+      },
     });
 
     const isNewUser = !user;
 
     if (!user) {
-      // If not found by Firebase UID, try finding by email
-      user = await prisma.user.findUnique({
-        where: { email },
-      });
+      // Create new user
+      const firstName = given_name || (name ? name.split(' ')[0] : '');
+      const lastName =
+        family_name ||
+        (name && name.split(' ').length > 1
+          ? name.split(' ').slice(1).join(' ')
+          : '');
 
-      if (user) {
-        // Link existing user with Firebase
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            firebaseUid: uid,
-            lastLogin: new Date(),
-          },
-        });
-      } else {
-        // Create new user
-        // Extract first and last name from full name
-        const nameParts = name ? name.split(' ') : ['User', ''];
-        const firstName = nameParts[0];
-        const lastName =
-          nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      // Generate a unique username based on email
+      const baseUsername = email.split('@')[0];
+      let username = baseUsername;
+      let counter = 1;
 
-        // Generate a unique username based on email
-        const baseUsername = email.split('@')[0];
-        let username = baseUsername;
-        let counter = 1;
-
-        // Check if username exists and add number if needed
-        while (await prisma.user.findUnique({ where: { username } })) {
-          username = `${baseUsername}${counter}`;
-          counter++;
-        }
-
-        user = await prisma.user.create({
-          data: {
-            email,
-            firebaseUid: uid,
-            username,
-            firstName,
-            lastName,
-            role: 'MEMBER',
-            profilePic: picture || null,
-            lastLogin: new Date(),
-            password: null, // No password for Firebase users
-            isActive: true,
-          },
-        });
+      // Check if username exists and add number if needed
+      while (await prisma.user.findUnique({ where: { username } })) {
+        username = `${baseUsername}${counter}`;
+        counter++;
       }
+
+      // Generate a random password for OAuth users (they will never use this)
+      const randomPassword = crypto.randomBytes(20).toString('hex');
+      const hashedPassword = await hashPassword(randomPassword);
+
+      user = await prisma.user.create({
+        data: {
+          email,
+          firstName,
+          lastName,
+          username,
+          password: hashedPassword,
+          role: 'MEMBER',
+          isActive: true,
+          profilePic: picture,
+          preferences: {
+            googleProvider: {
+              id: sub,
+            },
+          },
+        },
+      });
     } else {
       // Update last login time
       user = await prisma.user.update({
@@ -912,11 +969,11 @@ export const firebaseLogin = async (req, res, next) => {
       });
     }
 
-    // Generate JWT tokens
+    // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Store refresh token in database
+    // Store refresh token
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -930,18 +987,18 @@ export const firebaseLogin = async (req, res, next) => {
       action: isNewUser ? 'CREATED' : 'UPDATED',
       userId: user.id,
       details: {
-        action: isNewUser ? 'FIREBASE_SIGNUP' : 'FIREBASE_SIGNIN',
+        action: isNewUser ? 'GOOGLE_OAUTH_SIGNUP' : 'GOOGLE_OAUTH_SIGNIN',
         userId: user.id,
         email: user.email,
         timestamp: new Date(),
-        provider: 'firebase',
+        provider: 'google',
         ipAddress: req.ip || 'unknown',
         userAgent: req.headers['user-agent'] || 'unknown',
       },
     });
 
     return res.status(200).json({
-      message: 'Firebase authentication successful',
+      message: 'Google authentication successful',
       user: {
         id: user.id,
         email: user.email,

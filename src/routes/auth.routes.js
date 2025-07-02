@@ -9,11 +9,12 @@ import {
   verifyEmail,
   googleOAuthCallback,
   googleOAuthLogin,
+  googleOAuthCodeExchange,
   logout,
   resendOTP,
   forgotPasswordWithoutEmail,
   resetPasswordWithoutEmail,
-  firebaseLogin,
+  // firebaseLogin,
 } from '../controllers/auth.controller.js';
 import { apiLimiter } from '../utils/apiLimiter.utils.js';
 import { verifyAccessToken } from '../middlewares/auth.middleware.js';
@@ -59,13 +60,15 @@ router.get(
   googleOAuthCallback,
 );
 
+// Google OAuth direct API endpoints
 router.post('/api/auth/google', googleOAuthLogin);
+router.post('/api/auth/google/callback', googleOAuthCodeExchange);
 
 // Logout
 router.post('/api/auth/logout', logout);
 
 // Firebase sign-in endpoint
-router.post('/api/auth/firebase', firebaseLogin);
+// router.post('/api/auth/firebase', firebaseLogin);
 
 // Get current user profile - using JWT authentication
 router.get('/api/auth/me', verifyAccessToken, async (req, res) => {

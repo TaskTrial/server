@@ -44,6 +44,8 @@ if (!isServerless) {
       origin: [
         process.env.CLIENT_URL || 'http://localhost:5173',
         'http://localhost:5174',
+        'http://127.0.0.1:5173',
+        'http://localhost:5173',
       ],
       methods: ['GET', 'POST'],
       credentials: true,
@@ -77,6 +79,8 @@ app.use(
     origin: process.env.CLIENT_URL
       ? [
           process.env.CLIENT_URL,
+          'http://localhost:5173',
+          'http://127.0.0.1:5173',
           'http://localhost:5174',
           'https://tasktrial-prod.vercel.app',
         ]

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.0]
+
+- google authenication
+
 ## [1.1.11]
 
 - fix responsive design

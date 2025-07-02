@@ -12,6 +12,7 @@ import session from 'express-session';
 import passport from 'passport';
 
 // Create an express app for testing
+/* eslint no-undef: off */
 const app = express();
 
 // Setup basic middlewares
@@ -26,7 +27,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
     },
   }),

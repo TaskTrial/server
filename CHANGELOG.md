@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.2]
+
+- fix mocks tests
+
 ## [1.2.1]
 
 - fix auth e2e tests

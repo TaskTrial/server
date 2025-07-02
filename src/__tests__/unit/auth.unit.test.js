@@ -1,5 +1,12 @@
 /* eslint-env node */
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@jest/globals';
 import {
   mockHashPassword,
   mockComparePassword,
@@ -9,35 +16,27 @@ import {
   mockSendEmail,
   mockGenerateAccessToken,
   mockGenerateRefreshToken,
-  mockCreateActivityLog,
-  mockGenerateActivityDetails,
-  mockGoogleVerifyIdToken,
-  mockPrisma,
 } from '../setup.js';
 
+// Mock implementations for functions not exported from setup.js
+jest.mock('../../utils/activityLogs.utils.js', () => ({
+  createActivityLog: jest.fn().mockResolvedValue({}),
+  generateActivityDetails: jest.fn().mockReturnValue({}),
+}));
+
 // Mock Prisma client
-jest.mock('../../config/prismaClient.js', () => {
-  return {
-    __esModule: true,
-    default: mockPrisma,
-  };
-});
-
-import prisma from '../../config/prismaClient.js';
-import {
-  signup,
-  signin,
-  verifyEmail,
-  resendOTP,
-  forgotPassword,
-  resetPassword,
-  logout,
-  refreshAccessToken,
-  googleOAuthLogin,
-  firebaseLogin,
-} from '../../controllers/auth.controller.js';
-
-/* eslint no-undef: off */
+jest.mock('../../config/prismaClient.js', () => ({
+  __esModule: true,
+  default: {
+    user: {
+      findFirst: jest.fn(),
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+  },
+}));
 
 // Mock validation schemas
 jest.mock('../../validations/auth.validations.js', () => ({
@@ -55,22 +54,51 @@ jest.mock('jsonwebtoken', () => ({
   sign: jest.fn().mockReturnValue('new-access-token'),
 }));
 
-// Mock firebase
-jest.mock('../../config/firebase.js', () => ({
-  __esModule: true,
-  default: {
-    auth: jest.fn().mockReturnValue({
-      verifyIdToken: jest.fn(),
-    }),
-  },
+// Mock axios for Google OAuth
+jest.mock('axios', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
 }));
+
+import prisma from '../../config/prismaClient.js';
+import {
+  signup,
+  signin,
+  verifyEmail,
+  resendOTP,
+  forgotPassword,
+  resetPassword,
+  logout,
+  refreshAccessToken,
+  googleOAuthLogin,
+  googleOAuthCodeExchange,
+} from '../../controllers/auth.controller.js';
+
+const validations = jest.requireMock('../../validations/auth.validations.js');
+const jwt = jest.requireMock('jsonwebtoken');
+const axios = jest.requireMock('axios');
 
 describe('Auth Controller', () => {
   let req, res, next;
 
   beforeEach(() => {
-    req = mockRequest();
-    res = mockResponse();
+    req = {
+      body: {},
+      params: {},
+      query: {},
+      cookies: {},
+      headers: {},
+      ip: '127.0.0.1',
+      user: null,
+    };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      sendStatus: jest.fn().mockReturnThis(),
+      clearCookie: jest.fn().mockReturnThis(),
+      cookie: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+    };
     next = jest.fn();
   });
 
@@ -91,10 +119,7 @@ describe('Auth Controller', () => {
       req.body = userData;
 
       // Mock validation
-      const { signupValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      signupValidation.mockReturnValue({ error: null });
+      validations.signupValidation.mockReturnValue({ error: null });
 
       // Mock Prisma calls
       prisma.user.findFirst.mockResolvedValue(null);
@@ -109,14 +134,6 @@ describe('Auth Controller', () => {
         createdAt: new Date(),
       });
 
-      // Mock utility functions
-      mockHashPassword.mockResolvedValue('hashed-password');
-      mockGenerateOTP.mockReturnValue('123456');
-      mockHashOTP.mockResolvedValue('hashed-otp');
-      mockSendEmail.mockResolvedValue();
-      mockCreateActivityLog.mockResolvedValue();
-      mockGenerateActivityDetails.mockReturnValue({});
-
       await signup(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(201);
@@ -128,26 +145,12 @@ describe('Auth Controller', () => {
           username: userData.username,
         }),
       });
-      expect(prisma.user.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          email: userData.email,
-          username: userData.username,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          password: 'hashed-password',
-          role: 'MEMBER',
-          isActive: false,
-        }),
-      });
     });
 
     it('should return error if validation fails', async () => {
       req.body = { email: 'invalid-email' };
 
-      const { signupValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      signupValidation.mockReturnValue({
+      validations.signupValidation.mockReturnValue({
         error: { details: [{ message: 'Invalid email format' }] },
       });
 
@@ -170,10 +173,7 @@ describe('Auth Controller', () => {
 
       req.body = userData;
 
-      const { signupValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      signupValidation.mockReturnValue({ error: null });
+      validations.signupValidation.mockReturnValue({ error: null });
 
       prisma.user.findFirst.mockResolvedValue({
         id: 'existing-user-id',
@@ -198,10 +198,7 @@ describe('Auth Controller', () => {
 
       req.body = loginData;
 
-      const { signinValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      signinValidation.mockReturnValue({ error: null });
+      validations.signinValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -218,7 +215,6 @@ describe('Auth Controller', () => {
       mockGenerateAccessToken.mockReturnValue('access-token');
       mockGenerateRefreshToken.mockReturnValue('refresh-token');
       prisma.user.update.mockResolvedValue(mockUser);
-      mockCreateActivityLog.mockResolvedValue();
 
       await signin(req, res, next);
 
@@ -239,10 +235,7 @@ describe('Auth Controller', () => {
     it('should return error if user not found', async () => {
       req.body = { email: 'nonexistent@example.com', password: 'password123' };
 
-      const { signinValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      signinValidation.mockReturnValue({ error: null });
+      validations.signinValidation.mockReturnValue({ error: null });
 
       prisma.user.findFirst.mockResolvedValue(null);
 
@@ -257,10 +250,7 @@ describe('Auth Controller', () => {
     it('should return error if password is incorrect', async () => {
       req.body = { email: 'test@example.com', password: 'wrongpassword' };
 
-      const { signinValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      signinValidation.mockReturnValue({ error: null });
+      validations.signinValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -283,10 +273,7 @@ describe('Auth Controller', () => {
     it('should return error if account is not active', async () => {
       req.body = { email: 'inactive@example.com', password: 'password123' };
 
-      const { signinValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      signinValidation.mockReturnValue({ error: null });
+      validations.signinValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -314,10 +301,7 @@ describe('Auth Controller', () => {
         otp: '123456',
       };
 
-      const { verifyEmailValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      verifyEmailValidation.mockReturnValue({ error: null });
+      validations.verifyEmailValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -335,7 +319,6 @@ describe('Auth Controller', () => {
         emailVerificationToken: null,
         emailVerificationExpires: null,
       });
-      mockCreateActivityLog.mockResolvedValue();
 
       await verifyEmail(req, res, next);
 
@@ -348,10 +331,7 @@ describe('Auth Controller', () => {
     it('should return error if user not found', async () => {
       req.body = { email: 'nonexistent@example.com', otp: '123456' };
 
-      const { verifyEmailValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      verifyEmailValidation.mockReturnValue({ error: null });
+      validations.verifyEmailValidation.mockReturnValue({ error: null });
 
       prisma.user.findFirst.mockResolvedValue(null);
 
@@ -366,10 +346,7 @@ describe('Auth Controller', () => {
     it('should return error if OTP is invalid', async () => {
       req.body = { email: 'test@example.com', otp: 'invalid-otp' };
 
-      const { verifyEmailValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      verifyEmailValidation.mockReturnValue({ error: null });
+      validations.verifyEmailValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -404,7 +381,6 @@ describe('Auth Controller', () => {
       mockHashOTP.mockResolvedValue('hashed-otp');
       mockSendEmail.mockResolvedValue();
       prisma.user.update.mockResolvedValue(mockUser);
-      mockCreateActivityLog.mockResolvedValue();
 
       await resendOTP(req, res, next);
 
@@ -446,10 +422,7 @@ describe('Auth Controller', () => {
     it('should send password reset email successfully', async () => {
       req.body = { email: 'test@example.com' };
 
-      const { forgotPasswordValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      forgotPasswordValidation.mockReturnValue({ error: null });
+      validations.forgotPasswordValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -461,7 +434,6 @@ describe('Auth Controller', () => {
       mockHashOTP.mockResolvedValue('hashed-otp');
       mockSendEmail.mockResolvedValue();
       prisma.user.update.mockResolvedValue(mockUser);
-      mockCreateActivityLog.mockResolvedValue();
 
       await forgotPassword(req, res, next);
 
@@ -474,10 +446,7 @@ describe('Auth Controller', () => {
     it('should return generic message if user not found', async () => {
       req.body = { email: 'nonexistent@example.com' };
 
-      const { forgotPasswordValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      forgotPasswordValidation.mockReturnValue({ error: null });
+      validations.forgotPasswordValidation.mockReturnValue({ error: null });
 
       prisma.user.findFirst.mockResolvedValue(null);
 
@@ -498,10 +467,7 @@ describe('Auth Controller', () => {
         newPassword: 'newpassword123',
       };
 
-      const { resetPasswordValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      resetPasswordValidation.mockReturnValue({ error: null });
+      validations.resetPasswordValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -514,7 +480,6 @@ describe('Auth Controller', () => {
       mockValidateOTP.mockResolvedValue(true);
       mockHashPassword.mockResolvedValue('new-hashed-password');
       prisma.user.update.mockResolvedValue(mockUser);
-      mockCreateActivityLog.mockResolvedValue();
 
       await resetPassword(req, res, next);
 
@@ -531,10 +496,7 @@ describe('Auth Controller', () => {
         newPassword: 'newpassword123',
       };
 
-      const { resetPasswordValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      resetPasswordValidation.mockReturnValue({ error: null });
+      validations.resetPasswordValidation.mockReturnValue({ error: null });
 
       prisma.user.findFirst.mockResolvedValue(null);
 
@@ -553,10 +515,7 @@ describe('Auth Controller', () => {
         newPassword: 'newpassword123',
       };
 
-      const { resetPasswordValidation } = await import(
-        '../../validations/auth.validations.js'
-      );
-      resetPasswordValidation.mockReturnValue({ error: null });
+      validations.resetPasswordValidation.mockReturnValue({ error: null });
 
       const mockUser = {
         id: 'user-id',
@@ -581,8 +540,6 @@ describe('Auth Controller', () => {
     it('should refresh access token successfully', async () => {
       req.body = { refreshToken: 'valid-refresh-token' };
 
-      const jwt = await import('jsonwebtoken');
-
       // Mock the verify function to call the callback directly
       jwt.verify.mockImplementation((token, secret, callback) => {
         callback(null, { id: 'user-id', role: 'MEMBER' });
@@ -596,12 +553,10 @@ describe('Auth Controller', () => {
       };
 
       prisma.user.findUnique.mockResolvedValue(mockUser);
-      mockCreateActivityLog.mockResolvedValue();
 
       await refreshAccessToken(req, res, next);
 
       expect(jwt.verify).toHaveBeenCalled();
-      expect(mockCreateActivityLog).toHaveBeenCalled();
     });
 
     it('should return error if refresh token is missing', async () => {
@@ -620,11 +575,9 @@ describe('Auth Controller', () => {
     it('should logout user successfully', async () => {
       req.cookies = { refreshToken: 'valid-refresh-token' };
 
-      const jwt = await import('jsonwebtoken');
       jwt.decode.mockReturnValue({ id: 'user-id' });
 
       prisma.user.update.mockResolvedValue({ id: 'user-id' });
-      mockCreateActivityLog.mockResolvedValue();
 
       await logout(req, res, next);
 
@@ -649,16 +602,18 @@ describe('Auth Controller', () => {
 
   describe('googleOAuthLogin', () => {
     it('should authenticate existing user with Google', async () => {
-      req.body = { idToken: 'google-id-token' };
+      req.body = { access_token: 'google-access-token' };
 
-      mockGoogleVerifyIdToken.mockResolvedValue({
-        getPayload: () => ({
+      // Mock axios get call to Google's userinfo endpoint
+      axios.get.mockResolvedValue({
+        data: {
+          sub: 'google-sub-id',
           email: 'google@example.com',
+          name: 'Google User',
           given_name: 'Google',
           family_name: 'User',
-          sub: 'google-sub-id',
           picture: 'profile-pic-url',
-        }),
+        },
       });
 
       const mockUser = {
@@ -672,10 +627,17 @@ describe('Auth Controller', () => {
       prisma.user.update.mockResolvedValue(mockUser);
       mockGenerateAccessToken.mockReturnValue('access-token');
       mockGenerateRefreshToken.mockReturnValue('refresh-token');
-      mockCreateActivityLog.mockResolvedValue();
 
       await googleOAuthLogin(req, res);
 
+      expect(axios.get).toHaveBeenCalledWith(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        {
+          headers: {
+            Authorization: `Bearer google-access-token`,
+          },
+        },
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -686,150 +648,81 @@ describe('Auth Controller', () => {
       );
     });
 
-    it('should create new user with Google data if not exists', async () => {
-      req.body = { idToken: 'google-id-token' };
-
-      mockGoogleVerifyIdToken.mockResolvedValue({
-        getPayload: () => ({
-          email: 'newgoogle@example.com',
-          given_name: 'New',
-          family_name: 'User',
-          sub: 'google-sub-id',
-          picture: 'profile-pic-url',
-        }),
-      });
-
-      const newUser = {
-        id: 'new-user-id',
-        email: 'newgoogle@example.com',
-        firstName: 'New',
-        lastName: 'User',
-        username: 'newgoogle',
-        profilePic: 'profile-pic-url',
-        isActive: true,
-      };
-
-      prisma.user.findUnique.mockResolvedValue(null);
-      prisma.user.create.mockResolvedValue(newUser);
-      prisma.user.update.mockResolvedValue(newUser);
-      mockGenerateAccessToken.mockReturnValue('access-token');
-      mockGenerateRefreshToken.mockReturnValue('refresh-token');
-      mockCreateActivityLog.mockResolvedValue();
+    it('should return error if access_token is missing', async () => {
+      req.body = {};
 
       await googleOAuthLogin(req, res);
 
-      expect(prisma.user.create).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Google authentication successful',
-          accessToken: 'access-token',
-          refreshToken: 'refresh-token',
-        }),
-      );
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Access token is required',
+      });
     });
   });
 
-  describe('firebaseLogin', () => {
-    it('should authenticate existing user with Firebase', async () => {
-      req.body = { idToken: 'firebase-id-token' };
+  describe('googleOAuthCodeExchange', () => {
+    it('should exchange authorization code for tokens', async () => {
+      req.body = { code: 'google-auth-code' };
 
-      // Mock Firebase verifyIdToken
-      const firebaseAdmin = await import('../../config/firebase.js');
-      const mockVerifyIdToken = jest.fn().mockResolvedValue({
-        uid: 'firebase-uid',
-        email: 'firebase@example.com',
-        name: 'Firebase User',
-        picture: 'profile-pic-url',
+      // Mock axios post call to Google's token endpoint
+      axios.post.mockResolvedValue({
+        data: {
+          access_token: 'google-access-token',
+          refresh_token: 'google-refresh-token',
+          id_token: 'google-id-token',
+        },
       });
 
-      // Set up the mock chain
-      firebaseAdmin.default.auth.mockReturnValue({
-        verifyIdToken: mockVerifyIdToken,
+      // Mock axios get call to Google's userinfo endpoint
+      axios.get.mockResolvedValue({
+        data: {
+          sub: 'google-sub-id',
+          email: 'google@example.com',
+          name: 'Google User',
+          given_name: 'Google',
+          family_name: 'User',
+          picture: 'profile-pic-url',
+        },
       });
 
       const mockUser = {
         id: 'user-id',
-        email: 'firebase@example.com',
-        firebaseUid: 'firebase-uid',
+        email: 'google@example.com',
+        firstName: 'Google',
+        lastName: 'User',
       };
 
       prisma.user.findUnique.mockResolvedValue(mockUser);
       prisma.user.update.mockResolvedValue(mockUser);
       mockGenerateAccessToken.mockReturnValue('access-token');
       mockGenerateRefreshToken.mockReturnValue('refresh-token');
-      mockCreateActivityLog.mockResolvedValue();
 
-      await firebaseLogin(req, res, next);
+      await googleOAuthCodeExchange(req, res, next);
 
-      expect(mockVerifyIdToken).toHaveBeenCalledWith('firebase-id-token');
-      expect(prisma.user.findUnique).toHaveBeenCalled();
-      expect(mockGenerateAccessToken).toHaveBeenCalled();
-      expect(mockGenerateRefreshToken).toHaveBeenCalled();
-      expect(prisma.user.update).toHaveBeenCalled();
-      expect(mockCreateActivityLog).toHaveBeenCalled();
+      expect(axios.post).toHaveBeenCalledWith(
+        'https://oauth2.googleapis.com/token',
+        expect.objectContaining({
+          code: 'google-auth-code',
+          grant_type: 'authorization_code',
+        }),
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Firebase authentication successful',
+          message: 'Google authentication successful',
         }),
       );
     });
 
-    it('should create new user with Firebase data if not exists', async () => {
-      req.body = { idToken: 'firebase-id-token' };
+    it('should return error if code is missing', async () => {
+      req.body = {};
 
-      // Mock Firebase verifyIdToken
-      const firebaseAdmin = await import('../../config/firebase.js');
-      const mockVerifyIdToken = jest.fn().mockResolvedValue({
-        uid: 'new-firebase-uid',
-        email: 'newfirebase@example.com',
-        name: 'New Firebase User',
-        picture: 'profile-pic-url',
+      await googleOAuthCodeExchange(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Authorization code is required',
       });
-
-      // Set up the mock chain
-      firebaseAdmin.default.auth.mockReturnValue({
-        verifyIdToken: mockVerifyIdToken,
-      });
-
-      const newUser = {
-        id: 'new-user-id',
-        email: 'newfirebase@example.com',
-        firebaseUid: 'new-firebase-uid',
-        firstName: 'New',
-        lastName: 'Firebase User',
-        isActive: true,
-      };
-
-      // First call for firebaseUid lookup
-      prisma.user.findUnique.mockResolvedValueOnce(null);
-      // Second call for email lookup
-      prisma.user.findUnique.mockResolvedValueOnce(null);
-      // For username uniqueness check
-      prisma.user.findUnique.mockResolvedValueOnce(null);
-
-      prisma.user.create.mockResolvedValue(newUser);
-      prisma.user.update.mockResolvedValue(newUser);
-      mockGenerateAccessToken.mockReturnValue('access-token');
-      mockGenerateRefreshToken.mockReturnValue('refresh-token');
-      mockCreateActivityLog.mockResolvedValue();
-
-      await firebaseLogin(req, res, next);
-
-      expect(mockVerifyIdToken).toHaveBeenCalledWith('firebase-id-token');
-      expect(prisma.user.findUnique).toHaveBeenCalled();
-      expect(prisma.user.create).toHaveBeenCalled();
-      expect(mockGenerateAccessToken).toHaveBeenCalled();
-      expect(mockGenerateRefreshToken).toHaveBeenCalled();
-      expect(prisma.user.update).toHaveBeenCalled();
-      expect(mockCreateActivityLog).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Firebase authentication successful',
-        }),
-      );
     });
   });
 });

@@ -39,7 +39,7 @@ app.use(passport.session());
 app.use(cors({ origin: '*', credentials: true }));
 
 // Security
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet());
 
 // Logging - minimal in test environment
 app.use(morgan('dev'));
